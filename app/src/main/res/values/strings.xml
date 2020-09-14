@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Android SDK Demo</string>
+    <string name="title_identify">Identify API</string>
+    <string name="title_gambanner">GAM Banner</string>
+    <string name="identify_api">Identify API</string>
+    <string name="gam_banner">GAM Banner</string>
+</resources>
