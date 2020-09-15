@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        MainActivity.OPTABLE = OptableSDK(this, "10.0.2.2", "android-sdk-demo", true)
+        MainActivity.OPTABLE = OptableSDK(this,"sandbox.optable.co", "android-sdk-demo")
 
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
         val navController = findNavController(R.id.nav_host_fragment)

@@ -15,6 +15,9 @@ import java.security.MessageDigest
  * OptableSDK APIs:
  */
 
+/*
+ * Identify API expects a list of type-prefixed ID string values:
+ */
 typealias OptableIdentifyInput = List<String>
 
 /*
@@ -24,7 +27,9 @@ typealias OptableIdentifyInput = List<String>
  */
 typealias OptableIdentifyResponse = HashMap<Any,Any>
 
-/* Targeting API responds with a key-values dictionary: */
+/*
+ * Targeting API responds with a key-values dictionary on success:
+ */
 typealias OptableTargetingResponse = HashMap<String, List<String>>
 
 /*
@@ -78,6 +83,15 @@ class OptableSDK(context: Context, host: String, app: String, insecure: Boolean 
         }
     }
 
+    /*
+     *  identify(idList) calls the Optable Sandbox "identify" API, passing it the list of IDs
+     *  in idList, a list of type-prefixed identifiers.
+     *
+     *  It is asynchronous, so the caller may call observe() on the returned LiveData and expect
+     *  an instance of Response<OptableIdentifyResponse> in the result. Success can be checked by
+     *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
+     *  to an empty HashMap on success, and can therefore be ignored.
+     */
     fun identify(idList: OptableIdentifyInput): LiveData<Response<OptableIdentifyResponse>> {
         val liveData = MutableLiveData<Response<OptableIdentifyResponse>>()
         val client = this.client
@@ -105,6 +119,16 @@ class OptableSDK(context: Context, host: String, app: String, insecure: Boolean 
         return liveData
     }
 
+    /*
+     *  identify(email, gaid?) calls the Optable Sandbox "identify" API, passing it the SHA-256 of
+     *  the caller-provided 'email' and, when specified via the 'gaid' Boolean, the Google
+     *  Advertising ID of the device.
+     *
+     *  It is asynchronous, so the caller may call observe() on the returned LiveData and expect
+     *  an instance of Response<OptableIdentifyResponse> in the result. Success can be checked by
+     *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
+     *  to an empty HashMap on success, and can therefore be ignored.
+     */
     fun identify(email: String, gaid: Boolean? = false):
             LiveData<Response<OptableIdentifyResponse>>
     {
