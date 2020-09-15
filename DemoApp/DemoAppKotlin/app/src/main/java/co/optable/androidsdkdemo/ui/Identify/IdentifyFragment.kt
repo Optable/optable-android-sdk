@@ -13,7 +13,6 @@ import androidx.lifecycle.Observer
 import co.optable.android_sdk.OptableSDK
 import co.optable.androidsdkdemo.MainActivity
 import co.optable.androidsdkdemo.R
-import java.security.MessageDigest
 
 class IdentifyFragment : Fragment() {
     private lateinit var identifyView: TextView
