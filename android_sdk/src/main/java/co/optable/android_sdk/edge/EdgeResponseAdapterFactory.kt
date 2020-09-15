@@ -21,7 +21,7 @@ internal class EdgeResponseAdapterFactory : CallAdapter.Factory() {
 
         // check first that the return type is `ParameterizedType`
         check(returnType is ParameterizedType) {
-            "return type must be parameterized as Call<NetworkResponse<<Foo>> or Call<NetworkResponse<out Foo>>"
+            "return type must be parameterized as Call<EdgeResponse<<Foo>> or Call<EdgeResponse<out Foo>>"
         }
 
         // get the response type inside the `Call` type
@@ -32,7 +32,7 @@ internal class EdgeResponseAdapterFactory : CallAdapter.Factory() {
         }
 
         // the response type is ApiResponse and should be parameterized
-        check(responseType is ParameterizedType) { "Response must be parameterized as NetworkResponse<Foo> or NetworkResponse<out Foo>" }
+        check(responseType is ParameterizedType) { "Response must be parameterized as EdgeResponse<Foo> or EdgeResponse<out Foo>" }
 
         val successBodyType = getParameterUpperBound(0, responseType)
         val errorBodyType = getParameterUpperBound(1, responseType)

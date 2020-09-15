@@ -10,10 +10,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0e28bb15-a88c-46a3-9fc1-3a3603a0125f" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../../README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/co/optable/androidsdkdemo/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/co/optable/androidsdkdemo/MainActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../android_sdk/src/main/java/co/optable/android_sdk/OptableSDK.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../android_sdk/src/main/java/co/optable/android_sdk/OptableSDK.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../android_sdk/src/main/java/co/optable/android_sdk/edge/EdgeResponseAdapterFactory.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../android_sdk/src/main/java/co/optable/android_sdk/edge/EdgeResponseAdapterFactory.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
