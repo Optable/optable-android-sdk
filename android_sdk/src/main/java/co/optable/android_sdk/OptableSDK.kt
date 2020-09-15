@@ -137,7 +137,7 @@ class OptableSDK(context: Context, host: String, app: String, insecure: Boolean 
         if (!TextUtils.isEmpty(email) &&
             android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches())
         {
-            idList += "e:" + eid(email)
+            idList += "e:" + Companion.eid(email)
         }
 
         if (gaid!! && this.client.hasGAID()) {
@@ -183,12 +183,14 @@ class OptableSDK(context: Context, host: String, app: String, insecure: Boolean 
         return liveData
     }
 
-    /*
-     * eid(email) is a helper that returns SHA256(downcase(email))
-     */
-    private fun eid(email: String): String {
-        return MessageDigest.getInstance("SHA-256")
-            .digest(email.toLowerCase().toByteArray())
-            .fold("", { str, it -> str + "%02x".format(it) })
+    companion object {
+        /*
+         * eid(email) is a helper that returns SHA256(downcase(email))
+         */
+        fun eid(email: String): String {
+            return MessageDigest.getInstance("SHA-256")
+                .digest(email.toLowerCase().trim().toByteArray())
+                .fold("", { str, it -> str + "%02x".format(it) })
+        }
     }
 }
