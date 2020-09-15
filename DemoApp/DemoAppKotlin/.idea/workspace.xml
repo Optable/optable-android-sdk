@@ -11,11 +11,26 @@
   <component name="ChangeListManager">
     <list default="true" id="0e28bb15-a88c-46a3-9fc1-3a3603a0125f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/caches/build_file_checksums.ser" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/build_file_checksums.ser" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__androidx_activity_activity_1_0_0_aar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__androidx_activity_activity_ktx_1_0_0_aar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__androidx_appcompat_appcompat_1_1_0_aar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__androidx_appcompat_appcompat_resources_1_1_0_aar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__androidx_core_core_1_1_0_aar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__androidx_core_core_ktx_1_1_0_aar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__androidx_fragment_fragment_1_1_0_aar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__androidx_fragment_fragment_ktx_1_1_0_aar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__androidx_lifecycle_lifecycle_common_2_1_0_jar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__androidx_lifecycle_lifecycle_livedata_core_2_1_0_aar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__androidx_lifecycle_lifecycle_runtime_2_1_0_aar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__androidx_lifecycle_lifecycle_viewmodel_2_1_0_aar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__androidx_lifecycle_lifecycle_viewmodel_ktx_2_1_0_aar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__org_jetbrains_kotlin_kotlin_android_extensions_runtime_1_3_72_jar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__org_jetbrains_kotlin_kotlin_stdlib_1_4_0_jar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__org_jetbrains_kotlin_kotlin_stdlib_common_1_4_0_jar.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Gradle__org_jetbrains_kotlinx_kotlinx_coroutines_android_1_1_1_jar.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/gradle.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -150,10 +165,10 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="210" y="-1042" key="#PSD" timestamp="1600184834942">
+    <state x="-42" y="-1097" width="1600" height="522" key="#PSD" timestamp="1600185314189">
       <screen x="-562" y="-1417" width="2560" height="1362" />
     </state>
-    <state x="210" y="-1042" key="#PSD/0.23.1440.877/-562.-1417.2560.1362@-562.-1417.2560.1362" timestamp="1600184834942" />
+    <state x="-42" y="-1097" width="1600" height="522" key="#PSD/0.23.1440.877/-562.-1417.2560.1362@-562.-1417.2560.1362" timestamp="1600185314189" />
     <state x="387" y="-1125" key="#app" timestamp="1599247861292">
       <screen x="-562" y="-1417" width="2560" height="1417" />
     </state>
@@ -183,26 +198,26 @@
       <screen x="-562" y="-1417" width="2560" height="1362" />
     </state>
     <state x="436" y="-894" key="AndroidCreateXmlResourceDialog/0.23.1440.877/-562.-1417.2560.1362@-562.-1417.2560.1362" timestamp="1599148759327" />
-    <state width="2320" height="308" key="GridCell.Tab.0.bottom" timestamp="1599877485358">
-      <screen x="-562" y="-1417" width="2560" height="1417" />
+    <state width="2320" height="350" key="GridCell.Tab.0.bottom" timestamp="1600185912923">
+      <screen x="-562" y="-1417" width="2560" height="1362" />
     </state>
     <state width="2320" height="308" key="GridCell.Tab.0.bottom/0.23.1440.822/-562.-1417.2560.1417@-562.-1417.2560.1417" timestamp="1599877485358" />
-    <state width="2237" height="352" key="GridCell.Tab.0.bottom/0.23.1440.877/-562.-1417.2560.1362@-562.-1417.2560.1362" timestamp="1599147936831" />
-    <state width="2320" height="308" key="GridCell.Tab.0.center" timestamp="1599877485358">
-      <screen x="-562" y="-1417" width="2560" height="1417" />
+    <state width="2320" height="350" key="GridCell.Tab.0.bottom/0.23.1440.877/-562.-1417.2560.1362@-562.-1417.2560.1362" timestamp="1600185912923" />
+    <state width="2320" height="350" key="GridCell.Tab.0.center" timestamp="1600185912919">
+      <screen x="-562" y="-1417" width="2560" height="1362" />
     </state>
     <state width="2320" height="308" key="GridCell.Tab.0.center/0.23.1440.822/-562.-1417.2560.1417@-562.-1417.2560.1417" timestamp="1599877485358" />
-    <state width="2237" height="352" key="GridCell.Tab.0.center/0.23.1440.877/-562.-1417.2560.1362@-562.-1417.2560.1362" timestamp="1599147936830" />
-    <state width="2320" height="308" key="GridCell.Tab.0.left" timestamp="1599877485357">
-      <screen x="-562" y="-1417" width="2560" height="1417" />
+    <state width="2320" height="350" key="GridCell.Tab.0.center/0.23.1440.877/-562.-1417.2560.1362@-562.-1417.2560.1362" timestamp="1600185912919" />
+    <state width="2320" height="350" key="GridCell.Tab.0.left" timestamp="1600185912919">
+      <screen x="-562" y="-1417" width="2560" height="1362" />
     </state>
     <state width="2320" height="308" key="GridCell.Tab.0.left/0.23.1440.822/-562.-1417.2560.1417@-562.-1417.2560.1417" timestamp="1599877485357" />
-    <state width="2237" height="352" key="GridCell.Tab.0.left/0.23.1440.877/-562.-1417.2560.1362@-562.-1417.2560.1362" timestamp="1599147936830" />
-    <state width="2320" height="308" key="GridCell.Tab.0.right" timestamp="1599877485358">
-      <screen x="-562" y="-1417" width="2560" height="1417" />
+    <state width="2320" height="350" key="GridCell.Tab.0.left/0.23.1440.877/-562.-1417.2560.1362@-562.-1417.2560.1362" timestamp="1600185912919" />
+    <state width="2320" height="350" key="GridCell.Tab.0.right" timestamp="1600185912921">
+      <screen x="-562" y="-1417" width="2560" height="1362" />
     </state>
     <state width="2320" height="308" key="GridCell.Tab.0.right/0.23.1440.822/-562.-1417.2560.1417@-562.-1417.2560.1417" timestamp="1599877485358" />
-    <state width="2237" height="352" key="GridCell.Tab.0.right/0.23.1440.877/-562.-1417.2560.1362@-562.-1417.2560.1362" timestamp="1599147936831" />
+    <state width="2320" height="350" key="GridCell.Tab.0.right/0.23.1440.877/-562.-1417.2560.1362@-562.-1417.2560.1362" timestamp="1600185912921" />
     <state x="184" y="-1126" key="SettingsEditor" timestamp="1599576006024">
       <screen x="-562" y="-1417" width="2560" height="1417" />
     </state>
