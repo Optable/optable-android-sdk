@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2020 Optable Technologies Inc. All rights reserved.
+ * See LICENSE for details.
+ */
 package co.optable.android_sdk
 
 import androidx.test.platform.app.InstrumentationRegistry

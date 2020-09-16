@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2020 Optable Technologies Inc. All rights reserved.
+ * See LICENSE for details.
+ */
 package co.optable.androidsdkdemo.ui.Identify
 
 import android.os.Bundle
