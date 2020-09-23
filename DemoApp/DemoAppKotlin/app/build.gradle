@@ -1,3 +1,7 @@
+plugins {
+    id("de.nanogiants.android-versioning") version "2.4.0"
+}
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
@@ -10,8 +14,11 @@ android {
         applicationId "co.optable.androidsdkdemo"
         minSdkVersion 16
         targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
+
+        versionCode versioning.getVersionCode()
+        versionName versioning.getVersionName(false)
+        archivesBaseName = "optable-android-sdk-demo-kotlin"
+
         multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -23,10 +30,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = '1.8'
     }
@@ -53,5 +62,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
     implementation 'com.google.android.gms:play-services-ads:19.3.0'
-    implementation 'com.github.Optable:optable-android-sdk:master-SNAPSHOT'
+    implementation "com.github.Optable:optable-android-sdk:" + versioning.getVersionName(false)
 }
