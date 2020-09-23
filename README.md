@@ -1,4 +1,4 @@
-# optable-android-sdk
+# Optable Android SDK [![](https://jitci.com/gh/Optable/optable-android-sdk/svg)](https://jitci.com/gh/Optable/optable-android-sdk)
 
 Kotlin SDK for integrating with optable-sandbox from an Android application.
 
