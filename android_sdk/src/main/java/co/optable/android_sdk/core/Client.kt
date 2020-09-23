@@ -28,7 +28,17 @@ class Client(private val config: Config, private val context: Context) {
 
     private class RequestInterceptor(private val userAgent: String, private val storage: LocalStorage): Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
-            var newRequest = chain.request().newBuilder().addHeader("User-Agent", userAgent)
+            var oldRequest = chain.request()
+            var newURL = oldRequest.url.newBuilder()
+                .addQueryParameter("osdk",
+                    "android-" +
+                            BuildConfig.VERSION_NAME + "-" +
+                            BuildConfig.VERSION_CODE.toString()
+                ).build()
+            var newRequest = oldRequest.newBuilder()
+                .url(newURL)
+                .addHeader("User-Agent", userAgent)
+
             val pass = storage.getPassport()
             if (pass != null) {
                 newRequest = newRequest.addHeader("X-Optable-Visitor", pass)
