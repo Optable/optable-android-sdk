@@ -4,9 +4,9 @@ Kotlin SDK for integrating with optable-sandbox from an Android application.
 
 ## Installation
 
-This SDK is published using [JitPack](https://jitpack.io/), so to add it to your application build, follow the [JitPack How to](https://jitpack.io/).
+This SDK is published using [JitPack](https://jitpack.io/), so to add it to your application build, follow the [JitPack How To](https://jitpack.io/).
 
-If you're using gradle, add in your root `build.gradle` at the end of repositories:
+If you're using gradle, add the following in your root `build.gradle` at the end of `repositories`:
 
 ```kotlin
 allprojects {
@@ -20,7 +20,7 @@ allprojects {
 }
 ```
 
-In order to allow [JitPack](https://jitpack.io/) to access this private GitHub repository, for now you must add the following authToken to your `gradle.properties`:
+In order to allow [JitPack](https://jitpack.io/) to access this private GitHub repository, add the following authToken to your `gradle.properties`:
 
 ```
 authToken=jp_u0bjd3a5p9uc4ujsb74ja4bvur
@@ -34,7 +34,7 @@ dependencies {
 }
 ```
 
-Remember to replace `VERSION_TAG` with the latest or desired [SDK release](https://github.com/Optable/optable-android-sdk/releases)
+Remember to replace `VERSION_TAG` with the latest or desired [SDK release](https://github.com/Optable/optable-android-sdk/releases).
 
 ## Using (Kotlin)
 
@@ -59,9 +59,15 @@ class MainActivity : AppCompatActivity() {
 }
 ```
 
-You can then call various OptableSDK APIs on the instance as shown in the examples below. It's also possible to configure multiple instances of `OptableSDK` in order to connect to other (e.g., partner) sandboxes and/or reference other configured application slug IDs.
+You can then call various SDK APIs on the instance as shown in the examples below. It's also possible to configure multiple instances of `OptableSDK` in order to connect to other (e.g., partner) sandboxes and/or reference other configured application slug IDs.
 
-Note that all SDK communication with Optable sandboxes is done over TLS.
+Note that all SDK communication with Optable sandboxes is done over TLS. The only exception to this is if you instantiate the `OptableSDK` class with a fourth optional boolean parameter, `insecure`, set to `true`. For example:
+
+```kotlin
+MainActivity.OPTABLE = OptableSDK(this, "sandbox.customer.com", "my-app", true)
+```
+
+However, since production sandboxes only listen to TLS traffic, so the above is really only useful for developers of `optable-sandbox` running the sandbox locally for testing. 
 
 ### Identify API
 
