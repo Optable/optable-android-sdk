@@ -13,7 +13,7 @@ import org.junit.Assert.*
 class OptableSDKUnitTest {
     @Test
     fun eid_isCorrect() {
-        val expected = "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
+        val expected = "e:a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
 
         assertEquals(expected, OptableSDK.eid("123"))
         assertEquals(expected, OptableSDK.eid(" 123"))

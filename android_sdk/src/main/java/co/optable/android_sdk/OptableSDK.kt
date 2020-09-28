@@ -124,16 +124,17 @@ class OptableSDK(context: Context, host: String, app: String, insecure: Boolean 
     }
 
     /*
-     *  identify(email, gaid?) calls the Optable Sandbox "identify" API, passing it the SHA-256 of
-     *  the caller-provided 'email' and, when specified via the 'gaid' Boolean, the Google
-     *  Advertising ID of the device.
+     *  identify(email, gaid?, ppid?) calls the Optable Sandbox "identify" API, passing it the
+     *  SHA-256 of the caller-provided 'email' and, when specified via the 'gaid' Boolean, the
+     *  Google Advertising ID of the device. If the 'ppid' String is specified, it will also be
+     *  sent for identity resolution.
      *
-     *  It is asynchronous, so the caller may call observe() on the returned LiveData and expect
+     *  The function is async, so the caller may call observe() on the returned LiveData and expect
      *  an instance of Response<OptableIdentifyResponse> in the result. Success can be checked by
      *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
      *  to an empty HashMap on success, and can therefore be ignored.
      */
-    fun identify(email: String, gaid: Boolean? = false):
+    fun identify(email: String, gaid: Boolean? = false, ppid: String? = null):
             LiveData<Response<OptableIdentifyResponse>>
     {
         var idList: OptableIdentifyInput = listOf()
@@ -141,11 +142,15 @@ class OptableSDK(context: Context, host: String, app: String, insecure: Boolean 
         if (!TextUtils.isEmpty(email) &&
             android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches())
         {
-            idList += "e:" + Companion.eid(email)
+            idList += Companion.eid(email)
         }
 
         if (gaid!! && this.client.hasGAID()) {
-            idList += "g:" + this.client.GAID()
+            idList += Companion.gaid(this.client.GAID()!!)
+        }
+
+        if ((ppid != null) && (ppid.length > 0)) {
+            idList += Companion.cid(ppid)
         }
 
         return this.identify(idList)
@@ -189,12 +194,26 @@ class OptableSDK(context: Context, host: String, app: String, insecure: Boolean 
 
     companion object {
         /*
-         * eid(email) is a helper that returns SHA256(downcase(email))
+         * eid(email) is a helper that returns type-prefixed SHA256(downcase(email))
          */
         fun eid(email: String): String {
-            return MessageDigest.getInstance("SHA-256")
+            return "e:" + MessageDigest.getInstance("SHA-256")
                 .digest(email.toLowerCase().trim().toByteArray())
                 .fold("", { str, it -> str + "%02x".format(it) })
+        }
+
+        /*
+         * gaid(gaid) is a helper that returns the type-prefixed Google Advertising ID
+         */
+        fun gaid(gaid: String): String {
+            return "g:" + gaid.trim()
+        }
+
+        /*
+         * cid(ppid) is a helper that returns custom type-prefixed origin-provided PPID
+         */
+        fun cid(ppid: String): String {
+            return "c:" + ppid.trim()
         }
     }
 }
