@@ -67,11 +67,11 @@ Note that all SDK communication with Optable sandboxes is done over TLS. The onl
 MainActivity.OPTABLE = OptableSDK(this, "sandbox.customer.com", "my-app", true)
 ```
 
-However, since production sandboxes only listen to TLS traffic, so the above is really only useful for developers of `optable-sandbox` running the sandbox locally for testing. 
+However, since production sandboxes only listen to TLS traffic, the above is really only useful for developers of `optable-sandbox` running the sandbox locally for testing.
 
 ### Identify API
 
-To associate a user device with an authenticated identifier such as an Email address, or with other known IDs such as the Google Advertising ID, or even your own vendor or app level `PPID`, you can invoke the `identify` API as follows:
+To associate a user device with an authenticated identifier such as an Email address, or with other known IDs such as the Google Advertising ID, or even your own vendor or app level `PPID`, you can call the `identify` API as follows:
 
 ```kotlin
 import co.optable.android_sdk.OptableSDK
@@ -98,7 +98,7 @@ MainActivity.OPTABLE!!
 
 The SDK `identify()` method will asynchronously connect to the configured sandbox and send IDs for resolution. You can register an observer to understand successful completion or errors.
 
-Note that in the above example, the SDK will compute the SHA-256 hash of the Email address on the client-side and send the hashed value to the sandbox. The Email address is never sent from the device in plain text.
+> :warning: **Client-Side Email Hashing**: The SDK will compute the SHA-256 hash of the Email address on the client-side and send the hashed value to the sandbox. The Email address is **not** sent by the device in plain text.
 
 Since the `sendGoogleAdIDBoolean` value provided to `identify()` is `true`, the SDK will fetch and send the Google Advertising ID in the call to `identify` too, unless the user has turned on "Limit ad tracking" in their Google device advertising settings.
 
