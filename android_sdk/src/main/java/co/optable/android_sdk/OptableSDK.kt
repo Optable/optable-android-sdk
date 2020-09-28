@@ -206,7 +206,7 @@ class OptableSDK(context: Context, host: String, app: String, insecure: Boolean 
          * gaid(gaid) is a helper that returns the type-prefixed Google Advertising ID
          */
         fun gaid(gaid: String): String {
-            return "g:" + gaid.trim()
+            return "g:" + gaid.toLowerCase().trim()
         }
 
         /*
