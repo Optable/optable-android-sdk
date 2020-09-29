@@ -81,9 +81,10 @@ import android.util.Log
 
 val emailString = "some.email@address.com"
 val sendGoogleAdIDBoolean = true
+val ppid = "my-id-123"
 
 MainActivity.OPTABLE!!
-    .identify(emailString, sendGoogleAdIDBoolean)
+    .identify(emailString, sendGoogleAdIDBoolean, ppid)
     .observe(viewLifecycleOwner, Observer
     { result ->
         if (result.status == OptableSDK.Status.SUCCESS) {
@@ -96,7 +97,7 @@ MainActivity.OPTABLE!!
     })
 ```
 
-The SDK `identify()` method will asynchronously connect to the configured sandbox and send IDs for resolution. You can register an observer to understand successful completion or errors.
+The SDK `identify()` method will asynchronously connect to the configured sandbox and send IDs for resolution. The second (`sendGoogleAdIDBoolean`) and third (`ppid`) arguments to `identify()` are optional. You can register an observer to understand successful completion or errors.
 
 > :warning: **Client-Side Email Hashing**: The SDK will compute the SHA-256 hash of the Email address on the client-side and send the hashed value to the sandbox. The Email address is **not** sent by the device in plain text.
 
