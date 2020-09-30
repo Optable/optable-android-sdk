@@ -88,6 +88,15 @@ class Client(private val config: Config, private val context: Context) {
         return edgeService!!.Targeting(this.config.app)
     }
 
+    suspend fun Witness(event: String, properties: OptableWitnessProperties):
+            EdgeResponse<OptableWitnessResponse, OptableSDK.Response.Error>
+    {
+        val evtBody = HashMap<String,Any>()
+        evtBody.put("event", event)
+        evtBody.put("properties", properties)
+        return edgeService!!.Witness(this.config.app, evtBody)
+    }
+
     fun hasGAID(): Boolean {
         return ((gaid != null) && (gaidLAT == false) && !TextUtils.isEmpty(gaid!!))
     }

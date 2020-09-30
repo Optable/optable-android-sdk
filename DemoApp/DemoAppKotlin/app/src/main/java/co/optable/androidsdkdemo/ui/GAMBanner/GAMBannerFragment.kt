@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import co.optable.android_sdk.OptableSDK
+import co.optable.android_sdk.OptableWitnessProperties
 import co.optable.androidsdkdemo.MainActivity
 import co.optable.androidsdkdemo.R
 import com.google.android.gms.ads.doubleclick.PublisherAdRequest
@@ -49,6 +50,21 @@ class GAMBannerFragment : Fragment() {
 
                 targetingDataView.setText(msg)
                 mPublisherAdView.loadAd(adRequest.build())
+            })
+
+            MainActivity.OPTABLE!!
+                .witness(
+                    "GAMBannerFragment.loadAdButtonClicked",
+                    hashMapOf("exampleKey" to "exampleValue")
+                )
+                .observe(viewLifecycleOwner, Observer { result ->
+                var msg = targetingDataView.text.toString()
+                if (result.status == OptableSDK.Status.SUCCESS) {
+                    msg += "\n\nSuccess calling witness API to log loadAdButtonClicked event.\n"
+                } else {
+                    msg += "\n\nOptableSDK Error: ${result.message}\n"
+                }
+                targetingDataView.setText(msg)
             })
         }
 

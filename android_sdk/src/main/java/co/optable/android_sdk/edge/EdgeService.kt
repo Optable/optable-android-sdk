@@ -4,10 +4,7 @@
  */
 package co.optable.android_sdk.edge
 
-import co.optable.android_sdk.OptableIdentifyInput
-import co.optable.android_sdk.OptableIdentifyResponse
-import co.optable.android_sdk.OptableSDK
-import co.optable.android_sdk.OptableTargetingResponse
+import co.optable.android_sdk.*
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -22,5 +19,10 @@ interface EdgeService {
     @GET("/{app}/targeting")
     suspend fun Targeting(@Path("app") app: String):
             EdgeResponse<OptableTargetingResponse, OptableSDK.Response.Error>
+
+    @POST("/{app}/witness")
+    suspend fun Witness(@Path("app") app: String,
+                        @Body witnessBody: HashMap<String,Any>):
+            EdgeResponse<OptableWitnessResponse, OptableSDK.Response.Error>
 
 }

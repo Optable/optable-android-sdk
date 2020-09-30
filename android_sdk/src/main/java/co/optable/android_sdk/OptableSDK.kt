@@ -25,11 +25,17 @@ import java.security.MessageDigest
 typealias OptableIdentifyInput = List<String>
 
 /*
- * Identify API usually just returns {}... Void would be better but that results in retrofit2
- * error when parsing response, even when the API responded successfully, since {} is technically
- * a HashMap:
+ * Witness API expects event properties:
+ */
+typealias OptableWitnessProperties = HashMap<String, String>
+
+/*
+ * Identify and Witness APIs usually just return {}... Void would be better but that results in
+ * retrofit2 error when parsing response, even when the API responded successfully, since {} is
+ * technically a HashMap:
  */
 typealias OptableIdentifyResponse = HashMap<Any,Any>
+typealias OptableWitnessResponse = HashMap<Any,Any>
 
 /*
  * Targeting API responds with a key-values dictionary on success:
@@ -171,6 +177,44 @@ class OptableSDK(context: Context, host: String, app: String, insecure: Boolean 
 
         GlobalScope.launch {
             val response = client.Targeting()
+            when (response) {
+                is EdgeResponse.Success -> {
+                    liveData.postValue(Response.success(response.body))
+                }
+                is EdgeResponse.ApiError -> {
+                    liveData.postValue(Response.error(response.body))
+                }
+                is EdgeResponse.NetworkError -> {
+                    liveData.postValue(Response.error(
+                        Response.Error("NetworkError", "None")))
+                }
+                is EdgeResponse.UnknownError -> {
+                    liveData.postValue(Response.error(
+                        Response.Error("UnknownError", "None")))
+                }
+            }
+        }
+
+        return liveData
+    }
+
+    /*
+     *  witness(event, properties) calls the Optable Sandbox "witness" API in order to log a
+     *  specified 'event' (e.g., "app.screenView", "ui.buttonPressed"), with the specified keyvalue
+     *  OptableWitnessProperties 'properties', which can be subsequently used for audience assembly.
+     *
+     *  It is asynchronous, so the caller may call observe() on the returned LiveData and expect
+     *  an instance of Response<OptableWitnessResponse> in the result. Success can be checked by
+     *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
+     *  to an empty HashMap on success, and can therefore be ignored.
+     */
+    fun witness(event: String, properties: OptableWitnessProperties):
+            LiveData<Response<OptableWitnessResponse>> {
+        val liveData = MutableLiveData<Response<OptableWitnessResponse>>()
+        val client = this.client
+
+        GlobalScope.launch {
+            val response = client.Witness(event, properties)
             when (response) {
                 is EdgeResponse.Success -> {
                     liveData.postValue(Response.success(response.body))

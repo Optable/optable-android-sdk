@@ -134,6 +134,33 @@ MainActivity.OPTABLE!!
 
 On success, the resulting key values are typically sent as part of a subsequent ad call. Therefore we recommend that you either call `targeting()` before each ad call, or in parallel periodically, caching the resulting key values which you then provide in ad calls.
 
+### Witness API
+
+To send real-time event data from the user's device to the sandbox for eventual audience assembly, you can call the witness API as follows:
+
+```kotlin
+import co.optable.android_sdk.OptableSDK
+import co.optable.android_sdk.OptableWitnessProperties
+import my.org.app.MainActivity
+import android.util.Log
+...
+MainActivity.OPTABLE!!
+    .witness("example.event.type", hashMapOf("example" to "value"))
+    .observe(viewLifecycleOwner, Observer { result ->
+        if (result.status == OptableSDK.Status.SUCCESS) {
+            Log.i("Witness API Success... ")
+        } else {
+            // result.status is OptableSDK.Status.ERROR
+            // result.message is the error message
+            Log.e("Witness API Error: ${result.message}")
+        }
+    })
+```
+
+The specified event type and properties are associated with the logged event and which can be used for matching during audience assembly.
+
+Note that event properties are of type `OptableWitnessProperties` which is an alias for `HashMap<String,String>`, and should consist only of string keyvalue pairs.
+
 ### Integrating GAM360
 
 We can further extend the above `targeting` example to show an integration with a [Google Ad Manager 360](https://admanager.google.com/home/) ad server account:
