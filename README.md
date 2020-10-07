@@ -23,7 +23,7 @@ allprojects {
 In order to allow [JitPack](https://jitpack.io/) to access this private GitHub repository, add the following authToken to your `gradle.properties`:
 
 ```
-authToken=jp_u0bjd3a5p9uc4ujsb74ja4bvur
+authToken=jp_usu041v753rg6asheri00bjihl
 ```
 
 Finally, add the dependency to the SDK in your app `build.gradle`:
