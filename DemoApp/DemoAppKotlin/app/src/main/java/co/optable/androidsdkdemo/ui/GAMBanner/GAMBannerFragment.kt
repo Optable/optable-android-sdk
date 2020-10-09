@@ -13,7 +13,6 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import co.optable.android_sdk.OptableSDK
-import co.optable.android_sdk.OptableWitnessProperties
 import co.optable.androidsdkdemo.MainActivity
 import co.optable.androidsdkdemo.R
 import com.google.android.gms.ads.doubleclick.PublisherAdRequest
@@ -32,14 +31,16 @@ class GAMBannerFragment : Fragment() {
         val root = inflater.inflate(R.layout.fragment_gambanner, container, false)
         mPublisherAdView = root.findViewById(R.id.publisherAdView)
         targetingDataView = root.findViewById(R.id.targetingDataView)
+        targetingDataView.setText("")
 
         var btn = root.findViewById(R.id.loadAdButton) as Button
         btn.setOnClickListener {
             MainActivity.OPTABLE!!.targeting().observe(viewLifecycleOwner, Observer { result ->
-                var msg = "Loading GAM ad with targeting data:\n\n"
+                var msg = targetingDataView.text.toString()
                 var adRequest = PublisherAdRequest.Builder()
 
                 if (result.status == OptableSDK.Status.SUCCESS) {
+                    msg += "Loading GAM ad with targeting data:\n\n"
                     result.data!!.forEach { (key, values) ->
                         adRequest.addCustomTargeting(key, values)
                         msg += "${key} = ${values}\n"
@@ -60,9 +61,9 @@ class GAMBannerFragment : Fragment() {
                 .observe(viewLifecycleOwner, Observer { result ->
                 var msg = targetingDataView.text.toString()
                 if (result.status == OptableSDK.Status.SUCCESS) {
-                    msg += "\n\nSuccess calling witness API to log loadAdButtonClicked event.\n"
+                    msg += "\n\nSuccess calling witness API to log loadAdButtonClicked event.\n\n"
                 } else {
-                    msg += "\n\nOptableSDK Error: ${result.message}\n"
+                    msg += "\n\nOptableSDK Error: ${result.message}\n\n"
                 }
                 targetingDataView.setText(msg)
             })

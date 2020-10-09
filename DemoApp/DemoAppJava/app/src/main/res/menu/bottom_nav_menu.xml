@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_identify"
+        android:icon="@drawable/ic_identify_black"
+        android:title="Identify API" />
+
+    <item
+        android:id="@+id/navigation_gambanner"
+        android:icon="@drawable/ic_gambanner_black_24dp"
+        android:title="GAM Banner" />
+
+</menu>
