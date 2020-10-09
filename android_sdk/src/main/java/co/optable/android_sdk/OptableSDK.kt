@@ -60,7 +60,7 @@ typealias OptableTargetingResponse = HashMap<String, List<String>>
  *  unique to the app across devices.
  */
 
-class OptableSDK(context: Context, host: String, app: String, insecure: Boolean = false) {
+class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: String, insecure: Boolean = false) {
     val config = Config(host, app, insecure)
     val client = Client(config, context)
 
@@ -140,6 +140,7 @@ class OptableSDK(context: Context, host: String, app: String, insecure: Boolean 
      *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
      *  to an empty HashMap on success, and can therefore be ignored.
      */
+    @JvmOverloads
     fun identify(email: String, gaid: Boolean? = false, ppid: String? = null):
             LiveData<Response<OptableIdentifyResponse>>
     {
