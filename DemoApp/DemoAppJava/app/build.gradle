@@ -51,5 +51,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
     implementation 'com.google.android.gms:play-services-ads:19.3.0'
-    implementation "com.github.Optable:optable-android-sdk:2-issue-java-demo-SNAPSHOT" //+ versioning.getVersionName(false)
+    implementation "com.github.Optable:optable-android-sdk:" + versioning.getVersionName(false)
 }
