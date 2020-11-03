@@ -10,6 +10,10 @@ Kotlin SDK for integrating with optable-sandbox from an Android application.
   - [Targeting API](#targeting-api)
   - [Witness API](#witness-api)
   - [Integrating GAM360](#integrating-gam360)
+- [Identifying visitors arriving from Email newsletters](#identifying-visitors-arriving-from-email-newsletters)
+  - [Insert oeid into your Email newsletter template](#insert-oeid-into-your-email-newsletter-template)
+  - [Capture clicks on deep links in your application](#capture-clicks-on-deep-links-in-your-application)
+  - [Call tryIdentifyFromURI SDK API](#call-tryidentifyfromuri-sdk-api)
 - [Demo Applications](#demo-applications)
   - [Building](#building)
 
@@ -51,7 +55,7 @@ Remember to replace `VERSION_TAG` with the latest or desired [SDK release](https
 
 To configure an instance of the SDK integrating with an [Optable](https://optable.co/) sandbox running at hostname `sandbox.customer.com`, from a configured application origin identified by slug `my-app`, you can instantiate the SDK from an Activity or Application `Context`, such as for example the following application `MainActivity`:
 
-Kotlin:
+#### Kotlin
 
 ```kotlin
 import co.optable.android_sdk.OptableSDK
@@ -72,7 +76,7 @@ class MainActivity : AppCompatActivity() {
 }
 ```
 
-Java:
+#### Java
 
 ```java
 import co.optable.android_sdk.OptableSDK;
@@ -107,7 +111,7 @@ However, since production sandboxes only listen to TLS traffic, the above is rea
 
 To associate a user device with an authenticated identifier such as an Email address, or with other known IDs such as the Google Advertising ID, or even your own vendor or app level `PPID`, you can call the `identify` API as follows:
 
-Kotlin:
+#### Kotlin
 
 ```kotlin
 import co.optable.android_sdk.OptableSDK
@@ -133,7 +137,7 @@ MainActivity.OPTABLE!!
     })
 ```
 
-Java:
+#### Java
 
 ```java
 import co.optable.android_sdk.OptableSDK;
@@ -170,7 +174,7 @@ The frequency of invocation of `identify` is up to you, however for optimal iden
 
 To get the targeting key values associated by the configured sandbox with the device in real-time, you can call the `targeting` API as follows:
 
-Kotlin:
+#### Kotlin
 
 ```kotlin
 import co.optable.android_sdk.OptableSDK
@@ -195,7 +199,7 @@ MainActivity.OPTABLE!!
     })
 ```
 
-Java:
+#### Java
 
 ```java
 import co.optable.android_sdk.OptableSDK;
@@ -225,7 +229,7 @@ On success, the resulting key values are typically sent as part of a subsequent 
 
 To send real-time event data from the user's device to the sandbox for eventual audience assembly, you can call the witness API as follows:
 
-Kotlin:
+#### Kotlin
 
 ```kotlin
 import co.optable.android_sdk.OptableSDK
@@ -245,7 +249,7 @@ MainActivity.OPTABLE!!
     })
 ```
 
-Java:
+#### Java
 
 ```java
 import co.optable.android_sdk.OptableSDK;
@@ -275,7 +279,7 @@ The specified event type and properties are associated with the logged event and
 
 We can further extend the above `targeting` example to show an integration with a [Google Ad Manager 360](https://admanager.google.com/home/) ad server account:
 
-Kotlin:
+#### Kotlin
 
 ```kotlin
 import co.optable.android_sdk.OptableSDK
@@ -311,7 +315,7 @@ MainActivity.OPTABLE!!
     })
 ```
 
-Java:
+#### Java
 
 ```java
 import co.optable.android_sdk.OptableSDK;
@@ -346,6 +350,62 @@ MainActivity.OPTABLE.targeting().observe(getViewLifecycleOwner(), result -> {
 ```
 
 Working examples are available in the Kotlin and Java SDK demo applications.
+
+## Identifying visitors arriving from Email newsletters
+
+If you send Email newsletters that contain links to your application (e.g., deep links), then you may want to automatically _identify_ visitors that have clicked on any such links via their Email address. Incoming application traffic which is originating from a subscriber click on a link in a newsletter is considered to be implicitly authenticated by the recipient of the Email, therefore serving as an excellent source of linking of online user identities.
+
+### Insert oeid into your Email newsletter template
+
+To enable automatic identification of visitors originating from your Email newsletter, you first need to include an **oeid** parameter in the query string of all links to your website in your Email newsletter template. The value of the **oeid** parameter should be set to the SHA256 hash of the lowercased Email address of the recipient. For example, if you are using [Braze](https://www.braze.com/) to send your newsletters, you can easily encode the SHA256 hash value of the recipient's Email address by setting the **oeid** parameter in the query string of any links to your application as follows:
+
+```
+oeid={{${email_address} | downcase | sha2}}
+```
+
+The above example uses various personalization tags as documented in [Braze's user guide](https://www.braze.com/docs/user_guide/personalization_and_dynamic_content/) to dynamically insert the required data into an **oeid** parameter, all of which should make up a _part_ of the destination URL in your template.
+
+### Capture clicks on deep links in your application
+
+In order for your application to open on devices where it is installed when a link to your domain is clicked, you need to [configure and prepare your application to handle deep links](https://developer.android.com/training/app-links/deep-linking) first.
+
+### Call tryIdentifyFromURI SDK API
+
+When Android launches your app after a user clicks on a link, it will start your app activity with your configured _intent filters_. You can then obtain the `Uri` of the link by calling `getData()`, and pass it to the SDK's `tryIdentifyFromURI()` API which will automatically look for `oeid` in the query parameters of the `Uri` and call `identify` with its value if found.
+
+For example, you can call `getData()` on the incoming `Intent` from your `onCreate()` activity lifecycle callback as follows:
+
+#### Kotlin
+
+```kotlin
+override fun onCreate(savedInstanceState: Bundle?) {
+  super.onCreate(savedInstanceState)
+  setContentView(R.layout.main)
+  ...
+  val data: Uri? = intent?.data
+  if (data != null) {
+    MainActivity.OPTABLE!!.tryIdentifyFromURI(data)
+  }
+  ...
+}
+```
+
+ #### Java
+
+```java
+@Override
+public void onCreate(Bundle savedInstanceState) {
+  super.onCreate(savedInstanceState);
+  setContentView(R.layout.main);
+  ...
+  Intent intent = getIntent();
+  Uri data = intent.getData();
+  if (data != null) {
+    MainActivity.OPTABLE.tryIdentifyFromURI(data);
+  }
+  ...
+}
+```
 
 ## Demo Applications
 

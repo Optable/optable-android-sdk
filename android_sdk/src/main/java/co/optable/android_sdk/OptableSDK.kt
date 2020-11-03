@@ -5,6 +5,7 @@
 package co.optable.android_sdk
 
 import android.content.Context
+import android.net.Uri
 import android.text.TextUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -164,6 +165,23 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
     }
 
     /*
+     * tryIdentifyFromURI(uri) is a helper that attempts to find a valid-looking "oeid"
+     * parameter in the specified uri's query string parameters and, if found, calls
+     * this.identify(listOf(oeid)).
+     *
+     * The use for this is when handling incoming app universal/deep links which might
+     * contain an "oeid" value with the SHA256(downcase(email)) of an incoming user, such
+     * as encoded links in newsletter Emails sent by the application developer.
+     */
+    fun tryIdentifyFromURI(uri: Uri) {
+        val oeid = Companion.eidFromURI(uri)
+
+        if (oeid.length > 0) {
+            this.identify(listOf(oeid))
+        }
+    }
+
+    /*
      *  targeting() calls the Optable Sandbox "targeting" API, which returns the key-value targeting
      *  data matching the user/device/app.
      *
@@ -259,6 +277,30 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
          */
         fun cid(ppid: String): String {
             return "c:" + ppid.trim()
+        }
+
+        /*
+         * eidFromURI(uri) is a helper that returns a type-prefixed ID based on the query string
+         * oeid=sha256value parameters in the specified uri, if one is found. Otherwise, it returns
+         * an empty string.
+         *
+         * The use for this is when handling incoming deep links which might contain an "oeid" value
+         * with the SHA256(downcase(email)) of a user, such as encoded links in newsletter Emails
+         * sent by the application developer. Such hashed Email values can be used in calls to
+         * identify()
+         */
+        fun eidFromURI(uri: Uri): String {
+            // We first convert the Uri to a lowercase string then re-parse it so that we are
+            // not dependent on case-sensitivity of the "oeid" query parameter:
+            var oeid = Uri.parse(uri.toString().toLowerCase()).getQueryParameter("oeid")
+
+            if ((oeid == null) || (oeid.length != 64) ||
+                (oeid.matches("^[a-f0-9]$".toRegex(RegexOption.IGNORE_CASE))))
+            {
+                return ""
+            }
+
+            return "e:" + oeid.toLowerCase()
         }
     }
 }
