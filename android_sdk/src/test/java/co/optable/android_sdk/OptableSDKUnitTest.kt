@@ -4,6 +4,7 @@
  */
 package co.optable.android_sdk
 
+import android.net.Uri
 import org.junit.Test
 import org.junit.Assert.*
 
@@ -60,5 +61,37 @@ class OptableSDKUnitTest {
         val unexpected = "c:FooBarBAZ-01234#98765.!!!"
 
         assertNotEquals(unexpected, OptableSDK.cid("foobarBAZ-01234#98765.!!!"))
+    }
+
+    @Test
+    fun eidFromURI_isCorrect() {
+        val url = "http://some.domain.com/some/path?some=query&something=else&oeid=a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3&foo=bar&baz"
+        val expected = "e:a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
+
+        assertEquals(expected, OptableSDK.eidFromURI(Uri.parse(url)))
+    }
+
+    @Test
+    fun eidFromURI_returnsEmptyWhenOeidAbsent() {
+        val url = "http://some.domain.com/some/path?some=query&something=else"
+        val expected = ""
+
+        assertEquals(expected, OptableSDK.eidFromURI(Uri.parse(url)))
+    }
+
+    @Test
+    fun eidFromURI_expectsSHA256() {
+        val url = "http://some.domain.com/some/path?some=query&something=else&oeid=AAAAAAAa665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3&foo=bar&baz"
+        val expected = ""
+
+        assertEquals(expected, OptableSDK.eidFromURI(Uri.parse(url)))
+    }
+
+    @Test
+    fun eidFromURI_ignoresCase() {
+        val url = "http://some.domain.com/some/path?some=query&something=else&oEId=A665A45920422F9D417E4867EFDC4FB8A04A1F3FFF1FA07E998E86f7f7A27AE3&foo=bar&baz"
+        val expected = "e:a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
+
+        assertEquals(expected, OptableSDK.eidFromURI(Uri.parse(url)))
     }
 }
