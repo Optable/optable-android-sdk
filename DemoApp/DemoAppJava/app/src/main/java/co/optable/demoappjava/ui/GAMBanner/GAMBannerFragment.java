@@ -14,6 +14,7 @@ import com.google.android.gms.ads.doubleclick.PublisherAdRequest;
 import com.google.android.gms.ads.doubleclick.PublisherAdView;
 
 import java.util.HashMap;
+import java.util.List;
 
 import co.optable.android_sdk.OptableSDK;
 import co.optable.demoappjava.MainActivity;
@@ -30,6 +31,7 @@ public class GAMBannerFragment extends Fragment {
         mPublisherAdView = root.findViewById(R.id.publisherAdView);
         targetingDataView = root.findViewById(R.id.targetingDataView);
 
+        // loadAdButton loads targeting data and then the GAM banner:
         Button btn = root.findViewById(R.id.loadAdButton);
         btn.setOnClickListener(view -> {
             targetingDataView.setText("");
@@ -51,27 +53,60 @@ public class GAMBannerFragment extends Fragment {
 
                 targetingDataView.setText(msg.toString());
                 mPublisherAdView.loadAd(adRequest.build());
+                witness();
             });
+        });
 
-            HashMap<String, String> eventProperties = new HashMap<String, String>();
-            eventProperties.put("exampleKey", "exampleValue");
+        // loadAdButton2 loads targeting data from cache, and then the GAM banner:
+        btn = root.findViewById(R.id.loadAdButton2);
+        btn.setOnClickListener(view -> {
+            targetingDataView.setText("");
+            PublisherAdRequest.Builder adRequest = new PublisherAdRequest.Builder();
+            final StringBuilder msg = new StringBuilder();
+            HashMap<String, List<String>> data = MainActivity.OPTABLE.targetingFromCache();
 
-            MainActivity.OPTABLE
-                    .witness("GAMBannerFragment.loadAdButtonClicked", eventProperties)
-                    .observe(getViewLifecycleOwner(), result -> {
-                        final StringBuilder msg = new StringBuilder();
-                        msg.append(targetingDataView.getText().toString());
+            if (data != null) {
+                msg.append("Loading GAM ad with cached targeting data:\n\n");
+                data.forEach((key, values) -> {
+                    adRequest.addCustomTargeting(key, values);
+                    msg.append(key.toString() + " = " + values.toString());
+                });
+            } else {
+                msg.append("Targeting data cache empty.");
+            }
 
-                        if (result.getStatus() == OptableSDK.Status.SUCCESS) {
-                            msg.append("\n\nSuccess calling witness API to log loadAdButtonClicked event.\n\n");
-                        } else {
-                            msg.append("\n\nOptableSDK Error: " + result.getMessage() + "\n\n");
-                        }
+            targetingDataView.setText(msg.toString());
+            mPublisherAdView.loadAd(adRequest.build());
+            witness();
+        });
 
-                        targetingDataView.setText(msg.toString());
-                    });
+        // loadAdButton3 clears targeting data cache:
+        btn = root.findViewById(R.id.loadAdButton3);
+        btn.setOnClickListener(view -> {
+            targetingDataView.setText("Clearing targeting data cache.\n\n");
+            MainActivity.OPTABLE.targetingClearCache();
         });
 
         return root;
+    }
+
+    private void witness() {
+        HashMap<String, String> eventProperties = new HashMap<String, String>();
+        eventProperties.put("exampleKey", "exampleValue");
+
+        MainActivity.OPTABLE
+                .witness("GAMBannerFragment.loadAdButtonClicked", eventProperties)
+                .observe(getViewLifecycleOwner(), result -> {
+                    final StringBuilder msg = new StringBuilder();
+                    msg.append(targetingDataView.getText().toString());
+
+                    if (result.getStatus() == OptableSDK.Status.SUCCESS) {
+                        msg.append("\n\nSuccess calling witness API to log loadAdButtonClicked event.\n\n");
+                    } else {
+                        msg.append("\n\nOptableSDK Error: " + result.getMessage() + "\n\n");
+                    }
+
+                    targetingDataView.setText(msg.toString());
+                });
     }
 }

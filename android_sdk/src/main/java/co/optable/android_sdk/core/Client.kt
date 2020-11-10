@@ -97,6 +97,18 @@ class Client(private val config: Config, private val context: Context) {
         return edgeService!!.Witness(this.config.app, evtBody)
     }
 
+    fun TargetingSetCache(keyvalues: OptableTargetingResponse) {
+        storage.setTargeting(keyvalues)
+    }
+
+    fun TargetingFromCache(): OptableTargetingResponse? {
+        return storage.getTargeting()
+    }
+
+    fun TargetingClearCache() {
+        storage.clearTargeting()
+    }
+
     fun hasGAID(): Boolean {
         return ((gaid != null) && (gaidLAT == false) && !TextUtils.isEmpty(gaid!!))
     }
