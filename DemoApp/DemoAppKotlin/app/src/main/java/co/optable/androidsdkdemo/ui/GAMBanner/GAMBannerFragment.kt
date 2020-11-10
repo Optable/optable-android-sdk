@@ -33,10 +33,11 @@ class GAMBannerFragment : Fragment() {
         targetingDataView = root.findViewById(R.id.targetingDataView)
         targetingDataView.setText("")
 
+        // loadAdButton loads targeting data and then the GAM banner:
         var btn = root.findViewById(R.id.loadAdButton) as Button
         btn.setOnClickListener {
             MainActivity.OPTABLE!!.targeting().observe(viewLifecycleOwner, Observer { result ->
-                var msg = targetingDataView.text.toString()
+                var msg = ""
                 var adRequest = PublisherAdRequest.Builder()
 
                 if (result.status == OptableSDK.Status.SUCCESS) {
@@ -51,14 +52,49 @@ class GAMBannerFragment : Fragment() {
 
                 targetingDataView.setText(msg)
                 mPublisherAdView.loadAd(adRequest.build())
+                witness()
             })
+        }
 
-            MainActivity.OPTABLE!!
-                .witness(
-                    "GAMBannerFragment.loadAdButtonClicked",
-                    hashMapOf("exampleKey" to "exampleValue")
-                )
-                .observe(viewLifecycleOwner, Observer { result ->
+        // loadAdButton2 loads targeting data from cache, and then the GAM banner:
+        btn = root.findViewById(R.id.loadAdButton2) as Button
+        btn.setOnClickListener {
+            var msg = ""
+            var adRequest = PublisherAdRequest.Builder()
+            var data = MainActivity.OPTABLE!!.targetingFromCache()
+
+            if (data != null) {
+                msg += "Loading GAM ad with cached targeting data:\n\n"
+                data!!.forEach { (key, values) ->
+                    adRequest.addCustomTargeting(key, values)
+                    msg += "${key} = ${values}\n"
+                }
+            } else {
+                msg += "Targeting data cache empty."
+            }
+
+            targetingDataView.setText(msg)
+            mPublisherAdView.loadAd(adRequest.build())
+            witness()
+        }
+
+        // loadAdButton3 clears targeting data cache:
+        btn = root.findViewById(R.id.loadAdButton3) as Button
+        btn.setOnClickListener {
+            targetingDataView.setText("Clearing targeting data cache.\n\n")
+            MainActivity.OPTABLE!!.targetingClearCache()
+        }
+
+        return root
+    }
+
+    private fun witness() {
+        MainActivity.OPTABLE!!
+            .witness(
+                "GAMBannerFragment.loadAdButtonClicked",
+                hashMapOf("exampleKey" to "exampleValue")
+            )
+            .observe(viewLifecycleOwner, Observer { result ->
                 var msg = targetingDataView.text.toString()
                 if (result.status == OptableSDK.Status.SUCCESS) {
                     msg += "\n\nSuccess calling witness API to log loadAdButtonClicked event.\n\n"
@@ -67,9 +103,6 @@ class GAMBannerFragment : Fragment() {
                 }
                 targetingDataView.setText(msg)
             })
-        }
-
-        return root
     }
 
 }

@@ -198,6 +198,7 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
             val response = client.Targeting()
             when (response) {
                 is EdgeResponse.Success -> {
+                    client.TargetingSetCache(response.body)
                     liveData.postValue(Response.success(response.body))
                 }
                 is EdgeResponse.ApiError -> {
@@ -215,6 +216,14 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
         }
 
         return liveData
+    }
+
+    fun targetingFromCache(): OptableTargetingResponse? {
+        return this.client.TargetingFromCache()
+    }
+
+    fun targetingClearCache() {
+        this.client.TargetingClearCache()
     }
 
     /*
