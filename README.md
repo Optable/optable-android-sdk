@@ -7,6 +7,7 @@ Kotlin SDK for integrating with optable-sandbox from an Android application.
 - [Installing](#installing)
 - [Using](#using)
   - [Identify API](#identify-api)
+  - [Profile API](#profile-api)
   - [Targeting API](#targeting-api)
   - [Witness API](#witness-api)
   - [Integrating GAM360](#integrating-gam360)
@@ -170,6 +171,58 @@ Since the `sendGoogleAdIDBoolean` value provided to `identify()` is `true`, the 
 
 The frequency of invocation of `identify` is up to you, however for optimal identity resolution we recommended to call the `identify()` method on your SDK instance every time you authenticate a user, as well as periodically, such as for example once every 15 to 60 minutes while the application is being actively used and an internet connection is available.
 
+### Profile API
+
+To associate key value traits with the user's device, for eventual audience assembly, you can call the profile API as follows:
+
+#### Kotlin
+
+```kotlin
+import co.optable.android_sdk.OptableSDK
+import my.org.app.MainActivity
+import android.util.Log
+...
+MainActivity.OPTABLE!!
+    .profile(hashMapOf("gender" to "F", "age" to 38, "hasAccount" to true))
+    .observe(viewLifecycleOwner, Observer { result ->
+        if (result.status == OptableSDK.Status.SUCCESS) {
+            Log.i("Profile API Success... ")
+        } else {
+            // result.status is OptableSDK.Status.ERROR
+            // result.message is the error message
+            Log.e("Profile API Error: ${result.message}")
+        }
+    })
+```
+
+#### Java
+
+```java
+import co.optable.android_sdk.OptableSDK;
+import co.optable.demoappjava.MainActivity;
+import android.util.Log;
+import java.util.HashMap;
+...
+HashMap<String,Object> traits = new HashMap<String,Object>();
+traits.put("gender", "F");
+traits.put("age", 38);
+traits.put("hasAccount", true);
+
+MainActivity.OPTABLE
+    .profile(traits)
+    .observe(getViewLifecycleOwner(), result -> {
+        if (result.getStatus() == OptableSDK.Status.SUCCESS) {
+            Log.i(null, "Profile API Success... ");
+        } else {
+            // result.getStatus() is OptableSDK.Status.ERROR
+            // result.getMessage() is the error message
+            Log.e(null, "Profile API Error: " + result.getMessage());
+        }
+    });
+```
+
+The specified traits are associated with the user's device and can be used for matching during audience assembly. The traits are of type `OptableProfileTraits` which is an alias for `HashMap<String,Any>` (or `HashMap<String,Object>` in Java), and should consist only of key-value pairs where the key is a string and the value is either a string, number, or boolean.
+
 ### Targeting API
 
 To get the targeting key values associated by the configured sandbox with the device in real-time, you can call the `targeting` API as follows:
@@ -299,7 +352,7 @@ import co.optable.demoappjava.MainActivity;
 import android.util.Log;
 import java.util.HashMap;
 ...
-HashMap<String, String> eventProperties = new HashMap<String, String>();
+HashMap<String,Object> eventProperties = new HashMap<String,Object>();
 eventProperties.put("exampleKey", "exampleValue");
 
 MainActivity.OPTABLE
@@ -315,7 +368,7 @@ MainActivity.OPTABLE
     });
 ```
 
-The specified event type and properties are associated with the logged event and which can be used for matching during audience assembly. The optional witness event properties are of type `OptableWitnessProperties` which is an alias for `HashMap<String,String>`, and should consist only of string key-value pairs.
+The specified event type and properties are associated with the logged event and which can be used for matching during audience assembly. The optional witness event properties are of type `OptableWitnessProperties` which is an alias for `HashMap<String,Any>` (or `HashMap<String,Object>` in Java), and should consist only of key-value pairs where the key is a string and the value is either a string, number, or boolean.
 
 ### Integrating GAM360
 
@@ -432,7 +485,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
 }
 ```
 
- #### Java
+#### Java
 
 ```java
 @Override
