@@ -82,6 +82,14 @@ class Client(private val config: Config, private val context: Context) {
         return edgeService!!.Identify(this.config.app, idList)
     }
 
+    suspend fun Profile(traits: OptableProfileTraits):
+            EdgeResponse<OptableProfileResponse, OptableSDK.Response.Error>
+    {
+        val profileBody = HashMap<String,Any>()
+        profileBody.put("traits", traits)
+        return edgeService!!.Profile(this.config.app, profileBody)
+    }
+
     suspend fun Targeting():
             EdgeResponse<OptableTargetingResponse, OptableSDK.Response.Error>
     {
