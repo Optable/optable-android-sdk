@@ -53,6 +53,7 @@ public class GAMBannerFragment extends Fragment {
 
                 targetingDataView.setText(msg.toString());
                 mPublisherAdView.loadAd(adRequest.build());
+                profile();
                 witness();
             });
         });
@@ -77,6 +78,7 @@ public class GAMBannerFragment extends Fragment {
 
             targetingDataView.setText(msg.toString());
             mPublisherAdView.loadAd(adRequest.build());
+            profile();
             witness();
         });
 
@@ -90,9 +92,33 @@ public class GAMBannerFragment extends Fragment {
         return root;
     }
 
+    private void profile() {
+        HashMap<String,Object> traits = new HashMap<String,Object>();
+        traits.put("gender", "F");
+        traits.put("age", 38);
+        traits.put("hasAccount", true);
+
+        MainActivity.OPTABLE
+                .profile(traits)
+                .observe(getViewLifecycleOwner(), result -> {
+                    final StringBuilder msg = new StringBuilder();
+                    msg.append(targetingDataView.getText().toString());
+
+                    if (result.getStatus() == OptableSDK.Status.SUCCESS) {
+                        msg.append("\n\nSuccess calling profile API to set user traits.\n\n");
+                    } else {
+                        msg.append("\n\nOptableSDK Error: " + result.getMessage() + "\n\n");
+                    }
+
+                    targetingDataView.setText(msg.toString());
+                });
+    }
+
     private void witness() {
-        HashMap<String, String> eventProperties = new HashMap<String, String>();
+        HashMap<String,Object> eventProperties = new HashMap<String,Object>();
         eventProperties.put("exampleKey", "exampleValue");
+        eventProperties.put("exampleKey2", 123);
+        eventProperties.put("exampleKey3", false);
 
         MainActivity.OPTABLE
                 .witness("GAMBannerFragment.loadAdButtonClicked", eventProperties)
