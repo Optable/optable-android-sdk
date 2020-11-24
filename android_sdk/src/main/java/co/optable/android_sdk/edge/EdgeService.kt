@@ -16,6 +16,11 @@ interface EdgeService {
     suspend fun Identify(@Path("app") app: String, @Body idList: OptableIdentifyInput):
             EdgeResponse<OptableIdentifyResponse, OptableSDK.Response.Error>
 
+    @POST("/{app}/profile")
+    suspend fun Profile(@Path("app") app: String,
+                        @Body profileBody: HashMap<String,Any>):
+            EdgeResponse<OptableProfileResponse, OptableSDK.Response.Error>
+
     @GET("/{app}/targeting")
     suspend fun Targeting(@Path("app") app: String):
             EdgeResponse<OptableTargetingResponse, OptableSDK.Response.Error>

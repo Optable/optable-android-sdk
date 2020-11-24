@@ -52,6 +52,7 @@ class GAMBannerFragment : Fragment() {
 
                 targetingDataView.setText(msg)
                 mPublisherAdView.loadAd(adRequest.build())
+                profile()
                 witness()
             })
         }
@@ -75,6 +76,7 @@ class GAMBannerFragment : Fragment() {
 
             targetingDataView.setText(msg)
             mPublisherAdView.loadAd(adRequest.build())
+            profile()
             witness()
         }
 
@@ -88,11 +90,27 @@ class GAMBannerFragment : Fragment() {
         return root
     }
 
+    private fun profile() {
+        MainActivity.OPTABLE!!
+            .profile(
+                hashMapOf("gender" to "F", "age" to 38, "hasAccount" to true)
+            )
+            .observe(viewLifecycleOwner, Observer { result ->
+                var msg = targetingDataView.text.toString()
+                if (result.status == OptableSDK.Status.SUCCESS) {
+                    msg += "\n\nSuccess calling profile API to set traits on user.\n\n"
+                } else {
+                    msg += "\n\nOptableSDK Error: ${result.message}\n\n"
+                }
+                targetingDataView.setText(msg)
+            })
+    }
+
     private fun witness() {
         MainActivity.OPTABLE!!
             .witness(
                 "GAMBannerFragment.loadAdButtonClicked",
-                hashMapOf("exampleKey" to "exampleValue")
+                hashMapOf("exampleKey" to "exampleValue", "anotherExample" to 123, "foo" to false)
             )
             .observe(viewLifecycleOwner, Observer { result ->
                 var msg = targetingDataView.text.toString()

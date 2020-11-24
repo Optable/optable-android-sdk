@@ -26,16 +26,22 @@ import java.security.MessageDigest
 typealias OptableIdentifyInput = List<String>
 
 /*
- * Witness API expects event properties:
+ * Profile API expects user traits:
  */
-typealias OptableWitnessProperties = HashMap<String, String>
+typealias OptableProfileTraits = HashMap<String,Any>
 
 /*
- * Identify and Witness APIs usually just return {}... Void would be better but that results in
- * retrofit2 error when parsing response, even when the API responded successfully, since {} is
- * technically a HashMap:
+ * Witness API expects event properties:
+ */
+typealias OptableWitnessProperties = HashMap<String,Any>
+
+/*
+ * Identify, Profile, and Witness APIs usually just return {}... Void would be better but that
+ * results in retrofit2 error when parsing response, even when the API responded successfully,
+ * since {} is technically a HashMap:
  */
 typealias OptableIdentifyResponse = HashMap<Any,Any>
+typealias OptableProfileResponse = HashMap<Any,Any>
 typealias OptableWitnessResponse = HashMap<Any,Any>
 
 /*
@@ -179,6 +185,44 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
         if (oeid.length > 0) {
             this.identify(listOf(oeid))
         }
+    }
+
+    /*
+     *  profile(traits) calls the Optable Sandbox "profile" API in order to associate the
+     *  specified keyvalue OptableProfileTraits 'traits', which can be subsequently used for
+     *  audience assembly.
+     *
+     *  It is asynchronous, so the caller may call observe() on the returned LiveData and expect
+     *  an instance of Response<OptableProfileResponse> in the result. Success can be checked by
+     *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
+     *  to an empty HashMap on success, and can therefore be ignored.
+     */
+    fun profile(traits: OptableProfileTraits):
+            LiveData<Response<OptableProfileResponse>> {
+        val liveData = MutableLiveData<Response<OptableProfileResponse>>()
+        val client = this.client
+
+        GlobalScope.launch {
+            val response = client.Profile(traits)
+            when (response) {
+                is EdgeResponse.Success -> {
+                    liveData.postValue(Response.success(response.body))
+                }
+                is EdgeResponse.ApiError -> {
+                    liveData.postValue(Response.error(response.body))
+                }
+                is EdgeResponse.NetworkError -> {
+                    liveData.postValue(Response.error(
+                        Response.Error("NetworkError", "None")))
+                }
+                is EdgeResponse.UnknownError -> {
+                    liveData.postValue(Response.error(
+                        Response.Error("UnknownError", "None")))
+                }
+            }
+        }
+
+        return liveData
     }
 
     /*
