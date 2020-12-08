@@ -67,9 +67,9 @@ typealias OptableTargetingResponse = HashMap<String, List<String>>
  *  unique to the app across devices.
  */
 
-class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: String, insecure: Boolean = false) {
+class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: String, insecure: Boolean = false, useragent: String? = null, skipAdvertisingIdDetection: Boolean = false) {
     val config = Config(host, app, insecure)
-    val client = Client(config, context)
+    val client = Client(config, context, useragent, skipAdvertisingIdDetection)
 
     /*
      *  OptableSDK.Status lists all of the possible OptableSDK API result statuses.

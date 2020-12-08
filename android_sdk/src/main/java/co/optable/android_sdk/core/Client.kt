@@ -18,13 +18,13 @@ import okhttp3.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class Client(private val config: Config, private val context: Context) {
+class Client(private val config: Config, private val context: Context, private val useragent: String?, private val skipAdvertisingIdDetection: Boolean) {
     var gaid: String? = null
     var gaidLAT: Boolean? = true
 
     private val edgeService: EdgeService?
-    private val userAgent = this.userAgent()
     private val storage = LocalStorage(this.config, this.context)
+    private var userAgent: String? = this.useragent
 
     private class RequestInterceptor(private val userAgent: String, private val storage: LocalStorage): Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
@@ -59,10 +59,16 @@ class Client(private val config: Config, private val context: Context) {
     }
 
     init {
-        this.determineAdvertisingInfo()
+        if (!this.skipAdvertisingIdDetection) {
+            this.determineAdvertisingInfo()
+        }
+
+        if (this.userAgent == null) {
+            this.userAgent = this.userAgent()
+        }
 
         val client = OkHttpClient.Builder()
-            .addInterceptor(RequestInterceptor(userAgent, storage))
+            .addInterceptor(RequestInterceptor(this.userAgent!!, storage))
             .addInterceptor(ResponseInterceptor(storage))
             .build()
 
@@ -122,7 +128,7 @@ class Client(private val config: Config, private val context: Context) {
     }
 
     fun GAID(): String? {
-        return gaid!!
+        return gaid
     }
 
     private fun userAgent(): String {
