@@ -72,8 +72,24 @@ class OptableSDKUnitTest {
     }
 
     @Test
-    fun eidFromURI_returnsEmptyWhenOeidAbsent() {
+    fun eidFromURI_returnsEmptyWhenOeidAbsentFromQuerystr() {
         val url = "http://some.domain.com/some/path?some=query&something=else"
+        val expected = ""
+
+        assertEquals(expected, OptableSDK.eidFromURI(Uri.parse(url)))
+    }
+
+    @Test
+    fun eidFromURI_returnsEmptyWhenQuerystrAbsent() {
+        val url = "http://some.domain.com/some/path"
+        val expected = ""
+
+        assertEquals(expected, OptableSDK.eidFromURI(Uri.parse(url)))
+    }
+
+    @Test
+    fun eidFromURI_returnsEmptyWhenInputEmptyString() {
+        val url = ""
         val expected = ""
 
         assertEquals(expected, OptableSDK.eidFromURI(Uri.parse(url)))

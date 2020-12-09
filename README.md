@@ -108,6 +108,18 @@ MainActivity.OPTABLE = OptableSDK(this, "sandbox.customer.com", "my-app", true)
 
 However, since production sandboxes only listen to TLS traffic, the above is really only useful for developers of `optable-sandbox` running the sandbox locally for testing.
 
+By default, the SDK detects the application user agent by sniffing `settings.userAgentString` from a `WebView`. The resulting user agent string is sent to your sandbox for analytics purposes. To disable this behavior, you can provide an optional fifth string parameter `useragent`, which allows you to set whatever user agent string you would like to send instead. For example, in Kotlin:
+
+```kotlin
+MainActivity.OPTABLE = OptableSDK(this, "sandbox.customer.com", "my-app", false, "custom-ua")
+```
+
+Finally, an optional sixth boolean parameter `skipAdvertisingIdDetection` can be used to skip any ID info detection from `AdvertisingIdClient` which by default runs in a background co-routine. Disabling ad ID detection means that the SDK will not be able to automatically obtain the Google Advertising ID. For example, to disable ad ID detection, in Kotlin:
+
+```kotlin
+MainActivity.OPTABLE = OptableSDK(this, "sandbox.customer.com", "my-app", false, null, true)
+```
+
 ### Identify API
 
 To associate a user device with an authenticated identifier such as an Email address, or with other known IDs such as the Google Advertising ID, or even your own vendor or app level `PPID`, you can call the `identify` API as follows:
