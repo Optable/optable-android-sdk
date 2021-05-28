@@ -1,6 +1,6 @@
 # Optable Android SDK [![](https://jitci.com/gh/Optable/optable-android-sdk/svg)](https://jitci.com/gh/Optable/optable-android-sdk)
 
-Kotlin SDK for integrating with optable-sandbox from an Android application.
+Kotlin SDK for integrating with an [Optable Data Connectivity Node (DCN)](https://docs.optable.co) from an Android application.
 
 ## Contents
 
@@ -54,7 +54,7 @@ Remember to replace `VERSION_TAG` with the latest or desired [SDK release](https
 
 ## Using
 
-To configure an instance of the SDK integrating with an [Optable](https://optable.co/) sandbox running at hostname `sandbox.customer.com`, from a configured application origin identified by slug `my-app`, you can instantiate the SDK from an Activity or Application `Context`, such as for example the following application `MainActivity`:
+To configure an instance of the SDK integrating with an [Optable](https://optable.co/) DCN running at hostname `dcn.customer.com`, from a configured application origin identified by slug `my-app`, you can instantiate the SDK from an Activity or Application `Context`, such as for example the following application `MainActivity`:
 
 #### Kotlin
 
@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         ...
-        MainActivity.OPTABLE = OptableSDK(this, "sandbox.customer.com", "my-app")
+        MainActivity.OPTABLE = OptableSDK(this, "dcn.customer.com", "my-app")
         ...
     }
 }
@@ -92,32 +92,32 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ...
         MainActivity.OPTABLE = new OptableSDK(this.getApplicationContext(),
-                                              "sandbox.customer.com", "my-app");
+                                              "dcn.customer.com", "my-app");
         ...
     }
 }
 ```
 
-You can then call various SDK APIs on the instance as shown in the examples below. It's also possible to configure multiple instances of `OptableSDK` in order to connect to other (e.g., partner) sandboxes and/or reference other configured application slug IDs.
+You can then call various SDK APIs on the instance as shown in the examples below. It's also possible to configure multiple instances of `OptableSDK` in order to connect to other (e.g., partner) DCNs and/or reference other configured application slug IDs.
 
-Note that all SDK communication with Optable sandboxes is done over TLS. The only exception to this is if you instantiate the `OptableSDK` class with a fourth optional boolean parameter, `insecure`, set to `true`. For example, in Kotlin:
+Note that all SDK communication with Optable DCNs is done over TLS. The only exception to this is if you instantiate the `OptableSDK` class with a fourth optional boolean parameter, `insecure`, set to `true`. For example, in Kotlin:
 
 ```kotlin
-MainActivity.OPTABLE = OptableSDK(this, "sandbox.customer.com", "my-app", true)
+MainActivity.OPTABLE = OptableSDK(this, "dcn.customer.com", "my-app", true)
 ```
 
-However, since production sandboxes only listen to TLS traffic, the above is really only useful for developers of `optable-sandbox` running the sandbox locally for testing.
+However, since production DCNs only listen to TLS traffic, the above is meant for Optable developers running the DCN locally for testing.
 
-By default, the SDK detects the application user agent by sniffing `settings.userAgentString` from a `WebView`. The resulting user agent string is sent to your sandbox for analytics purposes. To disable this behavior, you can provide an optional fifth string parameter `useragent`, which allows you to set whatever user agent string you would like to send instead. For example, in Kotlin:
+By default, the SDK detects the application user agent by sniffing `settings.userAgentString` from a `WebView`. The resulting user agent string is sent to your DCN for analytics purposes. To disable this behavior, you can provide an optional fifth string parameter `useragent`, which allows you to set whatever user agent string you would like to send instead. For example, in Kotlin:
 
 ```kotlin
-MainActivity.OPTABLE = OptableSDK(this, "sandbox.customer.com", "my-app", false, "custom-ua")
+MainActivity.OPTABLE = OptableSDK(this, "dcn.customer.com", "my-app", false, "custom-ua")
 ```
 
 Finally, an optional sixth boolean parameter `skipAdvertisingIdDetection` can be used to skip any ID info detection from `AdvertisingIdClient` which by default runs in a background co-routine. Disabling ad ID detection means that the SDK will not be able to automatically obtain the Google Advertising ID. For example, to disable ad ID detection, in Kotlin:
 
 ```kotlin
-MainActivity.OPTABLE = OptableSDK(this, "sandbox.customer.com", "my-app", false, null, true)
+MainActivity.OPTABLE = OptableSDK(this, "dcn.customer.com", "my-app", false, null, true)
 ```
 
 ### Identify API
@@ -175,9 +175,9 @@ MainActivity.OPTABLE
     });
 ```
 
-The SDK `identify()` method will asynchronously connect to the configured sandbox and send IDs for resolution. The second (`sendGoogleAdIDBoolean`) and third (`ppid`) arguments to `identify()` are optional. You can register an observer to understand successful completion or errors.
+The SDK `identify()` method will asynchronously connect to the configured DCN and send IDs for resolution. The second (`sendGoogleAdIDBoolean`) and third (`ppid`) arguments to `identify()` are optional. You can register an observer to understand successful completion or errors.
 
-> :warning: **Client-Side Email Hashing**: The SDK will compute the SHA-256 hash of the Email address on the client-side and send the hashed value to the sandbox. The Email address is **not** sent by the device in plain text.
+> :warning: **Client-Side Email Hashing**: The SDK will compute the SHA-256 hash of the Email address on the client-side and send the hashed value to the DCN. The Email address is **not** sent by the device in plain text.
 
 Since the `sendGoogleAdIDBoolean` value provided to `identify()` is `true`, the SDK will fetch and send the Google Advertising ID in the call to `identify` too, unless the user has turned on "Limit ad tracking" in their Google device advertising settings.
 
@@ -237,7 +237,7 @@ The specified traits are associated with the user's device and can be used for m
 
 ### Targeting API
 
-To get the targeting key values associated by the configured sandbox with the device in real-time, you can call the `targeting` API as follows:
+To get the targeting key values associated by the configured DCN with the device in real-time, you can call the `targeting` API as follows:
 
 #### Kotlin
 
@@ -334,7 +334,7 @@ Note that both `targetingFromCache()` and `targetingClearCache()` are synchronou
 
 ### Witness API
 
-To send real-time event data from the user's device to the sandbox for eventual audience assembly, you can call the witness API as follows:
+To send real-time event data from the user's device to the DCN for eventual audience assembly, you can call the witness API as follows:
 
 #### Kotlin
 
@@ -516,9 +516,9 @@ public void onCreate(Bundle savedInstanceState) {
 
 ## Demo Applications
 
-The Kotlin and Java demo applications show a working example of `identify`, `targeting`, and `witness` APIs, as well as an integration with the [Google Ad Manager 360](https://admanager.google.com/home/) ad server, enabling the targeting of ads served by GAM360 to audiences activated in the [Optable](https://optable.co/) sandbox.
+The Kotlin and Java demo applications show a working example of `identify`, `targeting`, and `witness` APIs, as well as an integration with the [Google Ad Manager 360](https://admanager.google.com/home/) ad server, enabling the targeting of ads served by GAM360 to audiences activated in the [Optable](https://optable.co/) DCN.
 
-By default, the demo applications will connect to the [Optable](https://optable.co/) demo sandbox at `sandbox.optable.co` and reference application slug `android-sdk-demo`. The demo apps depend on the [GAM Mobile Ads SDK for Android](https://developers.google.com/ad-manager/mobile-ads-sdk/android/quick-start) and load ads from a GAM360 account operated by [Optable](https://optable.co/).
+By default, the demo applications will connect to the [Optable](https://optable.co/) demo DCN at `sandbox.optable.co` and reference application slug `android-sdk-demo`. The demo apps depend on the [GAM Mobile Ads SDK for Android](https://developers.google.com/ad-manager/mobile-ads-sdk/android/quick-start) and load ads from a GAM360 account operated by [Optable](https://optable.co/).
 
 ### Building
 
