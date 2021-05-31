@@ -30,19 +30,12 @@ allprojects {
         ...
         maven {
             url 'https://jitpack.io'
-            credentials { username authToken }
         }
     }
 }
 ```
 
-In order to allow [JitPack](https://jitpack.io/) to access this private GitHub repository, add the following authToken to your `gradle.properties`:
-
-```
-authToken=jp_usu041v753rg6asheri00bjihl
-```
-
-Finally, add the dependency to the SDK in your app `build.gradle`:
+Then add the dependency to the SDK in your app `build.gradle`:
 
 ```kotlin
 dependencies {
