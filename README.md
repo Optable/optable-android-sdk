@@ -131,6 +131,8 @@ val ppid = "my-id-123"
 
 MainActivity.OPTABLE!!
     .identify(emailString, sendGoogleAdIDBoolean, ppid)
+    // note that the function also accepts a list of type prefixed identifiers. For example:
+    // .identify(listOf("e:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890", "c:d29c551097b9dd0b82423827f65161232efaf7fc"))
     .observe(viewLifecycleOwner, Observer
     { result ->
         if (result.status == OptableSDK.Status.SUCCESS) {
