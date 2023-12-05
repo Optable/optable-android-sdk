@@ -12,6 +12,10 @@ import retrofit2.http.Path
 
 interface EdgeService {
 
+    @POST("/{app}/init")
+    suspend fun Init(@Path("app") app: String):
+            EdgeResponse<OptableInitResponse, OptableSDK.Response.Error>
+
     @POST("/{app}/identify")
     suspend fun Identify(@Path("app") app: String, @Body idList: OptableIdentifyInput):
             EdgeResponse<OptableIdentifyResponse, OptableSDK.Response.Error>

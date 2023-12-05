@@ -36,10 +36,11 @@ typealias OptableProfileTraits = HashMap<String,Any>
 typealias OptableWitnessProperties = HashMap<String,Any>
 
 /*
- * Identify, Profile, and Witness APIs usually just return {}... Void would be better but that
+ * Init, Identify, Profile, and Witness APIs usually just return {}... Void would be better but that
  * results in retrofit2 error when parsing response, even when the API responded successfully,
  * since {} is technically a HashMap:
  */
+typealias OptableInitResponse = HashMap<Any,Any>
 typealias OptableIdentifyResponse = HashMap<Any,Any>
 typealias OptableProfileResponse = HashMap<Any,Any>
 typealias OptableWitnessResponse = HashMap<Any,Any>
@@ -96,6 +97,28 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
             fun <T> error(err: Error): Response<T> {
                 return Response(Status.ERROR, null,
                     err.error + " (trace: " + err.trace + ")")
+            }
+        }
+    }
+
+    val initData = MutableLiveData<Response<OptableInitResponse>>()
+
+    GlobalScope.launch {
+        val response = client.Init()
+        when (response) {
+            is EdgeResponse.Success -> {
+                initData.postValue(Response.success(response.body))
+            }
+            is EdgeResponse.ApiError -> {
+                initData.postValue(Response.error(response.body))
+            }
+            is EdgeResponse.NetworkError -> {
+                initData.postValue(Response.error(
+                    Response.Error("NetworkError", "None")))
+            }
+            is EdgeResponse.UnknownError -> {
+                initData.postValue(Response.error(
+                    Response.Error("UnknownError", "None")))
             }
         }
     }

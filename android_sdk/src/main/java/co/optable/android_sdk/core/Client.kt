@@ -88,6 +88,12 @@ class Client(private val config: Config, private val context: Context, private v
         return edgeService!!.Identify(this.config.app, idList)
     }
 
+    suspend fun Init():
+            EdgeResponse<OptableInitResponse, OptableSDK.Response.Error>
+    {
+        return edgeService!!.Init(this.config.app)
+    }
+
     suspend fun Profile(traits: OptableProfileTraits):
             EdgeResponse<OptableProfileResponse, OptableSDK.Response.Error>
     {
