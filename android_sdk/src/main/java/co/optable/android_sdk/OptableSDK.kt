@@ -102,23 +102,33 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
     }
 
     val initData = MutableLiveData<Response<OptableInitResponse>>()
+    init {
+        GlobalScope.launch {
+            val response = client.Init()
+            when (response) {
+                is EdgeResponse.Success -> {
+                    initData.postValue(Response.success(response.body))
+                }
 
-    GlobalScope.launch {
-        val response = client.Init()
-        when (response) {
-            is EdgeResponse.Success -> {
-                initData.postValue(Response.success(response.body))
-            }
-            is EdgeResponse.ApiError -> {
-                initData.postValue(Response.error(response.body))
-            }
-            is EdgeResponse.NetworkError -> {
-                initData.postValue(Response.error(
-                    Response.Error("NetworkError", "None")))
-            }
-            is EdgeResponse.UnknownError -> {
-                initData.postValue(Response.error(
-                    Response.Error("UnknownError", "None")))
+                is EdgeResponse.ApiError -> {
+                    initData.postValue(Response.error(response.body))
+                }
+
+                is EdgeResponse.NetworkError -> {
+                    initData.postValue(
+                        Response.error(
+                            Response.Error("NetworkError", "None")
+                        )
+                    )
+                }
+
+                is EdgeResponse.UnknownError -> {
+                    initData.postValue(
+                        Response.error(
+                            Response.Error("UnknownError", "None")
+                        )
+                    )
+                }
             }
         }
     }
