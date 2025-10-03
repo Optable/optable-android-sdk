@@ -17,7 +17,6 @@ android {
     compileSdk 34
 
     defaultConfig {
-        // TODO: Check
         namespace "co.optable"
         minSdkVersion 23
         targetSdkVersion 34
