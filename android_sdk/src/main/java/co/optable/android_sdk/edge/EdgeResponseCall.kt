@@ -6,6 +6,7 @@ package co.optable.android_sdk.edge
 
 import okhttp3.Request
 import okhttp3.ResponseBody
+import okio.Timeout
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Converter
@@ -84,4 +85,8 @@ internal class EdgeResponseCall<S : Any, E : Any>(
     }
 
     override fun request(): Request = delegate.request()
+
+    override fun timeout(): Timeout {
+        return delegate.timeout()
+    }
 }

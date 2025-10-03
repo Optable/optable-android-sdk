@@ -14,7 +14,9 @@ import co.optable.android_sdk.edge.EdgeService
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import okhttp3.*
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import okhttp3.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -29,11 +31,13 @@ class Client(private val config: Config, private val context: Context, private v
     private class RequestInterceptor(private val userAgent: String, private val storage: LocalStorage): Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             var oldRequest = chain.request()
+
+            // TODO: Return
             var newURL = oldRequest.url.newBuilder()
                 .addQueryParameter("osdk",
                     "android-" +
-                            BuildConfig.VERSION_NAME + "-" +
-                            BuildConfig.VERSION_CODE.toString()
+                            "test" + "-" +
+                            "1"
                 ).build()
             var newRequest = oldRequest.newBuilder()
                 .url(newURL)
