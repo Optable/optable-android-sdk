@@ -32,6 +32,7 @@ class Client(private val config: Config, private val context: Context, private v
     private class RequestInterceptor(private val userAgent: String, private val storage: LocalStorage): Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             var oldRequest = chain.request()
+
             var newURL = oldRequest.url.newBuilder()
                 .addQueryParameter(
                     "osdk", "android-${BuildConfig.VERSION_NAME}-${BuildConfig.VERSION_CODE}"
