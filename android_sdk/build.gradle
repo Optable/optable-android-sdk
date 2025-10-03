@@ -19,7 +19,7 @@ android {
     defaultConfig {
         // TODO: Check
         namespace "co.optable"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 34
 
         // Here we get version code and version name from latest git release tags:
@@ -29,6 +29,9 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+
+        buildConfigField "String", "VERSION_NAME", "\"${versioning.getVersionName(false)}\""
+        buildConfigField "String", "VERSION_CODE", "\"${versioning.getVersionCode().toString()}\""
     }
 
     buildTypes {

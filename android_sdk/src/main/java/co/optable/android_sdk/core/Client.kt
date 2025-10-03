@@ -7,6 +7,7 @@ package co.optable.android_sdk.core
 import android.content.Context
 import android.text.TextUtils
 import android.webkit.WebView
+import co.optable.BuildConfig
 import co.optable.android_sdk.*
 import co.optable.android_sdk.edge.EdgeResponse
 import co.optable.android_sdk.edge.EdgeResponseAdapterFactory
@@ -32,12 +33,9 @@ class Client(private val config: Config, private val context: Context, private v
         override fun intercept(chain: Interceptor.Chain): Response {
             var oldRequest = chain.request()
 
-            // TODO: Return
             var newURL = oldRequest.url.newBuilder()
-                .addQueryParameter("osdk",
-                    "android-" +
-                            "test" + "-" +
-                            "1"
+                .addQueryParameter(
+                    "osdk", "android-${BuildConfig.VERSION_NAME}-${BuildConfig.VERSION_CODE}"
                 ).build()
             var newRequest = oldRequest.newBuilder()
                 .url(newURL)
