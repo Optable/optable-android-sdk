@@ -35,6 +35,7 @@ class IdentifyFragment : Fragment() {
 
         var btn = root.findViewById(R.id.identifyButton) as Button
         btn.setOnClickListener {
+            identifyView.text = ""
             MainActivity.OPTABLE!!
                 .identify(emailText.text.toString(), gaidSwitch.isChecked)
                 .observe(viewLifecycleOwner, Observer
