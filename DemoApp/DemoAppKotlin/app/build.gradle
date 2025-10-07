@@ -9,7 +9,6 @@ android {
     namespace "co.optable.androidsdkdemo"
 
     defaultConfig {
-        // TODO: Change
         applicationId "co.optable.androidsdkdemo"
         minSdkVersion 21
         targetSdkVersion 34
