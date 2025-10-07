@@ -5,15 +5,16 @@
 package co.optable.androidsdkdemo
 
 import android.os.Bundle
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import co.optable.android_sdk.OptableSDK
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
+
     companion object {
         var OPTABLE: OptableSDK? = null
     }
@@ -22,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        MainActivity.OPTABLE = OptableSDK(this,"sandbox.optable.co", "android-sdk-demo")
+        OPTABLE = OptableSDK(this, "sandbox.optable.co", "ios-sdk-demo")
 
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
         val navController = findNavController(R.id.nav_host_fragment)
