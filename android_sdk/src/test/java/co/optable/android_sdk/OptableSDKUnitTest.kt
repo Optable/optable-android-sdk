@@ -8,13 +8,15 @@ import android.net.Uri
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /**
  * OptableSDK unit tests
  */
+@RunWith(RobolectricTestRunner::class)
 class OptableSDKUnitTest {
 
-    // TODO: Fix
     @Test
     fun eid_isCorrect() {
         val expected = "e:a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"

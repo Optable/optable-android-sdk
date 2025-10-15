@@ -4,20 +4,10 @@ plugins {
     id("de.nanogiants.android-versioning") version "2.4.0"
 }
 
-// TODO: Check
-//apply plugin: 'de.mobilej.unmock'
-
-//unMock {
-//    keep "android.net.Uri"
-//    keepStartingWith "libcore."
-//    keepAndRename "java.nio.charset.Charsets" to "xjava.nio.charset.Charsets"
-//}
-
 android {
     compileSdk 34
 
     defaultConfig {
-        // TODO: Check
         namespace "co.optable"
         minSdkVersion 23
         targetSdkVersion 34
@@ -70,7 +60,11 @@ dependencies {
 
     implementation 'com.google.android.gms:play-services-ads:24.6.0'
 
-    testImplementation 'junit:junit:4.13.2'
+    // Unit tests
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.16")
+
+    // UI tests
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }
