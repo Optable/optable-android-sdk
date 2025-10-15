@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import co.optable.android_sdk.OptableSDK
+import co.optable.android_sdk.OptableTargetingResponse
 import co.optable.androidsdkdemo.MainActivity
 import co.optable.androidsdkdemo.R
 import com.google.android.gms.ads.admanager.AdManagerAdRequest
@@ -20,107 +21,128 @@ import com.google.android.gms.ads.admanager.AdManagerAdView
 
 class GAMBannerFragment : Fragment() {
 
-    private lateinit var mAdView: AdManagerAdView
-    private lateinit var targetingDataView: TextView
+    private lateinit var adView: AdManagerAdView
+    private lateinit var statusTextView: TextView
 
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
     ): View? {
         val root = inflater.inflate(R.layout.fragment_gambanner, container, false)
-        mAdView = root.findViewById(R.id.publisherAdView)
-        targetingDataView = root.findViewById(R.id.targetingDataView)
-        targetingDataView.setText("")
-
-        // loadAdButton loads targeting data and then the GAM banner:
-        var btn = root.findViewById(R.id.loadAdButton) as Button
-        btn.setOnClickListener {
-            MainActivity.OPTABLE!!.targeting().observe(viewLifecycleOwner, Observer { result ->
-                var msg = ""
-                var adRequest = AdManagerAdRequest.Builder()
-
-                if (result.status == OptableSDK.Status.SUCCESS) {
-                    msg += "Loading GAM ad with targeting data:\n\n"
-                    result.data!!.forEach { (key, values) ->
-                        adRequest.addCustomTargeting(key, values)
-                        msg += "${key} = ${values}\n"
-                    }
-                } else {
-                    msg += "OptableSDK Error: ${result.message}"
-                }
-
-                targetingDataView.setText(msg)
-                mAdView.loadAd(adRequest.build())
-                profile()
-                witness()
-            })
-        }
-
-        // loadAdButton2 loads targeting data from cache, and then the GAM banner:
-        btn = root.findViewById(R.id.loadAdButton2) as Button
-        btn.setOnClickListener {
-            var msg = ""
-            var adRequest = AdManagerAdRequest.Builder()
-            var data = MainActivity.OPTABLE!!.targetingFromCache()
-
-            if (data != null) {
-                msg += "Loading GAM ad with cached targeting data:\n\n"
-                data!!.forEach { (key, values) ->
-                    adRequest.addCustomTargeting(key, values)
-                    msg += "${key} = ${values}\n"
-                }
-            } else {
-                msg += "Targeting data cache empty."
-            }
-
-            targetingDataView.setText(msg)
-            mAdView.loadAd(adRequest.build())
-            profile()
-            witness()
-        }
-
-        // loadAdButton3 clears targeting data cache:
-        btn = root.findViewById(R.id.loadAdButton3) as Button
-        btn.setOnClickListener {
-            targetingDataView.setText("Clearing targeting data cache.\n\n")
-            MainActivity.OPTABLE!!.targetingClearCache()
-        }
-
+        initUi(root)
         return root
     }
 
-    private fun profile() {
-        MainActivity.OPTABLE!!
-            .profile(
-                hashMapOf("gender" to "F", "age" to 38, "hasAccount" to true)
-            )
+    private fun initUi(root: View) {
+        adView = root.findViewById(R.id.publisherAdView)
+        statusTextView = root.findViewById(R.id.targetingDataView)
+        statusTextView.text = ""
+
+        root.findViewById<Button>(R.id.btnLoadAd).setOnClickListener {
+            onClickLoadAd()
+        }
+        root.findViewById<Button>(R.id.btnCachedBanner).setOnClickListener {
+            onClickCachedBanner()
+        }
+        root.findViewById<Button>(R.id.btnClearCache).setOnClickListener {
+            onClickClearCache()
+        }
+    }
+
+    /**
+     * Loads targeting data and then the GAM banner.
+     */
+    private fun onClickLoadAd() {
+        MainActivity.OPTABLE
+            .targeting()
             .observe(viewLifecycleOwner, Observer { result ->
-                var msg = targetingDataView.text.toString()
+                val adRequest = AdManagerAdRequest.Builder()
+
                 if (result.status == OptableSDK.Status.SUCCESS) {
-                    msg += "\n\nSuccess calling profile API to set traits on user.\n\n"
+                    result.data?.forEach { (key, values) ->
+                        adRequest.addCustomTargeting(key, values)
+                    }
+                    changeStatusText("Loading GAM ad with targeting data.", result.data)
                 } else {
-                    msg += "\n\nOptableSDK Error: ${result.message}\n\n"
+                    changeStatusText("Error getting targeting data: ${result.message}")
                 }
-                targetingDataView.setText(msg)
+
+                adView.loadAd(adRequest.build())
+
+                profile()
+                witness()
+            })
+    }
+
+    /**
+     * Loads cached targeting and then the GAM banner.
+     */
+    private fun onClickCachedBanner() {
+        val adRequest = AdManagerAdRequest.Builder()
+        val cachedData = MainActivity.OPTABLE.targetingFromCache()
+        if (cachedData != null) {
+            cachedData.forEach { (key, values) ->
+                adRequest.addCustomTargeting(key, values)
+            }
+            changeStatusText("Loading GAM ad with cached targeting data.", cachedData)
+        } else {
+            changeStatusText("Targeting data cache empty.")
+        }
+
+        adView.loadAd(adRequest.build())
+
+        profile()
+        witness()
+    }
+
+    /**
+     * Clears the targeting data cache.
+     */
+    private fun onClickClearCache() {
+        MainActivity.OPTABLE.targetingClearCache()
+        changeStatusText("Cleared targeting data cache.")
+    }
+
+    private fun profile() {
+        MainActivity.OPTABLE
+            .profile(hashMapOf("gender" to "F", "age" to 38, "hasAccount" to true))
+            .observe(viewLifecycleOwner, Observer { result ->
+                if (result.status == OptableSDK.Status.SUCCESS) {
+                    appendStatusText("Success calling profile API to set traits on user.")
+                } else {
+                    appendStatusText("Error during sending profile: ${result.message}")
+                }
             })
     }
 
     private fun witness() {
-        MainActivity.OPTABLE!!
+        MainActivity.OPTABLE
             .witness(
                 "GAMBannerFragment.loadAdButtonClicked",
                 hashMapOf("exampleKey" to "exampleValue", "anotherExample" to 123, "foo" to false)
             )
             .observe(viewLifecycleOwner, Observer { result ->
-                var msg = targetingDataView.text.toString()
                 if (result.status == OptableSDK.Status.SUCCESS) {
-                    msg += "\n\nSuccess calling witness API to log loadAdButtonClicked event.\n\n"
+                    appendStatusText("Success calling witness API to log loadAdButtonClicked event.")
                 } else {
-                    msg += "\n\nOptableSDK Error: ${result.message}\n\n"
+                    appendStatusText("Error during sending witness: ${result.message}")
                 }
-                targetingDataView.setText(msg)
             })
+    }
+
+
+    private fun changeStatusText(message: String, optableResponse: OptableTargetingResponse? = null) {
+        var formattedMessage = message
+        if (optableResponse != null) {
+            formattedMessage += "\n\nTargeting data: "
+            formattedMessage += optableResponse.map { (key, values) -> "$key = ${values}\n" }
+        }
+        statusTextView.text = formattedMessage
+    }
+
+    private fun appendStatusText(message: String) {
+        statusTextView.append("\n\n$message")
     }
 
 }
