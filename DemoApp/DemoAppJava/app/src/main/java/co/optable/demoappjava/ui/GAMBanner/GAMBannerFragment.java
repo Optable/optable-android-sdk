@@ -6,29 +6,28 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-
-import com.google.android.gms.ads.doubleclick.PublisherAdRequest;
-import com.google.android.gms.ads.doubleclick.PublisherAdView;
+import co.optable.android_sdk.OptableSDK;
+import co.optable.demoappjava.MainActivity;
+import co.optable.demoappjava.R;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.admanager.AdManagerAdRequest;
+import com.google.android.gms.ads.admanager.AdManagerAdView;
 
 import java.util.HashMap;
 import java.util.List;
 
-import co.optable.android_sdk.OptableSDK;
-import co.optable.demoappjava.MainActivity;
-import co.optable.demoappjava.R;
-
 public class GAMBannerFragment extends Fragment {
-    private PublisherAdView mPublisherAdView;
+
+    private AdManagerAdView mAdView;
     private TextView targetingDataView;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_gambanner, container, false);
-        mPublisherAdView = root.findViewById(R.id.publisherAdView);
+        mAdView = root.findViewById(R.id.publisherAdView);
         targetingDataView = root.findViewById(R.id.targetingDataView);
 
         // loadAdButton loads targeting data and then the GAM banner:
@@ -37,7 +36,7 @@ public class GAMBannerFragment extends Fragment {
             targetingDataView.setText("");
 
             MainActivity.OPTABLE.targeting().observe(getViewLifecycleOwner(), result -> {
-                PublisherAdRequest.Builder adRequest = new PublisherAdRequest.Builder();
+                AdManagerAdRequest.Builder adRequest = new AdManagerAdRequest.Builder();
                 final StringBuilder msg = new StringBuilder();
                 msg.append(targetingDataView.getText().toString());
 
@@ -52,7 +51,7 @@ public class GAMBannerFragment extends Fragment {
                 }
 
                 targetingDataView.setText(msg.toString());
-                mPublisherAdView.loadAd(adRequest.build());
+                mAdView.loadAd(adRequest.build());
                 profile();
                 witness();
             });
@@ -62,7 +61,7 @@ public class GAMBannerFragment extends Fragment {
         btn = root.findViewById(R.id.loadAdButton2);
         btn.setOnClickListener(view -> {
             targetingDataView.setText("");
-            PublisherAdRequest.Builder adRequest = new PublisherAdRequest.Builder();
+            AdRequest.Builder adRequest = new AdRequest.Builder();
             final StringBuilder msg = new StringBuilder();
             HashMap<String, List<String>> data = MainActivity.OPTABLE.targetingFromCache();
 
@@ -77,7 +76,7 @@ public class GAMBannerFragment extends Fragment {
             }
 
             targetingDataView.setText(msg.toString());
-            mPublisherAdView.loadAd(adRequest.build());
+            mAdView.loadAd(adRequest.build());
             profile();
             witness();
         });

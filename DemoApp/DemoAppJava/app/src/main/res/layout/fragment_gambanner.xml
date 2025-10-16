@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".ui.GAMBanner.GAMBannerFragment">
 
-    <com.google.android.gms.ads.doubleclick.PublisherAdView
+    <com.google.android.gms.ads.admanager.AdManagerAdView
         android:id="@+id/publisherAdView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -18,7 +18,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.494"
-        app:layout_constraintStart_toStartOf="parent"></com.google.android.gms.ads.doubleclick.PublisherAdView>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/loadAdButton"
@@ -64,4 +64,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/loadAdButton" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

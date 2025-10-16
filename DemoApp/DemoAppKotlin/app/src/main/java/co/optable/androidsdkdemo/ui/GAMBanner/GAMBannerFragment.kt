@@ -15,12 +15,12 @@ import androidx.lifecycle.Observer
 import co.optable.android_sdk.OptableSDK
 import co.optable.androidsdkdemo.MainActivity
 import co.optable.androidsdkdemo.R
-import com.google.android.gms.ads.doubleclick.PublisherAdRequest
-import com.google.android.gms.ads.doubleclick.PublisherAdView
+import com.google.android.gms.ads.admanager.AdManagerAdRequest
+import com.google.android.gms.ads.admanager.AdManagerAdView
 
 class GAMBannerFragment : Fragment() {
 
-    private lateinit var mPublisherAdView: PublisherAdView
+    private lateinit var mAdView: AdManagerAdView
     private lateinit var targetingDataView: TextView
 
     override fun onCreateView(
@@ -29,7 +29,7 @@ class GAMBannerFragment : Fragment() {
             savedInstanceState: Bundle?
     ): View? {
         val root = inflater.inflate(R.layout.fragment_gambanner, container, false)
-        mPublisherAdView = root.findViewById(R.id.publisherAdView)
+        mAdView = root.findViewById(R.id.publisherAdView)
         targetingDataView = root.findViewById(R.id.targetingDataView)
         targetingDataView.setText("")
 
@@ -38,7 +38,7 @@ class GAMBannerFragment : Fragment() {
         btn.setOnClickListener {
             MainActivity.OPTABLE!!.targeting().observe(viewLifecycleOwner, Observer { result ->
                 var msg = ""
-                var adRequest = PublisherAdRequest.Builder()
+                var adRequest = AdManagerAdRequest.Builder()
 
                 if (result.status == OptableSDK.Status.SUCCESS) {
                     msg += "Loading GAM ad with targeting data:\n\n"
@@ -51,7 +51,7 @@ class GAMBannerFragment : Fragment() {
                 }
 
                 targetingDataView.setText(msg)
-                mPublisherAdView.loadAd(adRequest.build())
+                mAdView.loadAd(adRequest.build())
                 profile()
                 witness()
             })
@@ -61,7 +61,7 @@ class GAMBannerFragment : Fragment() {
         btn = root.findViewById(R.id.loadAdButton2) as Button
         btn.setOnClickListener {
             var msg = ""
-            var adRequest = PublisherAdRequest.Builder()
+            var adRequest = AdManagerAdRequest.Builder()
             var data = MainActivity.OPTABLE!!.targetingFromCache()
 
             if (data != null) {
@@ -75,7 +75,7 @@ class GAMBannerFragment : Fragment() {
             }
 
             targetingDataView.setText(msg)
-            mPublisherAdView.loadAd(adRequest.build())
+            mAdView.loadAd(adRequest.build())
             profile()
             witness()
         }
