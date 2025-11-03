@@ -41,9 +41,7 @@ android {
 
 dependencies {
     // Optable SDK
-    // TODO: Return to this version after release
-//    implementation "com.github.Optable:optable-android-sdk:" + versioning.getVersionName(false)
-    implementation "com.github.Optable:optable-android-sdk:master"
+    implementation "com.github.Optable:optable-android-sdk:" + versioning.getVersionName(false)
 
     // Google Mobile Ads
     implementation 'com.google.android.gms:play-services-ads:24.6.0'
