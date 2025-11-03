@@ -16,7 +16,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        var OPTABLE: OptableSDK? = null
+        lateinit var OPTABLE: OptableSDK
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,13 +25,15 @@ class MainActivity : AppCompatActivity() {
 
         OPTABLE = OptableSDK(this, "sandbox.optable.co", "ios-sdk-demo")
 
+        initUi()
+    }
+
+    private fun initUi() {
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
         val navController = findNavController(R.id.nav_host_fragment)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        val appBarConfiguration = AppBarConfiguration(setOf(
-                R.id.navigation_identify, R.id.navigation_gambanner))
+        val appBarConfiguration = AppBarConfiguration(setOf(R.id.navigation_identify, R.id.navigation_gambanner))
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
     }
+
 }

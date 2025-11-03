@@ -19,39 +19,49 @@ import co.optable.androidsdkdemo.MainActivity
 import co.optable.androidsdkdemo.R
 
 class IdentifyFragment : Fragment() {
+
     private lateinit var identifyView: TextView
     private lateinit var emailText: EditText
     private lateinit var gaidSwitch: Switch
 
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
     ): View? {
         val root = inflater.inflate(R.layout.fragment_identify, container, false)
+        initUi(root)
+        return root
+    }
+
+    private fun initUi(root: View) {
         identifyView = root.findViewById(R.id.identifyView)
         emailText = root.findViewById(R.id.editTextTextEmailAddress)
         gaidSwitch = root.findViewById(R.id.gaidSwitch)
 
-        var btn = root.findViewById(R.id.identifyButton) as Button
-        btn.setOnClickListener {
-            identifyView.text = ""
-            MainActivity.OPTABLE!!
-                .identify(emailText.text.toString(), gaidSwitch.isChecked)
-                .observe(viewLifecycleOwner, Observer
-            { result ->
-                var msg = "Calling identify API... "
+        root.findViewById<Button>(R.id.identifyButton).setOnClickListener {
+            onClickIdentify()
+        }
+    }
 
-                if (result.status == OptableSDK.Status.SUCCESS) {
-                    msg += "Success"
+    private fun onClickIdentify() {
+        identifyView.text = ""
+
+        val email = emailText.text.toString()
+        val gaidStatus = gaidSwitch.isChecked
+
+        MainActivity.OPTABLE
+            .identify(email, gaidStatus)
+            .observe(viewLifecycleOwner, Observer { result ->
+                var msg = "Calling identify API... "
+                msg += if (result.status == OptableSDK.Status.SUCCESS) {
+                    "Success"
                 } else {
-                    msg += "\n\nOptableSDK Error: ${result.message}"
+                    "\n\nOptableSDK Error: ${result.message}"
                 }
 
-                identifyView.setText(msg)
+                identifyView.text = msg
             })
-        }
-
-        return root
     }
+
 }

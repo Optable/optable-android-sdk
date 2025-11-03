@@ -10,6 +10,7 @@ import co.optable.android_sdk.OptableSDK;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
+
     public static OptableSDK OPTABLE;
 
     @Override
@@ -19,13 +20,13 @@ public class MainActivity extends AppCompatActivity {
 
         MainActivity.OPTABLE = new OptableSDK(this.getApplicationContext(), "sandbox.optable.co", "ios-sdk-demo");
 
+        initUi();
+    }
+
+    private void initUi() {
         BottomNavigationView navView = findViewById(R.id.nav_view);
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_identify, R.id.navigation_gambanner)
-                .build();
+        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(R.id.navigation_identify, R.id.navigation_gambanner).build();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
     }

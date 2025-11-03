@@ -21,7 +21,7 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/loadAdButton"
+        android:id="@+id/btnLoadBanner"
         android:layout_width="120dp"
         android:layout_height="50dp"
         android:layout_marginTop="8dp"
@@ -33,7 +33,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/loadAdButton2"
+        android:id="@+id/btnCachedBanner"
         android:layout_width="120dp"
         android:layout_height="50dp"
         android:layout_marginTop="8dp"
@@ -45,7 +45,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/loadAdButton3"
+        android:id="@+id/btnClearCache"
         android:layout_width="120dp"
         android:layout_height="50dp"
         android:layout_marginTop="8dp"
@@ -63,6 +63,6 @@
         android:layout_marginTop="100dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/loadAdButton" />
+        app:layout_constraintTop_toBottomOf="@+id/btnLoadBanner" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

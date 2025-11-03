@@ -14,28 +14,29 @@ import co.optable.android_sdk.edge.EdgeResponse
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.security.MessageDigest
+import java.util.Locale.getDefault
 
 /*
  * The following typealiases describe the inputs and successful result types of various
  * OptableSDK APIs:
  */
 
-/*
+/**
  * Identify API expects a list of type-prefixed ID string values:
  */
 typealias OptableIdentifyInput = List<String>
 
-/*
+/**
  * Profile API expects user traits:
  */
 typealias OptableProfileTraits = HashMap<String,Any>
 
-/*
+/**
  * Witness API expects event properties:
  */
 typealias OptableWitnessProperties = HashMap<String,Any>
 
-/*
+/**
  * Identify, Profile, and Witness APIs usually just return {}... Void would be better but that
  * results in retrofit2 error when parsing response, even when the API responded successfully,
  * since {} is technically a HashMap:
@@ -44,12 +45,12 @@ typealias OptableIdentifyResponse = HashMap<Any,Any>
 typealias OptableProfileResponse = HashMap<Any,Any>
 typealias OptableWitnessResponse = HashMap<Any,Any>
 
-/*
+/**
  * Targeting API responds with a key-values dictionary on success:
  */
 typealias OptableTargetingResponse = HashMap<String, List<String>>
 
-/*
+/**
  *  OptableSDK provides an API that is used by an Android app developer integrating with an
  *  Optable Sandbox.
  *
@@ -66,12 +67,11 @@ typealias OptableTargetingResponse = HashMap<String, List<String>>
  *  persisted across launches of the app. The state is unique to the app+device, and not globally
  *  unique to the app across devices.
  */
-
 class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: String, insecure: Boolean = false, useragent: String? = null, skipAdvertisingIdDetection: Boolean = false) {
     val config = Config(host, app, insecure)
     val client = Client(config, context, useragent, skipAdvertisingIdDetection)
 
-    /*
+    /**
      *  OptableSDK.Status lists all of the possible OptableSDK API result statuses.
      */
     enum class Status {
@@ -79,7 +79,7 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
         ERROR
     }
 
-    /*
+    /**
      *  OptableSDK.Response is a generic wrapper for various OptableSDK API result types.
      *  It also holds the API result status (OptableSDK.Status) to indicate success or error
      *  resulting from an API call. On success, the response `data` member will hold an instance
@@ -100,7 +100,7 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
         }
     }
 
-    /*
+    /**
      *  identify(idList) calls the Optable Sandbox "identify" API, passing it the list of IDs
      *  in idList, a list of type-prefixed identifiers.
      *
@@ -136,7 +136,7 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
         return liveData
     }
 
-    /*
+    /**
      *  identify(email, gaid?, ppid?) calls the Optable Sandbox "identify" API, passing it the
      *  SHA-256 of the caller-provided 'email' and, when specified via the 'gaid' Boolean, the
      *  Google Advertising ID of the device. If the 'ppid' String is specified, it will also be
@@ -170,7 +170,7 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
         return this.identify(idList)
     }
 
-    /*
+    /**
      * tryIdentifyFromURI(uri) is a helper that attempts to find a valid-looking "oeid"
      * parameter in the specified uri's query string parameters and, if found, calls
      * this.identify(listOf(oeid)).
@@ -187,7 +187,7 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
         }
     }
 
-    /*
+    /**
      *  profile(traits) calls the Optable Sandbox "profile" API in order to associate the
      *  specified keyvalue OptableProfileTraits 'traits', which can be subsequently used for
      *  audience assembly.
@@ -225,7 +225,7 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
         return liveData
     }
 
-    /*
+    /**
      *  targeting() calls the Optable Sandbox "targeting" API, which returns the key-value targeting
      *  data matching the user/device/app.
      *
@@ -270,7 +270,7 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
         this.client.TargetingClearCache()
     }
 
-    /*
+    /**
      *  witness(event, properties) calls the Optable Sandbox "witness" API in order to log a
      *  specified 'event' (e.g., "app.screenView", "ui.buttonPressed"), with the specified keyvalue
      *  OptableWitnessProperties 'properties', which can be subsequently used for audience assembly.
@@ -309,30 +309,30 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
     }
 
     companion object {
-        /*
+        /**
          * eid(email) is a helper that returns type-prefixed SHA256(downcase(email))
          */
         fun eid(email: String): String {
             return "e:" + MessageDigest.getInstance("SHA-256")
-                .digest(email.toLowerCase().trim().toByteArray())
+                .digest(email.lowercase(getDefault()).trim().toByteArray())
                 .fold("", { str, it -> str + "%02x".format(it) })
         }
 
-        /*
+        /**
          * gaid(gaid) is a helper that returns the type-prefixed Google Advertising ID
          */
         fun gaid(gaid: String): String {
-            return "g:" + gaid.toLowerCase().trim()
+            return "g:" + gaid.lowercase(getDefault()).trim()
         }
 
-        /*
+        /**
          * cid(ppid) is a helper that returns custom type-prefixed origin-provided PPID
          */
         fun cid(ppid: String): String {
             return "c:" + ppid.trim()
         }
 
-        /*
+        /**
          * eidFromURI(uri) is a helper that returns a type-prefixed ID based on the query string
          * oeid=sha256value parameters in the specified uri, if one is found. Otherwise, it returns
          * an empty string.
@@ -345,7 +345,7 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
         fun eidFromURI(uri: Uri): String {
             // We first convert the Uri to a lowercase string then re-parse it so that we are
             // not dependent on case-sensitivity of the "oeid" query parameter:
-            var oeid = Uri.parse(uri.toString().toLowerCase()).getQueryParameter("oeid")
+            var oeid = Uri.parse(uri.toString().lowercase(getDefault())).getQueryParameter("oeid")
 
             if ((oeid == null) || (oeid.length != 64) ||
                 (oeid.matches("^[a-f0-9]$".toRegex(RegexOption.IGNORE_CASE))))
@@ -353,7 +353,7 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
                 return ""
             }
 
-            return "e:" + oeid.toLowerCase()
+            return "e:" + oeid.lowercase(getDefault())
         }
     }
 }
