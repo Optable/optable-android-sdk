@@ -50,6 +50,9 @@ dependencies {
     // Google Mobile Ads
     implementation 'com.google.android.gms:play-services-ads:24.6.0'
 
+    // Prebid Ads
+    implementation "org.prebid:prebid-mobile-sdk:3.0.2"
+
     // Base Android
     implementation "org.jetbrains.kotlin:kotlin-stdlib:2.0.21"
     implementation 'com.android.support:multidex:1.0.3'

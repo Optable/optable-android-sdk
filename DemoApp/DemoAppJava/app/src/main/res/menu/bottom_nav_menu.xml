@@ -11,4 +11,9 @@
         android:icon="@drawable/ic_gambanner_black_24dp"
         android:title="GAM Banner" />
 
+    <item
+        android:id="@+id/navigation_prebid"
+        android:icon="@drawable/ic_gambanner_black_24dp"
+        android:title="Prebid Banner" />
+
 </menu>
