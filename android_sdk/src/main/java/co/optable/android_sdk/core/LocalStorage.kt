@@ -6,13 +6,16 @@ package co.optable.android_sdk.core
 
 import android.content.Context
 import androidx.preference.PreferenceManager
-import co.optable.android_sdk.Config
 import co.optable.android_sdk.OptableTargetingResponse
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
-internal class LocalStorage(private val config: Config, private val context: Context) {
-    private val prefs = PreferenceManager.getDefaultSharedPreferences(this.context)
+internal class LocalStorage(
+    private val config: Config,
+    context: Context,
+) {
+
+    private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
     private val passportKey = this.config.passportKey()
     private val targetingKey = this.config.targetingKey()
 

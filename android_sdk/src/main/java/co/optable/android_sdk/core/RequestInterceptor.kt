@@ -1,0 +1,36 @@
+package co.optable.android_sdk.core
+
+import co.optable.BuildConfig
+import okhttp3.Interceptor
+import okhttp3.Response
+
+internal class RequestInterceptor(
+    private val userAgent: String?,
+    private val config: Config,
+    private val storage: LocalStorage,
+) : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val originalRequest = chain.request()
+
+        val url = originalRequest.url.newBuilder()
+            .addQueryParameter("osdk", "android-${BuildConfig.VERSION_NAME}-${BuildConfig.VERSION_CODE}")
+            .addQueryParameter("t", config.tenant)
+            .addQueryParameter("o", config.originSlug)
+            .build()
+
+        val modifiedRequest = originalRequest.newBuilder().url(url)
+        modifiedRequest.addHeader("Accept", "application/json")
+
+        val userAgent = userAgent
+        if (userAgent != null) {
+            modifiedRequest.addHeader("User-Agent", userAgent)
+        }
+
+        val pass = storage.getPassport()
+        if (pass != null) {
+            modifiedRequest.addHeader("X-Optable-Visitor", pass)
+        }
+
+        return chain.proceed(modifiedRequest.build())
+    }
+}

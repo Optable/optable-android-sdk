@@ -9,12 +9,10 @@ import android.net.Uri
 import android.text.TextUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import co.optable.android_sdk.core.Client
+import co.optable.android_sdk.core.*
 import co.optable.android_sdk.edge.EdgeResponse
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.security.MessageDigest
-import java.util.Locale.getDefault
 
 /*
  * The following typealiases describe the inputs and successful result types of various
@@ -29,21 +27,21 @@ typealias OptableIdentifyInput = List<String>
 /**
  * Profile API expects user traits:
  */
-typealias OptableProfileTraits = HashMap<String,Any>
+typealias OptableProfileTraits = HashMap<String, Any>
 
 /**
  * Witness API expects event properties:
  */
-typealias OptableWitnessProperties = HashMap<String,Any>
+typealias OptableWitnessProperties = HashMap<String, Any>
 
 /**
  * Identify, Profile, and Witness APIs usually just return {}... Void would be better but that
  * results in retrofit2 error when parsing response, even when the API responded successfully,
  * since {} is technically a HashMap:
  */
-typealias OptableIdentifyResponse = HashMap<Any,Any>
-typealias OptableProfileResponse = HashMap<Any,Any>
-typealias OptableWitnessResponse = HashMap<Any,Any>
+typealias OptableIdentifyResponse = HashMap<Any, Any>
+typealias OptableProfileResponse = HashMap<Any, Any>
+typealias OptableWitnessResponse = HashMap<Any, Any>
 
 /**
  * Targeting API responds with a key-values dictionary on success:
@@ -67,9 +65,30 @@ typealias OptableTargetingResponse = HashMap<String, List<String>>
  *  persisted across launches of the app. The state is unique to the app+device, and not globally
  *  unique to the app across devices.
  */
-class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: String, insecure: Boolean = false, useragent: String? = null, skipAdvertisingIdDetection: Boolean = false) {
-    val config = Config(host, app, insecure)
-    val client = Client(config, context, useragent, skipAdvertisingIdDetection)
+class OptableSDK @JvmOverloads constructor(
+    tenant: String,
+    originSlug: String,
+    context: Context,
+    host: String = "na.edge.optable.co",
+    path: String = "v2",
+    insecure: Boolean = false,
+    useragent: String? = null,
+    skipAdvertisingIdDetection: Boolean = false,
+) {
+
+    private val config = Config(
+        tenant = tenant,
+        originSlug = originSlug,
+        userAgent = useragent,
+        skipAdvertisingIdDetection = skipAdvertisingIdDetection,
+        host = host,
+        path = path,
+        insecure = insecure,
+    )
+
+    private val storage = LocalStorage(config, context)
+    private val adIdManager = GoogleAdIdManager(config, context)
+    private val client = NetworkClient(config, storage, context)
 
     /**
      *  OptableSDK.Status lists all of the possible OptableSDK API result statuses.
@@ -93,9 +112,9 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
             fun <T> success(data: T?): Response<T> {
                 return Response(Status.SUCCESS, data, null)
             }
+
             fun <T> error(err: Error): Response<T> {
-                return Response(Status.ERROR, null,
-                    err.error + " (trace: " + err.trace + ")")
+                return Response(Status.ERROR, null, err.error + " (trace: " + err.trace + ")")
             }
         }
     }
@@ -111,24 +130,32 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
      */
     fun identify(idList: OptableIdentifyInput): LiveData<Response<OptableIdentifyResponse>> {
         val liveData = MutableLiveData<Response<OptableIdentifyResponse>>()
-        val client = this.client
 
         GlobalScope.launch {
-            val response = client.Identify(idList)
+            val response = client.identify(idList)
             when (response) {
                 is EdgeResponse.Success -> {
                     liveData.postValue(Response.success(response.body))
                 }
+
                 is EdgeResponse.ApiError -> {
                     liveData.postValue(Response.error(response.body))
                 }
+
                 is EdgeResponse.NetworkError -> {
-                    liveData.postValue(Response.error(
-                        Response.Error("NetworkError", "None")))
+                    liveData.postValue(
+                        Response.error(
+                            Response.Error("NetworkError", "None")
+                        )
+                    )
                 }
+
                 is EdgeResponse.UnknownError -> {
-                    liveData.postValue(Response.error(
-                        Response.Error("UnknownError", "None")))
+                    liveData.postValue(
+                        Response.error(
+                            Response.Error("UnknownError", "None")
+                        )
+                    )
                 }
             }
         }
@@ -148,23 +175,22 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
      *  to an empty HashMap on success, and can therefore be ignored.
      */
     @JvmOverloads
-    fun identify(email: String, gaid: Boolean? = false, ppid: String? = null):
-            LiveData<Response<OptableIdentifyResponse>>
-    {
+    fun identify(email: String, gaid: Boolean = false, ppid: String? = null):
+            LiveData<Response<OptableIdentifyResponse>> {
         var idList: OptableIdentifyInput = listOf()
 
         if (!TextUtils.isEmpty(email) &&
-            android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches())
-        {
-            idList += Companion.eid(email)
+            android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        ) {
+            idList += TypeHasher.eid(email)
         }
 
-        if (gaid!! && this.client.hasGAID()) {
-            idList += Companion.gaid(this.client.GAID()!!)
+        if (gaid && adIdManager.hasId()) {
+            idList += TypeHasher.gaid(adIdManager.getId()!!)
         }
 
         if ((ppid != null) && (ppid.length > 0)) {
-            idList += Companion.cid(ppid)
+            idList += TypeHasher.cid(ppid)
         }
 
         return this.identify(idList)
@@ -180,7 +206,7 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
      * as encoded links in newsletter Emails sent by the application developer.
      */
     fun tryIdentifyFromURI(uri: Uri) {
-        val oeid = Companion.eidFromURI(uri)
+        val oeid = TypeHasher.eidFromURI(uri)
 
         if (oeid.length > 0) {
             this.identify(listOf(oeid))
@@ -200,24 +226,32 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
     fun profile(traits: OptableProfileTraits):
             LiveData<Response<OptableProfileResponse>> {
         val liveData = MutableLiveData<Response<OptableProfileResponse>>()
-        val client = this.client
 
         GlobalScope.launch {
-            val response = client.Profile(traits)
+            val response = client.profile(traits)
             when (response) {
                 is EdgeResponse.Success -> {
                     liveData.postValue(Response.success(response.body))
                 }
+
                 is EdgeResponse.ApiError -> {
                     liveData.postValue(Response.error(response.body))
                 }
+
                 is EdgeResponse.NetworkError -> {
-                    liveData.postValue(Response.error(
-                        Response.Error("NetworkError", "None")))
+                    liveData.postValue(
+                        Response.error(
+                            Response.Error("NetworkError", "None")
+                        )
+                    )
                 }
+
                 is EdgeResponse.UnknownError -> {
-                    liveData.postValue(Response.error(
-                        Response.Error("UnknownError", "None")))
+                    liveData.postValue(
+                        Response.error(
+                            Response.Error("UnknownError", "None")
+                        )
+                    )
                 }
             }
         }
@@ -236,25 +270,33 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
      */
     fun targeting(): LiveData<Response<OptableTargetingResponse>> {
         val liveData = MutableLiveData<Response<OptableTargetingResponse>>()
-        val client = this.client
 
         GlobalScope.launch {
-            val response = client.Targeting()
+            val response = client.targeting()
             when (response) {
                 is EdgeResponse.Success -> {
-                    client.TargetingSetCache(response.body)
+                    storage.setTargeting(response.body)
                     liveData.postValue(Response.success(response.body))
                 }
+
                 is EdgeResponse.ApiError -> {
                     liveData.postValue(Response.error(response.body))
                 }
+
                 is EdgeResponse.NetworkError -> {
-                    liveData.postValue(Response.error(
-                        Response.Error("NetworkError", "None")))
+                    liveData.postValue(
+                        Response.error(
+                            Response.Error("NetworkError", "None")
+                        )
+                    )
                 }
+
                 is EdgeResponse.UnknownError -> {
-                    liveData.postValue(Response.error(
-                        Response.Error("UnknownError", "None")))
+                    liveData.postValue(
+                        Response.error(
+                            Response.Error("UnknownError", "None")
+                        )
+                    )
                 }
             }
         }
@@ -263,11 +305,11 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
     }
 
     fun targetingFromCache(): OptableTargetingResponse? {
-        return this.client.TargetingFromCache()
+        return storage.getTargeting()
     }
 
     fun targetingClearCache() {
-        this.client.TargetingClearCache()
+        storage.clearTargeting()
     }
 
     /**
@@ -280,27 +322,35 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
      *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
      *  to an empty HashMap on success, and can therefore be ignored.
      */
-    fun witness(event: String, properties: OptableWitnessProperties):
-            LiveData<Response<OptableWitnessResponse>> {
+    fun witness(event: String, properties: OptableWitnessProperties): LiveData<Response<OptableWitnessResponse>> {
         val liveData = MutableLiveData<Response<OptableWitnessResponse>>()
         val client = this.client
 
         GlobalScope.launch {
-            val response = client.Witness(event, properties)
+            val response = client.witness(event, properties)
             when (response) {
                 is EdgeResponse.Success -> {
                     liveData.postValue(Response.success(response.body))
                 }
+
                 is EdgeResponse.ApiError -> {
                     liveData.postValue(Response.error(response.body))
                 }
+
                 is EdgeResponse.NetworkError -> {
-                    liveData.postValue(Response.error(
-                        Response.Error("NetworkError", "None")))
+                    liveData.postValue(
+                        Response.error(
+                            Response.Error("NetworkError", "None")
+                        )
+                    )
                 }
+
                 is EdgeResponse.UnknownError -> {
-                    liveData.postValue(Response.error(
-                        Response.Error("UnknownError", "None")))
+                    liveData.postValue(
+                        Response.error(
+                            Response.Error("UnknownError", "None")
+                        )
+                    )
                 }
             }
         }
@@ -308,52 +358,4 @@ class OptableSDK @JvmOverloads constructor(context: Context, host: String, app: 
         return liveData
     }
 
-    companion object {
-        /**
-         * eid(email) is a helper that returns type-prefixed SHA256(downcase(email))
-         */
-        fun eid(email: String): String {
-            return "e:" + MessageDigest.getInstance("SHA-256")
-                .digest(email.lowercase(getDefault()).trim().toByteArray())
-                .fold("", { str, it -> str + "%02x".format(it) })
-        }
-
-        /**
-         * gaid(gaid) is a helper that returns the type-prefixed Google Advertising ID
-         */
-        fun gaid(gaid: String): String {
-            return "g:" + gaid.lowercase(getDefault()).trim()
-        }
-
-        /**
-         * cid(ppid) is a helper that returns custom type-prefixed origin-provided PPID
-         */
-        fun cid(ppid: String): String {
-            return "c:" + ppid.trim()
-        }
-
-        /**
-         * eidFromURI(uri) is a helper that returns a type-prefixed ID based on the query string
-         * oeid=sha256value parameters in the specified uri, if one is found. Otherwise, it returns
-         * an empty string.
-         *
-         * The use for this is when handling incoming deep links which might contain an "oeid" value
-         * with the SHA256(downcase(email)) of a user, such as encoded links in newsletter Emails
-         * sent by the application developer. Such hashed Email values can be used in calls to
-         * identify()
-         */
-        fun eidFromURI(uri: Uri): String {
-            // We first convert the Uri to a lowercase string then re-parse it so that we are
-            // not dependent on case-sensitivity of the "oeid" query parameter:
-            var oeid = Uri.parse(uri.toString().lowercase(getDefault())).getQueryParameter("oeid")
-
-            if ((oeid == null) || (oeid.length != 64) ||
-                (oeid.matches("^[a-f0-9]$".toRegex(RegexOption.IGNORE_CASE))))
-            {
-                return ""
-            }
-
-            return "e:" + oeid.lowercase(getDefault())
-        }
-    }
 }

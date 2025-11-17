@@ -1,19 +1,23 @@
-/*
- * Copyright © 2020 Optable Technologies Inc. All rights reserved.
- * See LICENSE for details.
- */
-package co.optable.android_sdk
+package co.optable.android_sdk.core
 
 import android.util.Base64
 
-class Config(val host: String, val app: String, val insecure: Boolean = false) {
+internal class Config(
+    val tenant: String,
+    val originSlug: String,
+    val userAgent: String?,
+    val skipAdvertisingIdDetection: Boolean,
+    private val host: String,
+    private val path: String,
+    private val insecure: Boolean,
+) {
 
     fun edgeBaseURL(): String {
         var proto = "https://"
-        if (this.insecure) {
+        if (insecure) {
             proto = "http://"
         }
-        return proto + this.host + "/"
+        return "$proto$host/$path/"
     }
 
     fun passportKey(): String {
@@ -25,7 +29,8 @@ class Config(val host: String, val app: String, val insecure: Boolean = false) {
     }
 
     private fun key(kind: String): String {
-        val sfx = this.host + "/" + this.app
+        // TODO: New sfx
+        val sfx = edgeBaseURL()
         return "OPTABLE_" + kind + "_" + Base64.encodeToString(sfx.toByteArray(), 0)
     }
 

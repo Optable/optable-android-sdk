@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        OPTABLE = OptableSDK(this, "sandbox.optable.co", "ios-sdk-demo")
+        OPTABLE = OptableSDK("prebidtest", "js-sdk", this)
 
         initUi()
     }
@@ -31,7 +31,12 @@ class MainActivity : AppCompatActivity() {
     private fun initUi() {
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
         val navController = findNavController(R.id.nav_host_fragment)
-        val appBarConfiguration = AppBarConfiguration(setOf(R.id.navigation_identify, R.id.navigation_gambanner))
+        val appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.navigation_identify,
+                R.id.navigation_gambanner,
+            )
+        )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
     }
