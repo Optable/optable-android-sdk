@@ -5,6 +5,7 @@
 package co.optable.android_sdk
 
 import android.net.Uri
+import co.optable.android_sdk.core.TypeHasher
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
@@ -21,10 +22,10 @@ class OptableSDKUnitTest {
     fun eid_isCorrect() {
         val expected = "e:a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
 
-        assertEquals(expected, OptableSDK.eid("123"))
-        assertEquals(expected, OptableSDK.eid(" 123"))
-        assertEquals(expected, OptableSDK.eid("123 "))
-        assertEquals(expected, OptableSDK.eid(" 123 "))
+        assertEquals(expected, TypeHasher.eid("123"))
+        assertEquals(expected, TypeHasher.eid(" 123"))
+        assertEquals(expected, TypeHasher.eid("123 "))
+        assertEquals(expected, TypeHasher.eid(" 123 "))
     }
 
     @Test
@@ -33,39 +34,39 @@ class OptableSDKUnitTest {
         val var2 = "test@foobarbaz.com"
         val var3 = "TEST@FOOBARBAZ.COM"
         val var4 = "TeSt@fOObARbAZ.cOm"
-        val eid = OptableSDK.eid(var1)
+        val eid = TypeHasher.eid(var1)
 
-        assertEquals(eid, OptableSDK.eid(var2))
-        assertEquals(eid, OptableSDK.eid(var3))
-        assertEquals(eid, OptableSDK.eid(var4))
+        assertEquals(eid, TypeHasher.eid(var2))
+        assertEquals(eid, TypeHasher.eid(var3))
+        assertEquals(eid, TypeHasher.eid(var4))
     }
 
     @Test
     fun gaid_isCorrectAndIgnoresCase() {
         val expected = "g:38400000-8cf0-11bd-b23e-10b96e40000d"
 
-        assertEquals(expected, OptableSDK.gaid("38400000-8cf0-11bd-b23e-10b96e40000d"))
-        assertEquals(expected, OptableSDK.gaid("  38400000-8cf0-11bd-b23e-10b96e40000d"))
-        assertEquals(expected, OptableSDK.gaid("38400000-8cf0-11bd-b23e-10b96e40000d  "))
-        assertEquals(expected, OptableSDK.gaid("  38400000-8cf0-11bd-b23e-10b96e40000d  "))
-        assertEquals(expected, OptableSDK.gaid("38400000-8CF0-11BD-B23E-10B96E40000D"))
+        assertEquals(expected, TypeHasher.gaid("38400000-8cf0-11bd-b23e-10b96e40000d"))
+        assertEquals(expected, TypeHasher.gaid("  38400000-8cf0-11bd-b23e-10b96e40000d"))
+        assertEquals(expected, TypeHasher.gaid("38400000-8cf0-11bd-b23e-10b96e40000d  "))
+        assertEquals(expected, TypeHasher.gaid("  38400000-8cf0-11bd-b23e-10b96e40000d  "))
+        assertEquals(expected, TypeHasher.gaid("38400000-8CF0-11BD-B23E-10B96E40000D"))
     }
 
     @Test
     fun cid_isCorrect() {
         val expected = "c:FooBarBAZ-01234#98765.!!!"
 
-        assertEquals(expected, OptableSDK.cid("FooBarBAZ-01234#98765.!!!"))
-        assertEquals(expected, OptableSDK.cid(" FooBarBAZ-01234#98765.!!!"))
-        assertEquals(expected, OptableSDK.cid("FooBarBAZ-01234#98765.!!!  "))
-        assertEquals(expected, OptableSDK.cid("  FooBarBAZ-01234#98765.!!!  "))
+        assertEquals(expected, TypeHasher.cid("FooBarBAZ-01234#98765.!!!"))
+        assertEquals(expected, TypeHasher.cid(" FooBarBAZ-01234#98765.!!!"))
+        assertEquals(expected, TypeHasher.cid("FooBarBAZ-01234#98765.!!!  "))
+        assertEquals(expected, TypeHasher.cid("  FooBarBAZ-01234#98765.!!!  "))
     }
 
     @Test
     fun cid_isCaseSensitive() {
         val unexpected = "c:FooBarBAZ-01234#98765.!!!"
 
-        assertNotEquals(unexpected, OptableSDK.cid("foobarBAZ-01234#98765.!!!"))
+        assertNotEquals(unexpected, TypeHasher.cid("foobarBAZ-01234#98765.!!!"))
     }
 
     @Test
@@ -73,7 +74,7 @@ class OptableSDKUnitTest {
         val url = "http://some.domain.com/some/path?some=query&something=else&oeid=a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3&foo=bar&baz"
         val expected = "e:a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
 
-        assertEquals(expected, OptableSDK.eidFromURI(Uri.parse(url)))
+        assertEquals(expected, TypeHasher.eidFromURI(Uri.parse(url)))
     }
 
     @Test
@@ -81,7 +82,7 @@ class OptableSDKUnitTest {
         val url = "http://some.domain.com/some/path?some=query&something=else"
         val expected = ""
 
-        assertEquals(expected, OptableSDK.eidFromURI(Uri.parse(url)))
+        assertEquals(expected, TypeHasher.eidFromURI(Uri.parse(url)))
     }
 
     @Test
@@ -89,7 +90,7 @@ class OptableSDKUnitTest {
         val url = "http://some.domain.com/some/path"
         val expected = ""
 
-        assertEquals(expected, OptableSDK.eidFromURI(Uri.parse(url)))
+        assertEquals(expected, TypeHasher.eidFromURI(Uri.parse(url)))
     }
 
     @Test
@@ -97,7 +98,7 @@ class OptableSDKUnitTest {
         val url = ""
         val expected = ""
 
-        assertEquals(expected, OptableSDK.eidFromURI(Uri.parse(url)))
+        assertEquals(expected, TypeHasher.eidFromURI(Uri.parse(url)))
     }
 
     @Test
@@ -105,7 +106,7 @@ class OptableSDKUnitTest {
         val url = "http://some.domain.com/some/path?some=query&something=else&oeid=AAAAAAAa665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3&foo=bar&baz"
         val expected = ""
 
-        assertEquals(expected, OptableSDK.eidFromURI(Uri.parse(url)))
+        assertEquals(expected, TypeHasher.eidFromURI(Uri.parse(url)))
     }
 
     @Test
@@ -113,6 +114,6 @@ class OptableSDKUnitTest {
         val url = "http://some.domain.com/some/path?some=query&something=else&oEId=A665A45920422F9D417E4867EFDC4FB8A04A1F3FFF1FA07E998E86f7f7A27AE3&foo=bar&baz"
         val expected = "e:a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
 
-        assertEquals(expected, OptableSDK.eidFromURI(Uri.parse(url)))
+        assertEquals(expected, TypeHasher.eidFromURI(Uri.parse(url)))
     }
 }
