@@ -29,8 +29,7 @@ internal class Config(
     }
 
     private fun key(kind: String): String {
-        // TODO: New sfx
-        val sfx = edgeBaseURL()
+        val sfx = host + "/" + tenant + "/" + originSlug
         return "OPTABLE_" + kind + "_" + Base64.encodeToString(sfx.toByteArray(), 0)
     }
 
