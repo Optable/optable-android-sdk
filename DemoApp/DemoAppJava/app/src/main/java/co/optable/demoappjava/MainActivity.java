@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        MainActivity.OPTABLE = new OptableSDK(this.getApplicationContext(), "sandbox.optable.co", "ios-sdk-demo");
+        MainActivity.OPTABLE = new OptableSDK("prebidtest", "js-sdk", this);
 
         initUi();
     }

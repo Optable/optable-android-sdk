@@ -2,6 +2,7 @@ g*.iml
 .gradle
 .idea
 .kotlin
+libs
 
 local.properties
 

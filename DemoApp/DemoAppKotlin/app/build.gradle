@@ -41,7 +41,11 @@ android {
 
 dependencies {
     // Optable SDK
-    implementation "com.github.Optable:optable-android-sdk:" + versioning.getVersionName(false)
+    if (useReleaseSdk == "true") {
+        implementation "com.github.Optable:optable-android-sdk:" + versioning.getVersionName(false)
+    } else {
+        implementation "co.optable:local-sdk"
+    }
 
     // Google Mobile Ads
     implementation 'com.google.android.gms:play-services-ads:24.6.0'
