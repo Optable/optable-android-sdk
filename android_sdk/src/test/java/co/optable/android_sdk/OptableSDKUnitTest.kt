@@ -11,11 +11,13 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * OptableSDK unit tests
  */
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35])
 class OptableSDKUnitTest {
 
     @Test

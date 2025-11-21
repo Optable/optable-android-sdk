@@ -5,9 +5,9 @@ import okhttp3.Interceptor
 import okhttp3.Response
 
 internal class RequestInterceptor(
-    private val userAgent: String?,
     private val config: Config,
     private val storage: LocalStorage,
+    private val userAgentHolder: UserAgentHolder,
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
@@ -21,7 +21,12 @@ internal class RequestInterceptor(
         val modifiedRequest = originalRequest.newBuilder().url(url)
         modifiedRequest.addHeader("Accept", "application/json")
 
-        val userAgent = userAgent
+        val apiKey = config.apiKey
+        if (apiKey != null) {
+            modifiedRequest.addHeader("Authorization", "Bearer $apiKey")
+        }
+
+        val userAgent = userAgentHolder.getUserAgent()
         if (userAgent != null) {
             modifiedRequest.addHeader("User-Agent", userAgent)
         }

@@ -4,8 +4,6 @@
  */
 package co.optable.android_sdk.core
 
-import android.content.Context
-import android.webkit.WebView
 import co.optable.android_sdk.*
 import co.optable.android_sdk.edge.EdgeResponse
 import co.optable.android_sdk.edge.EdgeResponseAdapterFactory
@@ -16,21 +14,16 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 internal class NetworkClient(
     config: Config,
-    storage: LocalStorage,
-    private val context: Context,
+    requestInterceptor: RequestInterceptor,
+    responseInterceptor: ResponseInterceptor,
 ) {
 
     private val edgeService: EdgeService
 
     init {
-        var userAgent = config.userAgent
-        if (userAgent == null) {
-            userAgent = this.userAgentFromWebView()
-        }
-
         val client = OkHttpClient.Builder()
-            .addInterceptor(RequestInterceptor(userAgent, config, storage))
-            .addInterceptor(ResponseInterceptor(storage))
+            .addInterceptor(requestInterceptor)
+            .addInterceptor(responseInterceptor)
             .build()
 
         val retrofit = Retrofit.Builder()
@@ -65,10 +58,6 @@ internal class NetworkClient(
         evtBody.put("event", event)
         evtBody.put("properties", properties)
         return edgeService.witness(evtBody)
-    }
-
-    private fun userAgentFromWebView(): String {
-        return WebView(this.context).settings.userAgentString
     }
 
 }

@@ -72,14 +72,15 @@ class OptableSDK @JvmOverloads constructor(
     host: String = "na.edge.optable.co",
     path: String = "v2",
     insecure: Boolean = false,
-    useragent: String? = null,
+    apiKey: String? = null,
+    userAgent: String? = null,
     skipAdvertisingIdDetection: Boolean = false,
 ) {
 
     private val config = Config(
         tenant = tenant,
         originSlug = originSlug,
-        userAgent = useragent,
+        apiKey = apiKey,
         skipAdvertisingIdDetection = skipAdvertisingIdDetection,
         host = host,
         path = path,
@@ -88,7 +89,7 @@ class OptableSDK @JvmOverloads constructor(
 
     private val storage = LocalStorage(config, context)
     private val adIdManager = GoogleAdIdManager(config, context)
-    private val client = NetworkClient(config, storage, context)
+    private val client = createNetworkClient(userAgent, context)
 
     /**
      *  OptableSDK.Status lists all of the possible OptableSDK API result statuses.
@@ -356,6 +357,13 @@ class OptableSDK @JvmOverloads constructor(
         }
 
         return liveData
+    }
+
+    private fun createNetworkClient(userAgent: String?, context: Context): NetworkClient {
+        val userAgentHolder = UserAgentHolder(userAgent, context)
+        val requestInterceptor = RequestInterceptor(config, storage, userAgentHolder)
+        val responseInterceptor = ResponseInterceptor(storage)
+        return NetworkClient(config, requestInterceptor, responseInterceptor)
     }
 
 }
