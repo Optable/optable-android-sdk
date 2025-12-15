@@ -1,6 +1,7 @@
 package co.optable.android_sdk.core
 
 import co.optable.BuildConfig
+import co.optable.android_sdk.OptableConfig
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
