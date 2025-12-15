@@ -4,7 +4,6 @@
  */
 package co.optable.android_sdk
 
-import android.content.Context
 import android.net.Uri
 import android.text.TextUtils
 import androidx.lifecycle.LiveData
@@ -66,30 +65,12 @@ typealias OptableTargetingResponse = HashMap<String, List<String>>
  *  unique to the app across devices.
  */
 class OptableSDK @JvmOverloads constructor(
-    tenant: String,
-    originSlug: String,
-    context: Context,
-    host: String = "na.edge.optable.co",
-    path: String = "v2",
-    insecure: Boolean = false,
-    apiKey: String? = null,
-    userAgent: String? = null,
-    skipAdvertisingIdDetection: Boolean = false,
+    private val config: OptableConfig,
 ) {
 
-    private val config = Config(
-        tenant = tenant,
-        originSlug = originSlug,
-        apiKey = apiKey,
-        skipAdvertisingIdDetection = skipAdvertisingIdDetection,
-        host = host,
-        path = path,
-        insecure = insecure,
-    )
-
-    private val storage = LocalStorage(config, context)
-    private val adIdManager = GoogleAdIdManager(config, context)
-    private val client = createNetworkClient(userAgent, context)
+    private val storage = LocalStorage(config)
+    private val adIdManager = GoogleAdIdManager(config)
+    private val client = createNetworkClient()
 
     /**
      *  OptableSDK.Status lists all of the possible OptableSDK API result statuses.
@@ -359,8 +340,8 @@ class OptableSDK @JvmOverloads constructor(
         return liveData
     }
 
-    private fun createNetworkClient(userAgent: String?, context: Context): NetworkClient {
-        val userAgentHolder = UserAgentHolder(userAgent, context)
+    private fun createNetworkClient(): NetworkClient {
+        val userAgentHolder = UserAgentHolder(config)
         val requestInterceptor = RequestInterceptor(config, storage, userAgentHolder)
         val responseInterceptor = ResponseInterceptor(storage)
         return NetworkClient(config, requestInterceptor, responseInterceptor)

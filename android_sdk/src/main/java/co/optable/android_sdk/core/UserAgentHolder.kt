@@ -2,13 +2,13 @@ package co.optable.android_sdk.core
 
 import android.content.Context
 import android.webkit.WebView
+import co.optable.android_sdk.OptableConfig
 
 internal class UserAgentHolder(
-    customUserAgent: String? = null,
-    context: Context,
+    config: OptableConfig,
 ) {
 
-    private val cachedUserAgent: String? = customUserAgent ?: userAgentFromWebView(context)
+    private val cachedUserAgent: String? = config.customUserAgent ?: userAgentFromWebView(config.context)
 
     fun getUserAgent() = cachedUserAgent
 

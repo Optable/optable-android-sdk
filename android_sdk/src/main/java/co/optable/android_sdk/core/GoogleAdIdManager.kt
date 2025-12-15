@@ -1,15 +1,14 @@
 package co.optable.android_sdk.core
 
-import android.content.Context
 import android.text.TextUtils
+import co.optable.android_sdk.OptableConfig
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 internal class GoogleAdIdManager(
-    config: Config,
-    private val context: Context,
+    val config: OptableConfig,
 ) {
 
     private var adId: String? = null
@@ -25,7 +24,7 @@ internal class GoogleAdIdManager(
         GlobalScope.launch {
             var adInfo: AdvertisingIdClient.Info? = null
             try {
-                adInfo = AdvertisingIdClient.getAdvertisingIdInfo(context)
+                adInfo = AdvertisingIdClient.getAdvertisingIdInfo(config.context)
             } catch (_: Exception) {
             }
 

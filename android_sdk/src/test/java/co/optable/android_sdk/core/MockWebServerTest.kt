@@ -21,7 +21,7 @@ import org.mockito.kotlin.whenever
 class MockWebServerTest {
 
     @Mock
-    private lateinit var config: Config
+    private lateinit var config: OptableConfig
 
     @Mock
     private lateinit var storage: LocalStorage

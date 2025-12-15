@@ -6,6 +6,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import co.optable.android_sdk.OptableConfig;
 import co.optable.android_sdk.OptableSDK;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -18,7 +19,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        MainActivity.OPTABLE = new OptableSDK("prebidtest", "js-sdk", this);
+        OptableConfig config = new OptableConfig(this, "prebidtest", "js-sdk");
+        MainActivity.OPTABLE = new OptableSDK(config);
 
         initUi();
     }

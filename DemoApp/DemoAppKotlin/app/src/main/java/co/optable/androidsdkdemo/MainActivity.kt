@@ -10,6 +10,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import co.optable.android_sdk.OptableConfig
 import co.optable.android_sdk.OptableSDK
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
@@ -23,7 +24,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        OPTABLE = OptableSDK("prebidtest", "js-sdk", this)
+        val config = OptableConfig(this, "prebidtest", "js-sdk")
+        OPTABLE = OptableSDK(config)
 
         initUi()
     }

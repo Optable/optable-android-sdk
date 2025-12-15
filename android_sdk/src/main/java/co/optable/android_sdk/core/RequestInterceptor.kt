@@ -1,11 +1,12 @@
 package co.optable.android_sdk.core
 
 import co.optable.BuildConfig
+import co.optable.android_sdk.OptableConfig
 import okhttp3.Interceptor
 import okhttp3.Response
 
 internal class RequestInterceptor(
-    private val config: Config,
+    private val config: OptableConfig,
     private val storage: LocalStorage,
     private val userAgentHolder: UserAgentHolder,
 ) : Interceptor {

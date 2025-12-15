@@ -13,7 +13,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 internal class NetworkClient(
-    config: Config,
+    config: OptableConfig,
     requestInterceptor: RequestInterceptor,
     responseInterceptor: ResponseInterceptor,
 ) {
@@ -27,7 +27,7 @@ internal class NetworkClient(
             .build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl(config.edgeBaseURL())
+            .baseUrl(config.getBaseUrl())
             .addCallAdapterFactory(EdgeResponseAdapterFactory())
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)

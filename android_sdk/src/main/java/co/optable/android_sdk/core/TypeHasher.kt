@@ -1,6 +1,8 @@
 package co.optable.android_sdk.core
 
 import android.net.Uri
+import android.util.Base64
+import co.optable.android_sdk.OptableConfig
 import java.security.MessageDigest
 import java.util.Locale.getDefault
 
@@ -51,6 +53,19 @@ object TypeHasher {
         }
 
         return "e:" + oeid.lowercase(getDefault())
+    }
+
+    fun passportKey(config: OptableConfig): String {
+        return key("PASS", config)
+    }
+
+    fun targetingKey(config: OptableConfig): String {
+        return key("TGT", config)
+    }
+
+    private fun key(kind: String, config: OptableConfig): String {
+        val sfx = "${config.host}/${config.tenant}/${config.originSlug}"
+        return "OPTABLE_" + kind + "_" + Base64.encodeToString(sfx.toByteArray(), 0)
     }
 
 }
