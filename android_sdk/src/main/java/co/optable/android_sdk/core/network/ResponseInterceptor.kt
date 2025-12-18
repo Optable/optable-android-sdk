@@ -1,5 +1,6 @@
-package co.optable.android_sdk.core
+package co.optable.android_sdk.core.network
 
+import co.optable.android_sdk.core.LocalStorage
 import okhttp3.Interceptor
 import okhttp3.Response
 

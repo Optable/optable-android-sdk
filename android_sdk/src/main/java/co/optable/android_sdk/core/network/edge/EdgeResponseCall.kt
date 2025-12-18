@@ -2,7 +2,7 @@
  * Copyright © 2020 Optable Technologies Inc. All rights reserved.
  * See LICENSE for details.
  */
-package co.optable.android_sdk.edge
+package co.optable.android_sdk.core.network.edge
 
 import okhttp3.Request
 import okhttp3.ResponseBody
