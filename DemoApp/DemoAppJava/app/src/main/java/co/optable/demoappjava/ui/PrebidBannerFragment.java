@@ -1,4 +1,4 @@
-package co.optable.demoappjava.ui.GAMBanner;
+package co.optable.demoappjava.ui;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,30 +11,40 @@ import androidx.fragment.app.Fragment;
 import co.optable.android_sdk.OptableSDK;
 import co.optable.demoappjava.MainActivity;
 import co.optable.demoappjava.R;
-import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.admanager.AdManagerAdRequest;
 import com.google.android.gms.ads.admanager.AdManagerAdView;
+import org.jetbrains.annotations.NotNull;
+import org.prebid.mobile.BannerAdUnit;
+import org.prebid.mobile.ExternalUserId;
+import org.prebid.mobile.TargetingParams;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class GAMBannerFragment extends Fragment {
+public class PrebidBannerFragment extends Fragment {
 
-    private AdManagerAdView mAdView;
+    private static final String GAM_AD_UNIT_ID = "/21808260008/prebid_demo_app_original_api_banner";
+    private static final String PREBID_CONFIG_ID = "prebid-demo-banner-320-50";
+    private static final int WIDTH = 320;
+    private static final int HEIGHT = 50;
+
+    private AdManagerAdView adView;
+    private BannerAdUnit prebidAdUnit;
+
+    private ViewGroup adContainer;
     private TextView statusTextView;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_gambanner, container, false);
+        View root = inflater.inflate(R.layout.fragment_prebid, container, false);
         initUi(root);
         return root;
     }
 
     private void initUi(View root) {
-        mAdView = root.findViewById(R.id.publisherAdView);
         statusTextView = root.findViewById(R.id.statusTextView);
+        adContainer = root.findViewById(R.id.adContainer);
 
         root.findViewById(R.id.btnLoadBanner).setOnClickListener(view -> onClickLoadAd());
         root.findViewById(R.id.btnCachedBanner).setOnClickListener(view -> onClickCachedBanner());
@@ -50,27 +60,77 @@ public class GAMBannerFragment extends Fragment {
         MainActivity.OPTABLE
                 .targeting()
                 .observe(getViewLifecycleOwner(), result -> {
-                    AdManagerAdRequest.Builder adRequest = new AdManagerAdRequest.Builder();
+                    AdManagerAdRequest.Builder adRequestBuilder = new AdManagerAdRequest.Builder();
 
                     if (result.getStatus() == OptableSDK.Status.SUCCESS) {
                         HashMap<String, List<String>> data = result.getData();
-                        changeStatusText("Loading GAM ad with targeting data", data);
+                        changeStatusText("Loaded Optable targeting data", data);
 
                         if (data != null) {
                             for (String key : data.keySet()) {
                                 List<String> values = data.get(key);
                                 if (values == null) continue;
-                                adRequest.addCustomTargeting(key, values);
+                                adRequestBuilder.addCustomTargeting(key, values);
                             }
                         }
                     } else {
-                        changeStatusText("Error getting targeting data: " + result.getMessage(), null);
+                        changeStatusText("Error loading Optable targeting data: " + result.getMessage(), null);
                     }
 
-                    mAdView.loadAd(adRequest.build());
+                    loadPrebidAd(adRequestBuilder, result.getData());
                     profile();
                     witness();
                 });
+    }
+
+    private void loadPrebidAd(AdManagerAdRequest.Builder adRequestBuilder, @Nullable HashMap<String, List<String>> optableTargeting) {
+        prebidAdUnit = new BannerAdUnit(PREBID_CONFIG_ID, WIDTH, HEIGHT);
+        applyOptableToPrebid(optableTargeting);
+        prebidAdUnit.fetchDemand(adRequestBuilder, resultCode -> {
+            appendStatusText("Prebid ads loading status: " + resultCode.toString());
+            loadGamAd(adRequestBuilder);
+        });
+    }
+
+    private void applyOptableToPrebid(HashMap<String, List<String>> optableTargeting) {
+        if (optableTargeting != null) {
+            List<ExternalUserId.UniqueId> uniqueIds = new ArrayList<>();
+            for (Map.Entry<String, List<String>> entry : optableTargeting.entrySet()) {
+                List<String> value = entry.getValue();
+                if (value == null) continue;
+                for (String id : value) {
+                    uniqueIds.add(new ExternalUserId.UniqueId(id, 1));
+                }
+            }
+            List<ExternalUserId> externalUserIds = new ArrayList<>();
+            externalUserIds.add(new ExternalUserId("optable.com", uniqueIds));
+            TargetingParams.setExternalUserIds(externalUserIds);
+        }
+    }
+
+    private void loadGamAd(AdManagerAdRequest.Builder adRequestBuilder) {
+        adContainer.removeAllViews();
+
+        AdManagerAdRequest adRequest = adRequestBuilder.build();
+
+        adView = new AdManagerAdView(requireContext());
+        adView.setAdUnitId(GAM_AD_UNIT_ID);
+        adView.setAdSizes(new com.google.android.gms.ads.AdSize(WIDTH, HEIGHT));
+        adView.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+                super.onAdLoaded();
+                appendStatusText("Google ad loaded");
+            }
+
+            @Override
+            public void onAdFailedToLoad(@NonNull @NotNull LoadAdError loadAdError) {
+                appendStatusText("Google ad failed to load: " + loadAdError.getMessage());
+            }
+        });
+        adView.loadAd(adRequest);
+
+        adContainer.addView(adView);
     }
 
     /**
@@ -79,21 +139,21 @@ public class GAMBannerFragment extends Fragment {
     private void onClickCachedBanner() {
         statusTextView.setText("");
 
-        AdRequest.Builder adRequest = new AdRequest.Builder();
+        AdManagerAdRequest.Builder adRequestBuilder = new AdManagerAdRequest.Builder();
         HashMap<String, List<String>> data = MainActivity.OPTABLE.targetingFromCache();
 
         if (data != null) {
-            changeStatusText("Loading GAM ad with cached targeting data", data);
+            changeStatusText("Loaded Optable cached targeting data", data);
             for (String key : data.keySet()) {
                 List<String> values = data.get(key);
                 if (values == null) continue;
-                adRequest.addCustomTargeting(key, values);
+                adRequestBuilder.addCustomTargeting(key, values);
             }
         } else {
             changeStatusText("Targeting data cache empty.", null);
         }
 
-        mAdView.loadAd(adRequest.build());
+        loadPrebidAd(adRequestBuilder, data);
         profile();
         witness();
     }

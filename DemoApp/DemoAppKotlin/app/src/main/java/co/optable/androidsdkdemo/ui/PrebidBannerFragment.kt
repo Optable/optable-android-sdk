@@ -2,7 +2,7 @@
  * Copyright © 2020 Optable Technologies Inc. All rights reserved.
  * See LICENSE for details.
  */
-package co.optable.androidsdkdemo.ui.GAMBanner
+package co.optable.androidsdkdemo.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -16,12 +16,29 @@ import co.optable.android_sdk.OptableSDK
 import co.optable.android_sdk.OptableTargetingResponse
 import co.optable.androidsdkdemo.MainActivity
 import co.optable.androidsdkdemo.R
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.admanager.AdManagerAdRequest
 import com.google.android.gms.ads.admanager.AdManagerAdView
+import org.prebid.mobile.BannerAdUnit
+import org.prebid.mobile.ExternalUserId
+import org.prebid.mobile.ResultCode
+import org.prebid.mobile.TargetingParams
 
-class GAMBannerFragment : Fragment() {
+class PrebidBannerFragment : Fragment() {
+
+    companion object {
+        private const val GAM_AD_UNIT_ID = "/21808260008/prebid_demo_app_original_api_banner"
+        private const val PREBID_CONFIG_ID = "prebid-demo-banner-320-50"
+        private const val WIDTH = 320
+        private const val HEIGHT = 50
+    }
 
     private lateinit var adView: AdManagerAdView
+    private lateinit var prebidAdUnit: BannerAdUnit
+
+    private lateinit var adContainer: ViewGroup
     private lateinit var statusTextView: TextView
 
     override fun onCreateView(
@@ -29,68 +46,117 @@ class GAMBannerFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View? {
-        val root = inflater.inflate(R.layout.fragment_gambanner, container, false)
+        val root = inflater.inflate(R.layout.fragment_prebid, container, false)
         initUi(root)
         return root
     }
 
     private fun initUi(root: View) {
-        adView = root.findViewById(R.id.publisherAdView)
         statusTextView = root.findViewById(R.id.statusTextView)
-        statusTextView.text = ""
+        adContainer = root.findViewById(R.id.adContainer)
 
-        root.findViewById<Button>(R.id.btnLoadBanner).setOnClickListener {
-            onClickLoadAd()
-        }
-        root.findViewById<Button>(R.id.btnCachedBanner).setOnClickListener {
-            onClickCachedBanner()
-        }
-        root.findViewById<Button>(R.id.btnClearCache).setOnClickListener {
-            onClickClearCache()
-        }
+        root.findViewById<Button>(R.id.btnLoadBanner).setOnClickListener { onClickLoadAd() }
+        root.findViewById<Button>(R.id.btnCachedBanner).setOnClickListener { onClickCachedBanner() }
+        root.findViewById<Button>(R.id.btnClearCache).setOnClickListener { onClickClearCache() }
     }
 
     /**
      * Loads targeting data and then the GAM banner.
      */
     private fun onClickLoadAd() {
+        statusTextView.text = ""
+
         MainActivity.OPTABLE
             .targeting()
             .observe(viewLifecycleOwner, Observer { result ->
-                val adRequest = AdManagerAdRequest.Builder()
+                val adRequestBuilder = AdManagerAdRequest.Builder()
 
                 if (result.status == OptableSDK.Status.SUCCESS) {
                     result.data?.forEach { (key, values) ->
-                        adRequest.addCustomTargeting(key, values)
+                        adRequestBuilder.addCustomTargeting(key, values)
                     }
-                    changeStatusText("Loading GAM ad with targeting data.", result.data)
+                    changeStatusText("Loading Optable targeting data.", result.data)
                 } else {
-                    changeStatusText("Error getting targeting data: ${result.message}")
+                    changeStatusText("Error loading Optable targeting data: ${result.message}")
                 }
 
-                adView.loadAd(adRequest.build())
+                loadPrebidAd(adRequestBuilder, result.data)
 
                 profile()
                 witness()
             })
     }
 
+    private fun loadPrebidAd(
+        adRequestBuilder: AdManagerAdRequest.Builder,
+        optableTargeting: HashMap<String, List<String>>?,
+    ) {
+        prebidAdUnit = BannerAdUnit(PREBID_CONFIG_ID, WIDTH, HEIGHT)
+
+        applyOptableToPrebid(optableTargeting)
+
+        prebidAdUnit.fetchDemand(adRequestBuilder) { resultCode: ResultCode? ->
+            appendStatusText("Prebid ads loading status: $resultCode")
+            loadGamAd(adRequestBuilder)
+        }
+    }
+
+    private fun applyOptableToPrebid(optableTargeting: HashMap<String, List<String>>?) {
+        if (optableTargeting != null) {
+            val uniqueIds = mutableListOf<ExternalUserId.UniqueId>()
+            for ((key, value) in optableTargeting) {
+                for (id in value) {
+                    uniqueIds.add(ExternalUserId.UniqueId(id, 1))
+                }
+            }
+            TargetingParams.setExternalUserIds(
+                listOf(
+                    ExternalUserId("optable.com", uniqueIds)
+                )
+            )
+        }
+    }
+
+    private fun loadGamAd(adRequestBuilder: AdManagerAdRequest.Builder) {
+        adContainer.removeAllViews()
+
+        val adRequest = adRequestBuilder.build()
+
+        adView = AdManagerAdView(requireContext())
+        adView.setAdSizes(AdSize(WIDTH, HEIGHT))
+        adView.adUnitId = GAM_AD_UNIT_ID
+        adView.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                super.onAdLoaded()
+                appendStatusText("Google ad loaded")
+            }
+
+            override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                appendStatusText("Google ad failed to load: " + loadAdError.message)
+            }
+        }
+        adView.loadAd(adRequest)
+
+        adContainer.addView(adView)
+    }
+
+
     /**
      * Loads cached targeting and then the GAM banner.
      */
     private fun onClickCachedBanner() {
-        val adRequest = AdManagerAdRequest.Builder()
+        val adRequestBuilder = AdManagerAdRequest.Builder()
         val cachedData = MainActivity.OPTABLE.targetingFromCache()
         if (cachedData != null) {
             cachedData.forEach { (key, values) ->
-                adRequest.addCustomTargeting(key, values)
+                adRequestBuilder.addCustomTargeting(key, values)
             }
             changeStatusText("Loading GAM ad with cached targeting data.", cachedData)
         } else {
             changeStatusText("Targeting data cache empty.")
         }
 
-        adView.loadAd(adRequest.build())
+        loadPrebidAd(adRequestBuilder, cachedData)
 
         profile()
         witness()

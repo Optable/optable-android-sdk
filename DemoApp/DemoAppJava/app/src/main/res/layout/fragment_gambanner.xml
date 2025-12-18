@@ -57,7 +57,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/targetingDataView"
+        android:id="@+id/statusTextView"
         android:layout_width="291dp"
         android:layout_height="346dp"
         android:layout_marginTop="100dp"

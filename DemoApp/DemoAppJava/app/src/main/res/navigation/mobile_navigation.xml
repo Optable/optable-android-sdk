@@ -17,4 +17,10 @@
         android:label="GAM Banner"
         tools:layout="@layout/fragment_gambanner" />
 
+    <fragment
+        android:id="@+id/navigation_prebid"
+        android:name="co.optable.demoappjava.ui.PrebidBannerFragment"
+        android:label="Prebid Banner"
+        tools:layout="@layout/fragment_prebid" />
+
 </navigation>

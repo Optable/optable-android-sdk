@@ -21,7 +21,7 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/btnLoadAd"
+        android:id="@+id/btnLoadBanner"
         android:layout_width="120dp"
         android:layout_height="50dp"
         android:layout_marginTop="8dp"
@@ -57,12 +57,12 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/targetingDataView"
-        android:layout_width="281dp"
-        android:layout_height="366dp"
+        android:id="@+id/statusTextView"
+        android:layout_width="291dp"
+        android:layout_height="346dp"
         android:layout_marginTop="100dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnLoadAd" />
+        app:layout_constraintTop_toBottomOf="@+id/btnLoadBanner" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
