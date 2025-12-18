@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        OptableConfig config = new OptableConfig(this, "prebidtest", "js-sdk");
+        OptableConfig config = new OptableConfig(this, "prebidtest", "js-sdk", "ca.edge.optable.co");
         MainActivity.OPTABLE = new OptableSDK(config);
 
         initGoogleAds();

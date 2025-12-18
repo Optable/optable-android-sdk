@@ -13,8 +13,7 @@ import android.widget.EditText
 import android.widget.Switch
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import co.optable.android_sdk.OptableSDK
+import co.optable.android_sdk.OptableResult
 import co.optable.androidsdkdemo.MainActivity
 import co.optable.androidsdkdemo.R
 
@@ -50,18 +49,16 @@ class IdentifyFragment : Fragment() {
         val email = emailText.text.toString()
         val gaidStatus = gaidSwitch.isChecked
 
-        MainActivity.OPTABLE
-            .identify(email, gaidStatus)
-            .observe(viewLifecycleOwner, Observer { result ->
-                var msg = "Calling identify API... "
-                msg += if (result.status == OptableSDK.Status.SUCCESS) {
-                    "Success"
-                } else {
-                    "\n\nOptableSDK Error: ${result.message}"
-                }
+        MainActivity.OPTABLE.identify(email, gaidStatus) { result ->
+            var msg = "Calling identify API... "
+            msg += if (result is OptableResult.Success) {
+                "Success"
+            } else {
+                "\n\nOptableSDK Error: ${(result as OptableResult.Error).message}"
+            }
 
-                identifyView.text = msg
-            })
+            identifyView.text = msg
+        }
     }
 
 }

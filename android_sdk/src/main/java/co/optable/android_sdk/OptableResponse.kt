@@ -7,7 +7,6 @@ package co.optable.android_sdk
  *  of the API response object. On error, the response `message` string provides a description
  *  of the error and related debug information.
  */
-@Deprecated("Will be replaced with OptableResult")
 data class OptableResponse<out T>(val status: Status, val data: T?, val message: String?) {
 
     /**

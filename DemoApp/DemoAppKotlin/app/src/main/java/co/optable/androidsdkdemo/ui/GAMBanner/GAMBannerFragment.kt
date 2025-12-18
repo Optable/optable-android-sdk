@@ -12,7 +12,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import co.optable.android_sdk.OptableSDK
+import co.optable.android_sdk.OptableResponse
 import co.optable.android_sdk.OptableTargetingResponse
 import co.optable.androidsdkdemo.MainActivity
 import co.optable.androidsdkdemo.R
@@ -54,12 +54,13 @@ class GAMBannerFragment : Fragment() {
      * Loads targeting data and then the GAM banner.
      */
     private fun onClickLoadAd() {
+
         MainActivity.OPTABLE
             .targeting()
             .observe(viewLifecycleOwner, Observer { result ->
                 val adRequest = AdManagerAdRequest.Builder()
 
-                if (result.status == OptableSDK.Status.SUCCESS) {
+                if (result.status == OptableResponse.Status.SUCCESS) {
                     result.data?.forEach { (key, values) ->
                         adRequest.addCustomTargeting(key, values)
                     }
@@ -108,7 +109,7 @@ class GAMBannerFragment : Fragment() {
         MainActivity.OPTABLE
             .profile(hashMapOf("gender" to "F", "age" to 38, "hasAccount" to true))
             .observe(viewLifecycleOwner, Observer { result ->
-                if (result.status == OptableSDK.Status.SUCCESS) {
+                if (result.status == OptableResponse.Status.SUCCESS) {
                     appendStatusText("Success calling profile API to set traits on user.")
                 } else {
                     appendStatusText("Error during sending profile: ${result.message}")
@@ -123,7 +124,7 @@ class GAMBannerFragment : Fragment() {
                 hashMapOf("exampleKey" to "exampleValue", "anotherExample" to 123, "foo" to false)
             )
             .observe(viewLifecycleOwner, Observer { result ->
-                if (result.status == OptableSDK.Status.SUCCESS) {
+                if (result.status == OptableResponse.Status.SUCCESS) {
                     appendStatusText("Success calling witness API to log loadAdButtonClicked event.")
                 } else {
                     appendStatusText("Error during sending witness: ${result.message}")

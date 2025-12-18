@@ -9,9 +9,12 @@ import android.widget.Switch;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import co.optable.android_sdk.OptableSDK;
+import co.optable.android_sdk.OptableResult;
+import co.optable.android_sdk.OptableResultListener;
 import co.optable.demoappjava.MainActivity;
 import co.optable.demoappjava.R;
+import kotlin.Unit;
+import org.jetbrains.annotations.NotNull;
 
 public class IdentifyFragment extends Fragment {
 
@@ -38,17 +41,19 @@ public class IdentifyFragment extends Fragment {
         identifyView.setText("");
 
         MainActivity.OPTABLE
-                .identify(emailText.getText().toString(), gaidSwitch.isChecked())
-                .observe(getViewLifecycleOwner(), result -> {
-                    String msg = "Calling identify API... ";
+                .identify(emailText.getText().toString(), gaidSwitch.isChecked(), new OptableResultListener<Unit>() {
+                    @Override
+                    public void onComplete(@NotNull OptableResult<Unit> result) {
+                        String msg = "Calling identify API... ";
 
-                    if (result.getStatus() == OptableSDK.Status.SUCCESS) {
-                        msg += "Success";
-                    } else {
-                        msg += "\n\nOptableSDK Error: " + result.getMessage();
+                        if (result instanceof OptableResult.Success) {
+                            msg += "Success";
+                        } else if (result instanceof OptableResult.Error<Unit> error) {
+                            msg += "\n\nOptableSDK Error: " + error.getMessage();
+                        }
+
+                        identifyView.setText(msg);
                     }
-
-                    identifyView.setText(msg);
                 });
     }
 

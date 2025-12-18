@@ -8,7 +8,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import co.optable.android_sdk.OptableSDK;
+import co.optable.android_sdk.OptableResponse;
 import co.optable.demoappjava.MainActivity;
 import co.optable.demoappjava.R;
 import com.google.android.gms.ads.AdRequest;
@@ -52,7 +52,7 @@ public class GAMBannerFragment extends Fragment {
                 .observe(getViewLifecycleOwner(), result -> {
                     AdManagerAdRequest.Builder adRequest = new AdManagerAdRequest.Builder();
 
-                    if (result.getStatus() == OptableSDK.Status.SUCCESS) {
+                    if (result.getStatus() == OptableResponse.Status.SUCCESS) {
                         HashMap<String, List<String>> data = result.getData();
                         changeStatusText("Loading GAM ad with targeting data", data);
 
@@ -115,7 +115,7 @@ public class GAMBannerFragment extends Fragment {
         MainActivity.OPTABLE
                 .profile(traits)
                 .observe(getViewLifecycleOwner(), result -> {
-                    if (result.getStatus() == OptableSDK.Status.SUCCESS) {
+                    if (result.getStatus() == OptableResponse.Status.SUCCESS) {
                         appendStatusText("Success calling profile API to set traits on user.");
                     } else {
                         appendStatusText("Error during sending profile: " + result.getMessage());
@@ -132,7 +132,7 @@ public class GAMBannerFragment extends Fragment {
         MainActivity.OPTABLE
                 .witness("GAMBannerFragment.loadAdButtonClicked", eventProperties)
                 .observe(getViewLifecycleOwner(), result -> {
-                    if (result.getStatus() == OptableSDK.Status.SUCCESS) {
+                    if (result.getStatus() == OptableResponse.Status.SUCCESS) {
                         appendStatusText("Success calling witness API to log loadAdButtonClicked event.");
                     } else {
                         appendStatusText("Error during sending witness: " + result.getMessage());

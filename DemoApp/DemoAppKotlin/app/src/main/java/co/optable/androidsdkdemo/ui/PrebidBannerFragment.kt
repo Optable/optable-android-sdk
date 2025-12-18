@@ -12,7 +12,8 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import co.optable.android_sdk.OptableSDK
+import co.optable.android_sdk.OptableResponse
+import co.optable.android_sdk.OptableResult
 import co.optable.android_sdk.OptableTargetingResponse
 import co.optable.androidsdkdemo.MainActivity
 import co.optable.androidsdkdemo.R
@@ -22,7 +23,6 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.admanager.AdManagerAdRequest
 import com.google.android.gms.ads.admanager.AdManagerAdView
 import org.prebid.mobile.BannerAdUnit
-import org.prebid.mobile.ExternalUserId
 import org.prebid.mobile.ResultCode
 import org.prebid.mobile.TargetingParams
 
@@ -66,34 +66,37 @@ class PrebidBannerFragment : Fragment() {
     private fun onClickLoadAd() {
         statusTextView.text = ""
 
+
         MainActivity.OPTABLE
-            .targeting()
-            .observe(viewLifecycleOwner, Observer { result ->
+            .targeting(listOf("e:5837d278eabede28e37b5766399ed0d1a4cdc36acee8d35710a255032f45beda")) { result ->
                 val adRequestBuilder = AdManagerAdRequest.Builder()
 
-                if (result.status == OptableSDK.Status.SUCCESS) {
-                    result.data?.forEach { (key, values) ->
-                        adRequestBuilder.addCustomTargeting(key, values)
+                val optableOpenRtbString: String? = when (result) {
+                    is OptableResult.Success -> {
+                        changeStatusText("Optable Success")
+                        result.result.openRtbJson
                     }
-                    changeStatusText("Loading Optable targeting data.", result.data)
-                } else {
-                    changeStatusText("Error loading Optable targeting data: ${result.message}")
+
+                    is OptableResult.Error -> {
+                        changeStatusText("Optable Error: ${result.message}")
+                        null
+                    }
                 }
 
-                loadPrebidAd(adRequestBuilder, result.data)
+                loadPrebidAd(adRequestBuilder, optableOpenRtbString)
 
                 profile()
                 witness()
-            })
+            }
     }
 
     private fun loadPrebidAd(
         adRequestBuilder: AdManagerAdRequest.Builder,
-        optableTargeting: HashMap<String, List<String>>?,
+        optableOpenRtbJson: String?,
     ) {
         prebidAdUnit = BannerAdUnit(PREBID_CONFIG_ID, WIDTH, HEIGHT)
 
-        applyOptableToPrebid(optableTargeting)
+        applyOptableToPrebid(optableOpenRtbJson)
 
         prebidAdUnit.fetchDemand(adRequestBuilder) { resultCode: ResultCode? ->
             appendStatusText("Prebid ads loading status: $resultCode")
@@ -101,19 +104,9 @@ class PrebidBannerFragment : Fragment() {
         }
     }
 
-    private fun applyOptableToPrebid(optableTargeting: HashMap<String, List<String>>?) {
-        if (optableTargeting != null) {
-            val uniqueIds = mutableListOf<ExternalUserId.UniqueId>()
-            for ((key, value) in optableTargeting) {
-                for (id in value) {
-                    uniqueIds.add(ExternalUserId.UniqueId(id, 1))
-                }
-            }
-            TargetingParams.setExternalUserIds(
-                listOf(
-                    ExternalUserId("optable.com", uniqueIds)
-                )
-            )
+    private fun applyOptableToPrebid(optableOpenRtbJson: String?) {
+        if (optableOpenRtbJson?.isNotBlank() == true) {
+            TargetingParams.setGlobalOrtbConfig(optableOpenRtbJson)
         }
     }
 
@@ -156,7 +149,8 @@ class PrebidBannerFragment : Fragment() {
             changeStatusText("Targeting data cache empty.")
         }
 
-        loadPrebidAd(adRequestBuilder, cachedData)
+        // TODO:
+        loadPrebidAd(adRequestBuilder, null)
 
         profile()
         witness()
@@ -174,7 +168,7 @@ class PrebidBannerFragment : Fragment() {
         MainActivity.OPTABLE
             .profile(hashMapOf("gender" to "F", "age" to 38, "hasAccount" to true))
             .observe(viewLifecycleOwner, Observer { result ->
-                if (result.status == OptableSDK.Status.SUCCESS) {
+                if (result.status == OptableResponse.Status.SUCCESS) {
                     appendStatusText("Success calling profile API to set traits on user.")
                 } else {
                     appendStatusText("Error during sending profile: ${result.message}")
@@ -189,7 +183,7 @@ class PrebidBannerFragment : Fragment() {
                 hashMapOf("exampleKey" to "exampleValue", "anotherExample" to 123, "foo" to false)
             )
             .observe(viewLifecycleOwner, Observer { result ->
-                if (result.status == OptableSDK.Status.SUCCESS) {
+                if (result.status == OptableResponse.Status.SUCCESS) {
                     appendStatusText("Success calling witness API to log loadAdButtonClicked event.")
                 } else {
                     appendStatusText("Error during sending witness: ${result.message}")

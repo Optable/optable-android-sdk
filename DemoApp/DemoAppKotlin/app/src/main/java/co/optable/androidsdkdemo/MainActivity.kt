@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val config = OptableConfig(this, "prebidtest", "js-sdk")
+        val config = OptableConfig(this, "prebidtest", "js-sdk", host = "ca.edge.optable.co")
         OPTABLE = OptableSDK(config)
 
         initGoogleAds()
