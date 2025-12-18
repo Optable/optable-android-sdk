@@ -6,8 +6,6 @@ import android.content.Context
 /**
  * Configuration class for Optable integration.
  *
- * @constructor Creates an instance of OptableConfig with specified or default parameters.
- *
  * @param tenant The tenant name associated with the configuration. E.g. `acmeco.optable.co` => `acmeco`.
  * @param originSlug The DCN's Source Slug. E.g. `acmeco-sdk`.
  * @param host The hostname of the Optable endpoint. Default value is "na.edge.optable.co".

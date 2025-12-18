@@ -8,9 +8,17 @@ import android.net.Uri
 import android.text.TextUtils
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import co.optable.android_sdk.core.*
-import co.optable.android_sdk.edge.EdgeResponse
+import co.optable.android_sdk.core.GoogleAdIdManager
+import co.optable.android_sdk.core.LocalStorage
+import co.optable.android_sdk.core.TypeHasher
+import co.optable.android_sdk.core.UserAgentHolder
+import co.optable.android_sdk.core.network.NetworkClient
+import co.optable.android_sdk.core.network.NetworkResponse
+import co.optable.android_sdk.core.network.RequestInterceptor
+import co.optable.android_sdk.core.network.ResponseInterceptor
+import co.optable.android_sdk.core.network.edge.EdgeResponse
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 /*
@@ -70,36 +78,7 @@ class OptableSDK @JvmOverloads constructor(
 
     private val storage = LocalStorage(config)
     private val adIdManager = GoogleAdIdManager(config)
-    private val client = createNetworkClient()
-
-    /**
-     *  OptableSDK.Status lists all of the possible OptableSDK API result statuses.
-     */
-    enum class Status {
-        SUCCESS,
-        ERROR
-    }
-
-    /**
-     *  OptableSDK.Response is a generic wrapper for various OptableSDK API result types.
-     *  It also holds the API result status (OptableSDK.Status) to indicate success or error
-     *  resulting from an API call. On success, the response `data` member will hold an instance
-     *  of the API response object. On error, the response `message` string provides a description
-     *  of the error and related debug information.
-     */
-    data class Response<out T>(val status: Status, val data: T?, val message: String?) {
-        data class Error(val error: String, val trace: String) {}
-
-        companion object {
-            fun <T> success(data: T?): Response<T> {
-                return Response(Status.SUCCESS, data, null)
-            }
-
-            fun <T> error(err: Error): Response<T> {
-                return Response(Status.ERROR, null, err.error + " (trace: " + err.trace + ")")
-            }
-        }
-    }
+    private val networkClient = createNetworkClient()
 
     /**
      *  identify(idList) calls the Optable Sandbox "identify" API, passing it the list of IDs
@@ -107,43 +86,28 @@ class OptableSDK @JvmOverloads constructor(
      *
      *  It is asynchronous, so the caller may call observe() on the returned LiveData and expect
      *  an instance of Response<OptableIdentifyResponse> in the result. Success can be checked by
-     *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
-     *  to an empty HashMap on success, and can therefore be ignored.
+     *  comparing result.status to OptableSDK.Status.SUCCESS.
      */
-    fun identify(idList: OptableIdentifyInput): LiveData<Response<OptableIdentifyResponse>> {
-        val liveData = MutableLiveData<Response<OptableIdentifyResponse>>()
-
+    fun identify(idList: OptableIdentifyInput, listener: OptableResultListener<Unit>) {
         GlobalScope.launch {
-            val response = client.identify(idList)
-            when (response) {
-                is EdgeResponse.Success -> {
-                    liveData.postValue(Response.success(response.body))
-                }
+            val response = networkClient.identify(idList)
 
-                is EdgeResponse.ApiError -> {
-                    liveData.postValue(Response.error(response.body))
-                }
+            MainScope().launch {
+                val optableResult = when (response) {
+                    is NetworkResponse.Success -> {
+                        OptableResult.Success(Unit)
+                    }
 
-                is EdgeResponse.NetworkError -> {
-                    liveData.postValue(
-                        Response.error(
-                            Response.Error("NetworkError", "None")
-                        )
-                    )
+                    is NetworkResponse.Error -> {
+                        OptableResult.Error(response.message)
+                    }
                 }
-
-                is EdgeResponse.UnknownError -> {
-                    liveData.postValue(
-                        Response.error(
-                            Response.Error("UnknownError", "None")
-                        )
-                    )
-                }
+                listener.onComplete(optableResult)
             }
         }
-
-        return liveData
     }
+
+
 
     /**
      *  identify(email, gaid?, ppid?) calls the Optable Sandbox "identify" API, passing it the
@@ -153,12 +117,10 @@ class OptableSDK @JvmOverloads constructor(
      *
      *  The function is async, so the caller may call observe() on the returned LiveData and expect
      *  an instance of Response<OptableIdentifyResponse> in the result. Success can be checked by
-     *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
-     *  to an empty HashMap on success, and can therefore be ignored.
+     *  comparing result.status to OptableSDK.Status.SUCCESS.
      */
     @JvmOverloads
-    fun identify(email: String, gaid: Boolean = false, ppid: String? = null):
-            LiveData<Response<OptableIdentifyResponse>> {
+    fun identify(email: String, gaid: Boolean = false, ppid: String? = null, listener: OptableResultListener<Unit>) {
         var idList: OptableIdentifyInput = listOf()
 
         if (!TextUtils.isEmpty(email) &&
@@ -175,7 +137,7 @@ class OptableSDK @JvmOverloads constructor(
             idList += TypeHasher.cid(ppid)
         }
 
-        return this.identify(idList)
+        return identify(idList, listener)
     }
 
     /**
@@ -191,7 +153,7 @@ class OptableSDK @JvmOverloads constructor(
         val oeid = TypeHasher.eidFromURI(uri)
 
         if (oeid.length > 0) {
-            this.identify(listOf(oeid))
+            this.identify(listOf(oeid)) {}
         }
     }
 
@@ -205,33 +167,32 @@ class OptableSDK @JvmOverloads constructor(
      *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
      *  to an empty HashMap on success, and can therefore be ignored.
      */
-    fun profile(traits: OptableProfileTraits):
-            LiveData<Response<OptableProfileResponse>> {
-        val liveData = MutableLiveData<Response<OptableProfileResponse>>()
+    fun profile(traits: OptableProfileTraits): LiveData<OptableResponse<OptableProfileResponse>> {
+        val liveData = MutableLiveData<OptableResponse<OptableProfileResponse>>()
 
         GlobalScope.launch {
-            val response = client.profile(traits)
+            val response = networkClient.profile(traits)
             when (response) {
                 is EdgeResponse.Success -> {
-                    liveData.postValue(Response.success(response.body))
+                    liveData.postValue(OptableResponse.success(response.body))
                 }
 
                 is EdgeResponse.ApiError -> {
-                    liveData.postValue(Response.error(response.body))
+                    liveData.postValue(OptableResponse.error(response.body))
                 }
 
                 is EdgeResponse.NetworkError -> {
                     liveData.postValue(
-                        Response.error(
-                            Response.Error("NetworkError", "None")
+                        OptableResponse.error(
+                            OptableResponse.Error("NetworkError", "None")
                         )
                     )
                 }
 
                 is EdgeResponse.UnknownError -> {
                     liveData.postValue(
-                        Response.error(
-                            Response.Error("UnknownError", "None")
+                        OptableResponse.error(
+                            OptableResponse.Error("UnknownError", "None")
                         )
                     )
                 }
@@ -250,33 +211,33 @@ class OptableSDK @JvmOverloads constructor(
      *  comparing result.status to OptableSDK.Status.SUCCESS, and when successful, result.data!! is
      *  of type OptableTargetingResponse.
      */
-    fun targeting(): LiveData<Response<OptableTargetingResponse>> {
-        val liveData = MutableLiveData<Response<OptableTargetingResponse>>()
+    fun targeting(): LiveData<OptableResponse<OptableTargetingResponse>> {
+        val liveData = MutableLiveData<OptableResponse<OptableTargetingResponse>>()
 
         GlobalScope.launch {
-            val response = client.targeting()
+            val response = networkClient.targeting()
             when (response) {
                 is EdgeResponse.Success -> {
                     storage.setTargeting(response.body)
-                    liveData.postValue(Response.success(response.body))
+                    liveData.postValue(OptableResponse.success(response.body))
                 }
 
                 is EdgeResponse.ApiError -> {
-                    liveData.postValue(Response.error(response.body))
+                    liveData.postValue(OptableResponse.error(response.body))
                 }
 
                 is EdgeResponse.NetworkError -> {
                     liveData.postValue(
-                        Response.error(
-                            Response.Error("NetworkError", "None")
+                        OptableResponse.error(
+                            OptableResponse.Error("NetworkError", "None")
                         )
                     )
                 }
 
                 is EdgeResponse.UnknownError -> {
                     liveData.postValue(
-                        Response.error(
-                            Response.Error("UnknownError", "None")
+                        OptableResponse.error(
+                            OptableResponse.Error("UnknownError", "None")
                         )
                     )
                 }
@@ -284,6 +245,25 @@ class OptableSDK @JvmOverloads constructor(
         }
 
         return liveData
+    }
+
+    fun targeting(idList: OptableIdentifyInput, listener: OptableResultListener<OptableTargeting>) {
+        GlobalScope.launch {
+            val response = networkClient.targeting(idList)
+
+            MainScope().launch {
+                val optableResult = when (response) {
+                    is NetworkResponse.Success -> {
+                        OptableResult.Success(response.result)
+                    }
+
+                    is NetworkResponse.Error -> {
+                        OptableResult.Error(response.message)
+                    }
+                }
+                listener.onComplete(optableResult)
+            }
+        }
     }
 
     fun targetingFromCache(): OptableTargetingResponse? {
@@ -304,33 +284,36 @@ class OptableSDK @JvmOverloads constructor(
      *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
      *  to an empty HashMap on success, and can therefore be ignored.
      */
-    fun witness(event: String, properties: OptableWitnessProperties): LiveData<Response<OptableWitnessResponse>> {
-        val liveData = MutableLiveData<Response<OptableWitnessResponse>>()
-        val client = this.client
+    fun witness(
+        event: String,
+        properties: OptableWitnessProperties,
+    ): LiveData<OptableResponse<OptableWitnessResponse>> {
+        val liveData = MutableLiveData<OptableResponse<OptableWitnessResponse>>()
+        val client = this.networkClient
 
         GlobalScope.launch {
             val response = client.witness(event, properties)
             when (response) {
                 is EdgeResponse.Success -> {
-                    liveData.postValue(Response.success(response.body))
+                    liveData.postValue(OptableResponse.success(response.body))
                 }
 
                 is EdgeResponse.ApiError -> {
-                    liveData.postValue(Response.error(response.body))
+                    liveData.postValue(OptableResponse.error(response.body))
                 }
 
                 is EdgeResponse.NetworkError -> {
                     liveData.postValue(
-                        Response.error(
-                            Response.Error("NetworkError", "None")
+                        OptableResponse.error(
+                            OptableResponse.Error("NetworkError", "None")
                         )
                     )
                 }
 
                 is EdgeResponse.UnknownError -> {
                     liveData.postValue(
-                        Response.error(
-                            Response.Error("UnknownError", "None")
+                        OptableResponse.error(
+                            OptableResponse.Error("UnknownError", "None")
                         )
                     )
                 }
@@ -348,3 +331,4 @@ class OptableSDK @JvmOverloads constructor(
     }
 
 }
+
