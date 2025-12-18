@@ -13,10 +13,10 @@ import retrofit2.http.Query
 
 interface EdgeService {
 
-    @POST("/identify")
+    @POST("identify")
     fun identify(@Body idList: OptableIdentifyInput): Call<Unit>
 
-    @POST("/profile")
+    @POST("profile")
     suspend fun profile(@Body profileBody: HashMap<String, Any>): EdgeResponse<OptableProfileResponse, OptableResponse.Error>
 
     @GET("targeting")
@@ -25,7 +25,7 @@ interface EdgeService {
     @GET("targeting")
     fun targeting(@Query("id") idList: List<String>): Call<TargetingResponse>
 
-    @POST("/witness")
+    @POST("witness")
     suspend fun witness(@Body witnessBody: HashMap<String, Any>): EdgeResponse<OptableWitnessResponse, OptableResponse.Error>
 
 }

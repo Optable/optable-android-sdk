@@ -14,7 +14,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import co.optable.android_sdk.OptableResponse
 import co.optable.android_sdk.OptableResult
+import co.optable.android_sdk.OptableTargeting
 import co.optable.android_sdk.OptableTargetingResponse
+import co.optable.android_sdk.core.TypeHasher
 import co.optable.androidsdkdemo.MainActivity
 import co.optable.androidsdkdemo.R
 import com.google.android.gms.ads.AdListener
@@ -66,24 +68,9 @@ class PrebidBannerFragment : Fragment() {
     private fun onClickLoadAd() {
         statusTextView.text = ""
 
-
         MainActivity.OPTABLE
-            .targeting(listOf("e:5837d278eabede28e37b5766399ed0d1a4cdc36acee8d35710a255032f45beda")) { result ->
-                val adRequestBuilder = AdManagerAdRequest.Builder()
-
-                val optableOpenRtbString: String? = when (result) {
-                    is OptableResult.Success -> {
-                        changeStatusText("Optable Success")
-                        result.result.openRtbJson
-                    }
-
-                    is OptableResult.Error -> {
-                        changeStatusText("Optable Error: ${result.message}")
-                        null
-                    }
-                }
-
-                loadPrebidAd(adRequestBuilder, optableOpenRtbString)
+            .targeting(listOf(TypeHasher.eid("test@test.com"))) { result ->
+                loadPrebidAd(result)
 
                 profile()
                 witness()
@@ -91,16 +78,25 @@ class PrebidBannerFragment : Fragment() {
     }
 
     private fun loadPrebidAd(
-        adRequestBuilder: AdManagerAdRequest.Builder,
-        optableOpenRtbJson: String?,
+        result: OptableResult<OptableTargeting>,
     ) {
         prebidAdUnit = BannerAdUnit(PREBID_CONFIG_ID, WIDTH, HEIGHT)
 
-        applyOptableToPrebid(optableOpenRtbJson)
+        when (result) {
+            is OptableResult.Success -> {
+                changeStatusText("Optable Success")
+                applyOptableToPrebid(result.result.openRtbJson)
+            }
 
-        prebidAdUnit.fetchDemand(adRequestBuilder) { resultCode: ResultCode? ->
+            is OptableResult.Error -> {
+                changeStatusText("Optable Error: ${result.message}")
+            }
+        }
+
+        val requestBuilder = AdManagerAdRequest.Builder()
+        prebidAdUnit.fetchDemand(requestBuilder) { resultCode: ResultCode? ->
             appendStatusText("Prebid ads loading status: $resultCode")
-            loadGamAd(adRequestBuilder)
+            loadGamAd(requestBuilder)
         }
     }
 
@@ -150,7 +146,7 @@ class PrebidBannerFragment : Fragment() {
         }
 
         // TODO:
-        loadPrebidAd(adRequestBuilder, null)
+        loadPrebidAd(OptableResult.Error("TODO"))
 
         profile()
         witness()
