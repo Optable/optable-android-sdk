@@ -4,56 +4,18 @@
  */
 package co.optable.android_sdk
 
-import android.net.Uri
-import android.text.TextUtils
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import co.optable.android_sdk.core.GoogleAdIdManager
+import co.optable.android_sdk.core.IdentifiersEncoder
 import co.optable.android_sdk.core.LocalStorage
-import co.optable.android_sdk.core.TypeHasher
 import co.optable.android_sdk.core.UserAgentHolder
 import co.optable.android_sdk.core.network.NetworkClient
 import co.optable.android_sdk.core.network.NetworkResponse
 import co.optable.android_sdk.core.network.RequestInterceptor
 import co.optable.android_sdk.core.network.ResponseInterceptor
-import co.optable.android_sdk.core.network.edge.EdgeResponse
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
-/*
- * The following typealiases describe the inputs and successful result types of various
- * OptableSDK APIs:
- */
-
-/**
- * Identify API expects a list of type-prefixed ID string values:
- */
-typealias OptableIdentifyInput = List<String>
-
-/**
- * Profile API expects user traits:
- */
-typealias OptableProfileTraits = HashMap<String, Any>
-
-/**
- * Witness API expects event properties:
- */
-typealias OptableWitnessProperties = HashMap<String, Any>
-
-/**
- * Identify, Profile, and Witness APIs usually just return {}... Void would be better but that
- * results in retrofit2 error when parsing response, even when the API responded successfully,
- * since {} is technically a HashMap:
- */
-typealias OptableIdentifyResponse = HashMap<Any, Any>
-typealias OptableProfileResponse = HashMap<Any, Any>
-typealias OptableWitnessResponse = HashMap<Any, Any>
-
-/**
- * Targeting API responds with a key-values dictionary on success:
- */
-typealias OptableTargetingResponse = HashMap<String, List<String>>
 
 /**
  *  OptableSDK provides an API that is used by an Android app developer integrating with an
@@ -72,7 +34,7 @@ typealias OptableTargetingResponse = HashMap<String, List<String>>
  *  persisted across launches of the app. The state is unique to the app+device, and not globally
  *  unique to the app across devices.
  */
-class OptableSDK @JvmOverloads constructor(
+class OptableSDK(
     private val config: OptableConfig,
 ) {
 
@@ -88,9 +50,9 @@ class OptableSDK @JvmOverloads constructor(
      *  an instance of Response<OptableIdentifyResponse> in the result. Success can be checked by
      *  comparing result.status to OptableSDK.Status.SUCCESS.
      */
-    fun identify(idList: OptableIdentifyInput, listener: OptableResultListener<Unit>) {
+    fun identify(ids: OptableIdentifiers, listener: OptableResultListener<Unit>) {
         GlobalScope.launch {
-            val response = networkClient.identify(idList)
+            val response = networkClient.identify(ids)
 
             MainScope().launch {
                 val optableResult = when (response) {
@@ -121,23 +83,25 @@ class OptableSDK @JvmOverloads constructor(
      */
     @JvmOverloads
     fun identify(email: String, gaid: Boolean = false, ppid: String? = null, listener: OptableResultListener<Unit>) {
-        var idList: OptableIdentifyInput = listOf()
+        val emailValue = if (email.isNotBlank() && android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            email
+        } else null
 
-        if (!TextUtils.isEmpty(email) &&
-            android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
-        ) {
-            idList += TypeHasher.eid(email)
-        }
+        val gaid = if (gaid) {
+            adIdManager.getId()
+        } else null
 
-        if (gaid && adIdManager.hasId()) {
-            idList += TypeHasher.gaid(adIdManager.getId()!!)
-        }
+        val ppid = if (ppid != null) {
+            listOf("c:$ppid")
+        } else null
 
-        if ((ppid != null) && (ppid.length > 0)) {
-            idList += TypeHasher.cid(ppid)
-        }
+        val ids = OptableIdentifiers(
+            email = emailValue,
+            googleGaid = gaid,
+            raw = ppid
+        )
 
-        return identify(idList, listener)
+        return identify(ids, listener)
     }
 
     /**
@@ -149,12 +113,16 @@ class OptableSDK @JvmOverloads constructor(
      * contain an "oeid" value with the SHA256(downcase(email)) of an incoming user, such
      * as encoded links in newsletter Emails sent by the application developer.
      */
-    fun tryIdentifyFromURI(uri: Uri) {
-        val oeid = TypeHasher.eidFromURI(uri)
+    fun tryIdentifyFromUrl(url: String, listener: OptableResultListener<Unit>) {
+        val id = IdentifiersEncoder.eidFromUrl(url)
 
-        if (oeid.length > 0) {
-            this.identify(listOf(oeid)) {}
+        if (id == null) {
+            listener.onComplete(OptableResult.Error("Can't find `oeid` in url: $url"))
+            return
         }
+
+        val ids = OptableIdentifiers.Builder().raw(listOf(id)).build()
+        this.identify(ids, listener)
     }
 
     /**
@@ -167,94 +135,14 @@ class OptableSDK @JvmOverloads constructor(
      *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
      *  to an empty HashMap on success, and can therefore be ignored.
      */
-    fun profile(traits: OptableProfileTraits): LiveData<OptableResponse<OptableProfileResponse>> {
-        val liveData = MutableLiveData<OptableResponse<OptableProfileResponse>>()
-
+    fun profile(traits: HashMap<String, Any>, listener: OptableResultListener<Unit>) {
         GlobalScope.launch {
             val response = networkClient.profile(traits)
-            when (response) {
-                is EdgeResponse.Success -> {
-                    liveData.postValue(OptableResponse.success(response.body))
-                }
-
-                is EdgeResponse.ApiError -> {
-                    liveData.postValue(OptableResponse.error(response.body))
-                }
-
-                is EdgeResponse.NetworkError -> {
-                    liveData.postValue(
-                        OptableResponse.error(
-                            OptableResponse.Error("NetworkError", "None")
-                        )
-                    )
-                }
-
-                is EdgeResponse.UnknownError -> {
-                    liveData.postValue(
-                        OptableResponse.error(
-                            OptableResponse.Error("UnknownError", "None")
-                        )
-                    )
-                }
-            }
-        }
-
-        return liveData
-    }
-
-    /**
-     *  targeting() calls the Optable Sandbox "targeting" API, which returns the key-value targeting
-     *  data matching the user/device/app.
-     *
-     *  It is asynchronous, so the caller should call observe() on the returned LiveData and expect
-     *  an instance of Response<OptableTargetingResponse> in the result. Success can be checked by
-     *  comparing result.status to OptableSDK.Status.SUCCESS, and when successful, result.data!! is
-     *  of type OptableTargetingResponse.
-     */
-    fun targeting(): LiveData<OptableResponse<OptableTargetingResponse>> {
-        val liveData = MutableLiveData<OptableResponse<OptableTargetingResponse>>()
-
-        GlobalScope.launch {
-            val response = networkClient.targeting()
-            when (response) {
-                is EdgeResponse.Success -> {
-                    storage.setTargeting(response.body)
-                    liveData.postValue(OptableResponse.success(response.body))
-                }
-
-                is EdgeResponse.ApiError -> {
-                    liveData.postValue(OptableResponse.error(response.body))
-                }
-
-                is EdgeResponse.NetworkError -> {
-                    liveData.postValue(
-                        OptableResponse.error(
-                            OptableResponse.Error("NetworkError", "None")
-                        )
-                    )
-                }
-
-                is EdgeResponse.UnknownError -> {
-                    liveData.postValue(
-                        OptableResponse.error(
-                            OptableResponse.Error("UnknownError", "None")
-                        )
-                    )
-                }
-            }
-        }
-
-        return liveData
-    }
-
-    fun targeting(idList: OptableIdentifyInput, listener: OptableResultListener<OptableTargeting>) {
-        GlobalScope.launch {
-            val response = networkClient.targeting(idList)
 
             MainScope().launch {
                 val optableResult = when (response) {
                     is NetworkResponse.Success -> {
-                        OptableResult.Success(response.result)
+                        OptableResult.Success(Unit)
                     }
 
                     is NetworkResponse.Error -> {
@@ -266,7 +154,37 @@ class OptableSDK @JvmOverloads constructor(
         }
     }
 
-    fun targetingFromCache(): OptableTargetingResponse? {
+    /**
+     *  targeting() calls the Optable Sandbox "targeting" API, which returns the key-value targeting
+     *  data matching the user/device/app.
+     *
+     *  It is asynchronous, so the caller should call observe() on the returned LiveData and expect
+     *  an instance of Response<OptableTargetingResponse> in the result. Success can be checked by
+     *  comparing result.status to OptableSDK.Status.SUCCESS, and when successful, result.data!! is
+     *  of type OptableTargetingResponse.
+     */
+    fun targeting(ids: OptableIdentifiers, listener: OptableResultListener<OptableTargeting>) {
+        GlobalScope.launch {
+            val response = networkClient.targeting(ids)
+
+            MainScope().launch {
+                val optableResult = when (response) {
+                    is NetworkResponse.Success -> {
+                        val targeting = OptableTargeting(response.result.ortb2.toString())
+                        storage.setTargeting(targeting)
+                        OptableResult.Success(targeting)
+                    }
+
+                    is NetworkResponse.Error -> {
+                        OptableResult.Error(response.message)
+                    }
+                }
+                listener.onComplete(optableResult)
+            }
+        }
+    }
+
+    fun targetingFromCache(): OptableTargeting? {
         return storage.getTargeting()
     }
 
@@ -286,41 +204,24 @@ class OptableSDK @JvmOverloads constructor(
      */
     fun witness(
         event: String,
-        properties: OptableWitnessProperties,
-    ): LiveData<OptableResponse<OptableWitnessResponse>> {
-        val liveData = MutableLiveData<OptableResponse<OptableWitnessResponse>>()
-        val client = this.networkClient
-
+        properties: HashMap<String, Any>,
+        listener: OptableResultListener<Unit>,
+    ) {
         GlobalScope.launch {
-            val response = client.witness(event, properties)
-            when (response) {
-                is EdgeResponse.Success -> {
-                    liveData.postValue(OptableResponse.success(response.body))
-                }
+            val response = networkClient.witness(event, properties)
+            MainScope().launch {
+                val optableResult = when (response) {
+                    is NetworkResponse.Success -> {
+                        OptableResult.Success(Unit)
+                    }
 
-                is EdgeResponse.ApiError -> {
-                    liveData.postValue(OptableResponse.error(response.body))
+                    is NetworkResponse.Error -> {
+                        OptableResult.Error(response.message)
+                    }
                 }
-
-                is EdgeResponse.NetworkError -> {
-                    liveData.postValue(
-                        OptableResponse.error(
-                            OptableResponse.Error("NetworkError", "None")
-                        )
-                    )
-                }
-
-                is EdgeResponse.UnknownError -> {
-                    liveData.postValue(
-                        OptableResponse.error(
-                            OptableResponse.Error("UnknownError", "None")
-                        )
-                    )
-                }
+                listener.onComplete(optableResult)
             }
         }
-
-        return liveData
     }
 
     private fun createNetworkClient(): NetworkClient {
