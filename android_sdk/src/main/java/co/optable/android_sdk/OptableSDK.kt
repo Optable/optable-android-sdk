@@ -12,6 +12,7 @@ import co.optable.android_sdk.core.network.NetworkClient
 import co.optable.android_sdk.core.network.NetworkResponse
 import co.optable.android_sdk.core.network.RequestInterceptor
 import co.optable.android_sdk.core.network.ResponseInterceptor
+import co.optable.android_sdk.core.network.edge.TargetingResponse
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -68,7 +69,6 @@ class OptableSDK(
             }
         }
     }
-
 
 
     /**
@@ -170,7 +170,10 @@ class OptableSDK(
             MainScope().launch {
                 val optableResult = when (response) {
                     is NetworkResponse.Success -> {
-                        val targeting = OptableTargeting(response.result.ortb2.toString())
+                        val targeting = OptableTargeting(
+                            parseAudiences(response),
+                            response.result.ortb2.toString()
+                        )
                         storage.setTargeting(targeting)
                         OptableResult.Success(targeting)
                     }
@@ -229,6 +232,23 @@ class OptableSDK(
         val requestInterceptor = RequestInterceptor(config, storage, userAgentHolder)
         val responseInterceptor = ResponseInterceptor(storage)
         return NetworkClient(config, requestInterceptor, responseInterceptor)
+    }
+
+
+    private fun parseAudiences(response: NetworkResponse.Success<TargetingResponse>): Map<String, List<String>>? {
+        val audiences = response.result.audience
+
+        if (audiences.isNullOrEmpty()) return null
+
+        val result = mutableMapOf<String, List<String>>()
+        for (audience in audiences) {
+            if (audience.provider.isNullOrBlank()) continue
+
+            if (audience.ids.isNullOrEmpty()) continue
+
+            result[audience.provider] = audience.ids.mapNotNull { it.id }
+        }
+        return result
     }
 
 }
