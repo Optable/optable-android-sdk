@@ -11,14 +11,12 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import co.optable.android_sdk.OptableResponse
+import co.optable.android_sdk.OptableIdentifiers
 import co.optable.android_sdk.OptableResult
+import co.optable.android_sdk.OptableSDK
 import co.optable.android_sdk.OptableTargeting
-import co.optable.android_sdk.OptableTargetingResponse
-import co.optable.android_sdk.core.TypeHasher
-import co.optable.androidsdkdemo.MainActivity
 import co.optable.androidsdkdemo.R
+import co.optable.androidsdkdemo.TheApplication
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.LoadAdError
@@ -40,8 +38,11 @@ class PrebidBannerFragment : Fragment() {
     private lateinit var adView: AdManagerAdView
     private lateinit var prebidAdUnit: BannerAdUnit
 
+    private lateinit var optable: OptableSDK
+
     private lateinit var adContainer: ViewGroup
     private lateinit var statusTextView: TextView
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,6 +51,7 @@ class PrebidBannerFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_prebid, container, false)
         initUi(root)
+        optable = TheApplication.optable
         return root
     }
 
@@ -68,48 +70,42 @@ class PrebidBannerFragment : Fragment() {
     private fun onClickLoadAd() {
         statusTextView.text = ""
 
-        MainActivity.OPTABLE
-            .targeting(listOf(TypeHasher.eid("test@test.com"))) { result ->
-                loadPrebidAd(result)
+        val ids = OptableIdentifiers(email = "test@test.com")
+        optable.targeting(ids) { result ->
+            val optableTargeting = when (result) {
+                is OptableResult.Success<OptableTargeting> -> {
+                    changeStatusText("Targeting success: ${result.data.audiences}")
+                    result.data
+                }
 
-                profile()
-                witness()
+                is OptableResult.Error -> {
+                    changeStatusText("Targeting error: ${result.message}")
+                    null
+                }
             }
+
+            loadPrebidAd(optableTargeting)
+
+            profile()
+            witness()
+        }
     }
 
-    private fun loadPrebidAd(
-        result: OptableResult<OptableTargeting>,
-    ) {
+    private fun loadPrebidAd(optableTargeting: OptableTargeting?) {
         prebidAdUnit = BannerAdUnit(PREBID_CONFIG_ID, WIDTH, HEIGHT)
-
-        when (result) {
-            is OptableResult.Success -> {
-                changeStatusText("Optable Success")
-                applyOptableToPrebid(result.result.openRtbJson)
-            }
-
-            is OptableResult.Error -> {
-                changeStatusText("Optable Error: ${result.message}")
-            }
-        }
+        applyOptableToPrebid(optableTargeting)
 
         val requestBuilder = AdManagerAdRequest.Builder()
         prebidAdUnit.fetchDemand(requestBuilder) { resultCode: ResultCode? ->
             appendStatusText("Prebid ads loading status: $resultCode")
-            loadGamAd(requestBuilder)
+            loadGamAd(requestBuilder, optableTargeting)
         }
     }
 
-    private fun applyOptableToPrebid(optableOpenRtbJson: String?) {
-        if (optableOpenRtbJson?.isNotBlank() == true) {
-            TargetingParams.setGlobalOrtbConfig(optableOpenRtbJson)
-        }
-    }
-
-    private fun loadGamAd(adRequestBuilder: AdManagerAdRequest.Builder) {
+    private fun loadGamAd(requestBuilder: AdManagerAdRequest.Builder, optableTargeting: OptableTargeting?) {
         adContainer.removeAllViews()
 
-        val adRequest = adRequestBuilder.build()
+        applyOptableToGam(requestBuilder, optableTargeting)
 
         adView = AdManagerAdView(requireContext())
         adView.setAdSizes(AdSize(WIDTH, HEIGHT))
@@ -124,7 +120,7 @@ class PrebidBannerFragment : Fragment() {
                 appendStatusText("Google ad failed to load: " + loadAdError.message)
             }
         }
-        adView.loadAd(adRequest)
+        adView.loadAd(requestBuilder.build())
 
         adContainer.addView(adView)
     }
@@ -134,19 +130,14 @@ class PrebidBannerFragment : Fragment() {
      * Loads cached targeting and then the GAM banner.
      */
     private fun onClickCachedBanner() {
-        val adRequestBuilder = AdManagerAdRequest.Builder()
-        val cachedData = MainActivity.OPTABLE.targetingFromCache()
-        if (cachedData != null) {
-            cachedData.forEach { (key, values) ->
-                adRequestBuilder.addCustomTargeting(key, values)
-            }
-            changeStatusText("Loading GAM ad with cached targeting data.", cachedData)
+        val targeting = optable.targetingFromCache()
+        if (targeting != null) {
+            changeStatusText("Targeting from cache: ${targeting.audiences}")
         } else {
             changeStatusText("Targeting data cache empty.")
         }
 
-        // TODO:
-        loadPrebidAd(OptableResult.Error("TODO"))
+        loadPrebidAd(targeting)
 
         profile()
         witness()
@@ -156,45 +147,67 @@ class PrebidBannerFragment : Fragment() {
      * Clears the targeting data cache.
      */
     private fun onClickClearCache() {
-        MainActivity.OPTABLE.targetingClearCache()
         changeStatusText("Cleared targeting data cache.")
+        optable.targetingClearCache()
+    }
+
+
+    private fun applyOptableToPrebid(targeting: OptableTargeting?) {
+        if (targeting == null) {
+            TargetingParams.setGlobalOrtbConfig(null)
+            return
+        }
+
+        val openRtbJson = targeting.openRtbJson
+        if (openRtbJson?.isNotBlank() == true) {
+            TargetingParams.setGlobalOrtbConfig(openRtbJson)
+        }
+    }
+
+    private fun applyOptableToGam(builder: AdManagerAdRequest.Builder, targeting: OptableTargeting?) {
+        if (targeting == null) return
+
+        val audiences = targeting.audiences
+        if (audiences != null) {
+            for (entry in audiences.entries) {
+                builder.addCustomTargeting(entry.key, entry.value)
+            }
+        }
     }
 
     private fun profile() {
-        MainActivity.OPTABLE
-            .profile(hashMapOf("gender" to "F", "age" to 38, "hasAccount" to true))
-            .observe(viewLifecycleOwner, Observer { result ->
-                if (result.status == OptableResponse.Status.SUCCESS) {
-                    appendStatusText("Success calling profile API to set traits on user.")
-                } else {
-                    appendStatusText("Error during sending profile: ${result.message}")
+        val traits = hashMapOf<String, Any>("gender" to "F", "age" to 38, "hasAccount" to true)
+        optable.profile(traits) { result ->
+            when (result) {
+                is OptableResult.Success -> {
+                    appendStatusText("Profile success")
                 }
-            })
+
+                is OptableResult.Error -> {
+                    appendStatusText("Profile error: ${result.message}")
+                }
+            }
+        }
     }
 
     private fun witness() {
-        MainActivity.OPTABLE
-            .witness(
-                "GAMBannerFragment.loadAdButtonClicked",
-                hashMapOf("exampleKey" to "exampleValue", "anotherExample" to 123, "foo" to false)
-            )
-            .observe(viewLifecycleOwner, Observer { result ->
-                if (result.status == OptableResponse.Status.SUCCESS) {
-                    appendStatusText("Success calling witness API to log loadAdButtonClicked event.")
-                } else {
-                    appendStatusText("Error during sending witness: ${result.message}")
+        val properties = hashMapOf<String, Any>("exampleKey" to "exampleValue", "anotherExample" to 123, "foo" to false)
+        optable.witness("GAMBannerFragment.loadAdButtonClicked", properties) { result ->
+            when (result) {
+                is OptableResult.Success -> {
+                    appendStatusText("Witness success")
                 }
-            })
+
+                is OptableResult.Error -> {
+                    appendStatusText("Witness error: ${result.message}")
+                }
+            }
+        }
     }
 
 
-    private fun changeStatusText(message: String, optableResponse: OptableTargetingResponse? = null) {
-        var formattedMessage = message
-        if (optableResponse != null) {
-            formattedMessage += "\n\nTargeting data: "
-            formattedMessage += optableResponse.map { (key, values) -> "$key = ${values}\n" }
-        }
-        statusTextView.text = formattedMessage
+    private fun changeStatusText(message: String) {
+        statusTextView.text = message
     }
 
     private fun appendStatusText(message: String) {

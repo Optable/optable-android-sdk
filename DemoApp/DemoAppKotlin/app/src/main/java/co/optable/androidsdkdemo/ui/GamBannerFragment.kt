@@ -1,0 +1,159 @@
+package co.optable.androidsdkdemo.ui
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.TextView
+import androidx.fragment.app.Fragment
+import co.optable.android_sdk.OptableIdentifiers
+import co.optable.android_sdk.OptableResult
+import co.optable.android_sdk.OptableSDK
+import co.optable.android_sdk.OptableTargeting
+import co.optable.androidsdkdemo.R
+import co.optable.androidsdkdemo.TheApplication
+import com.google.android.gms.ads.admanager.AdManagerAdRequest
+import com.google.android.gms.ads.admanager.AdManagerAdView
+
+class GamBannerFragment : Fragment() {
+
+    private lateinit var adView: AdManagerAdView
+    private lateinit var statusTextView: TextView
+
+    private lateinit var optable: OptableSDK
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View? {
+        val root = inflater.inflate(R.layout.fragment_gambanner, container, false)
+        initUi(root)
+        optable = TheApplication.optable
+        return root
+    }
+
+    private fun initUi(root: View) {
+        adView = root.findViewById(R.id.publisherAdView)
+        statusTextView = root.findViewById(R.id.statusTextView)
+        statusTextView.text = ""
+
+        root.findViewById<Button>(R.id.btnLoadBanner).setOnClickListener {
+            onClickLoadAd()
+        }
+        root.findViewById<Button>(R.id.btnCachedBanner).setOnClickListener {
+            onClickCachedBanner()
+        }
+        root.findViewById<Button>(R.id.btnClearCache).setOnClickListener {
+            onClickClearCache()
+        }
+    }
+
+    /**
+     * Loads targeting data and then the GAM banner.
+     */
+    private fun onClickLoadAd() {
+        val ids = OptableIdentifiers(email = "test@test.com")
+        optable.targeting(ids) { result ->
+            val requestBuilder = AdManagerAdRequest.Builder()
+
+            when (result) {
+                is OptableResult.Success<OptableTargeting> -> {
+                    changeStatusText("Targeting success: ${result.data.audiences}")
+                    applyOptableToGam(requestBuilder, result.data)
+                }
+
+                is OptableResult.Error<OptableTargeting> -> {
+                    changeStatusText("Targeting error: ${result.message}")
+                }
+            }
+
+            adView.loadAd(requestBuilder.build())
+
+            profile()
+            witness()
+        }
+    }
+
+    /**
+     * Loads cached targeting and then the GAM banner.
+     */
+    private fun onClickCachedBanner() {
+        val requestBuilder = AdManagerAdRequest.Builder()
+        val cachedData = optable.targetingFromCache()
+        if (cachedData != null) {
+            changeStatusText("Targeting from cache: ${cachedData.audiences}")
+            applyOptableToGam(requestBuilder, cachedData)
+        } else {
+            changeStatusText("Targeting cache is empty")
+        }
+
+        adView.loadAd(requestBuilder.build())
+
+        profile()
+        witness()
+    }
+
+    /**
+     * Clears the targeting data cache.
+     */
+    private fun onClickClearCache() {
+        optable.targetingClearCache()
+        changeStatusText("Cleared targeting data cache.")
+    }
+
+    private fun applyOptableToGam(builder: AdManagerAdRequest.Builder, targeting: OptableTargeting?) {
+        if (targeting == null) return
+
+        val audiences = targeting.audiences
+        if (audiences != null) {
+            for (entry in audiences.entries) {
+                builder.addCustomTargeting(entry.key, entry.value)
+            }
+        }
+    }
+
+    private fun profile() {
+        optable
+            .profile(hashMapOf("gender" to "F", "age" to 38, "hasAccount" to true)) { result ->
+                when (result) {
+                    is OptableResult.Success<*> -> {
+                        appendStatusText("Profile success")
+                    }
+
+                    is OptableResult.Error -> {
+                        appendStatusText("Profile error: ${result.message}")
+                    }
+                }
+            }
+    }
+
+    private fun witness() {
+        optable
+            .witness(
+                "GAMBannerFragment.loadAdButtonClicked",
+                hashMapOf("exampleKey" to "exampleValue", "anotherExample" to 123, "foo" to false)
+            ) { result ->
+                when (result) {
+                    is OptableResult.Success<*> -> {
+                        appendStatusText("Witness success")
+                    }
+
+                    is OptableResult.Error -> {
+                        appendStatusText("Witness error: ${result.message}")
+                    }
+                }
+            }
+    }
+
+
+    private fun changeStatusText(message: String) {
+        statusTextView.text = message
+    }
+
+    private fun appendStatusText(message: String) {
+        statusTextView.append("\n\n$message")
+    }
+
+}

@@ -1,4 +1,4 @@
-package co.optable.demoappjava.ui.Identify;
+package co.optable.demoappjava.ui;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,11 +10,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import co.optable.android_sdk.OptableResult;
-import co.optable.android_sdk.OptableResultListener;
-import co.optable.demoappjava.MainActivity;
+import co.optable.android_sdk.OptableSDK;
 import co.optable.demoappjava.R;
+import co.optable.demoappjava.TheApplication;
 import kotlin.Unit;
-import org.jetbrains.annotations.NotNull;
 
 public class IdentifyFragment extends Fragment {
 
@@ -22,10 +21,13 @@ public class IdentifyFragment extends Fragment {
     private EditText emailText;
     private Switch gaidSwitch;
 
+    private OptableSDK optable;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_identify, container, false);
         initUi(root);
+        optable = TheApplication.optable;
         return root;
     }
 
@@ -40,21 +42,13 @@ public class IdentifyFragment extends Fragment {
     private void onClickIdentify() {
         identifyView.setText("");
 
-        MainActivity.OPTABLE
-                .identify(emailText.getText().toString(), gaidSwitch.isChecked(), new OptableResultListener<Unit>() {
-                    @Override
-                    public void onComplete(@NotNull OptableResult<Unit> result) {
-                        String msg = "Calling identify API... ";
-
-                        if (result instanceof OptableResult.Success) {
-                            msg += "Success";
-                        } else if (result instanceof OptableResult.Error<Unit> error) {
-                            msg += "\n\nOptableSDK Error: " + error.getMessage();
-                        }
-
-                        identifyView.setText(msg);
-                    }
-                });
+        optable.identify(emailText.getText().toString(), gaidSwitch.isChecked(), result -> {
+            if (result instanceof OptableResult.Success) {
+                identifyView.setText("Identify success");
+            } else if (result instanceof OptableResult.Error<Unit> error) {
+                identifyView.setText("Identify error: " + error.getMessage());
+            }
+        });
     }
 
 }

@@ -11,7 +11,6 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import co.optable.android_sdk.OptableConfig
 import co.optable.android_sdk.OptableSDK
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -28,9 +27,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        val config = OptableConfig(this, "prebidtest", "js-sdk", host = "ca.edge.optable.co")
-        OPTABLE = OptableSDK(config)
 
         initGoogleAds()
         initPrebidSdk()

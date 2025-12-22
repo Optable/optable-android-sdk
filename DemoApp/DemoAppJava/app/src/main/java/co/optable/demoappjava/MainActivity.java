@@ -7,8 +7,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import co.optable.android_sdk.OptableConfig;
-import co.optable.android_sdk.OptableSDK;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import org.prebid.mobile.PrebidMobile;
@@ -18,15 +16,10 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
-    public static OptableSDK OPTABLE;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        OptableConfig config = new OptableConfig(this, "prebidtest", "js-sdk", "ca.edge.optable.co");
-        MainActivity.OPTABLE = new OptableSDK(config);
 
         initGoogleAds();
         initPrebidSdk();

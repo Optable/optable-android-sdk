@@ -14,45 +14,32 @@ import co.optable.android_sdk.OptableSDK;
 import co.optable.android_sdk.OptableTargeting;
 import co.optable.demoappjava.R;
 import co.optable.demoappjava.TheApplication;
-import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.admanager.AdManagerAdRequest;
 import com.google.android.gms.ads.admanager.AdManagerAdView;
 import kotlin.Unit;
-import org.jetbrains.annotations.NotNull;
-import org.prebid.mobile.BannerAdUnit;
-import org.prebid.mobile.TargetingParams;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PrebidBannerFragment extends Fragment {
+public class GamBannerFragment extends Fragment {
 
-    private static final String GAM_AD_UNIT_ID = "/21808260008/prebid_demo_app_original_api_banner";
-    private static final String PREBID_CONFIG_ID = "prebid-demo-banner-320-50";
-    private static final int WIDTH = 320;
-    private static final int HEIGHT = 50;
-
-    private AdManagerAdView adView;
-    private BannerAdUnit prebidAdUnit;
-
-    private ViewGroup adContainer;
+    private AdManagerAdView mAdView;
     private TextView statusTextView;
 
     private OptableSDK optable;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_prebid, container, false);
+        View root = inflater.inflate(R.layout.fragment_gambanner, container, false);
         initUi(root);
         optable = TheApplication.optable;
         return root;
     }
 
     private void initUi(View root) {
+        mAdView = root.findViewById(R.id.publisherAdView);
         statusTextView = root.findViewById(R.id.statusTextView);
-        adContainer = root.findViewById(R.id.adContainer);
 
         root.findViewById(R.id.btnLoadBanner).setOnClickListener(view -> onClickLoadAd());
         root.findViewById(R.id.btnCachedBanner).setOnClickListener(view -> onClickCachedBanner());
@@ -66,91 +53,41 @@ public class PrebidBannerFragment extends Fragment {
         statusTextView.setText("");
 
         OptableIdentifiers ids = new OptableIdentifiers.Builder().email("test@test.com").build();
-        optable.targeting(ids, optableResult -> {
-            OptableTargeting optableTargeting = null;
-            if (optableResult instanceof OptableResult.Success<OptableTargeting> success) {
+        optable.targeting(ids, result -> {
+            AdManagerAdRequest.Builder requestBuilder = new AdManagerAdRequest.Builder();
+
+            if (result instanceof OptableResult.Success<OptableTargeting> success) {
+                applyOptableToGam(requestBuilder, success.getData());
                 changeStatusText("Targeting success: " + success.getData().getAudiences());
-                optableTargeting = success.getData();
-            } else if (optableResult instanceof OptableResult.Error<OptableTargeting> error) {
+            } else if (result instanceof OptableResult.Error<OptableTargeting> error) {
                 changeStatusText("Targeting error: " + error.getMessage());
             }
 
-            loadPrebidAd(optableTargeting);
+            mAdView.loadAd(requestBuilder.build());
             profile();
             witness();
         });
-    }
-
-    private void loadPrebidAd(@Nullable OptableTargeting optableTargeting) {
-        AdManagerAdRequest.Builder adRequestBuilder = new AdManagerAdRequest.Builder();
-
-        prebidAdUnit = new BannerAdUnit(PREBID_CONFIG_ID, WIDTH, HEIGHT);
-        applyOptableToPrebid(optableTargeting);
-        prebidAdUnit.fetchDemand(adRequestBuilder, resultCode -> {
-            appendStatusText("Prebid ads loading status: " + resultCode.toString());
-            loadGamAd(adRequestBuilder, optableTargeting);
-        });
-    }
-
-    private void loadGamAd(AdManagerAdRequest.Builder requestBuilder, @Nullable OptableTargeting optableTargeting) {
-        applyOptableToGam(requestBuilder, optableTargeting);
-
-        adContainer.removeAllViews();
-
-        adView = new AdManagerAdView(requireContext());
-        adView.setAdUnitId(GAM_AD_UNIT_ID);
-        adView.setAdSizes(new com.google.android.gms.ads.AdSize(WIDTH, HEIGHT));
-        adView.setAdListener(new AdListener() {
-            @Override
-            public void onAdLoaded() {
-                super.onAdLoaded();
-                appendStatusText("Google ad loaded");
-            }
-
-            @Override
-            public void onAdFailedToLoad(@NonNull @NotNull LoadAdError loadAdError) {
-                appendStatusText("Google ad failed to load: " + loadAdError.getMessage());
-            }
-        });
-        adView.loadAd(requestBuilder.build());
-
-        adContainer.addView(adView);
     }
 
     /**
      * Loads targeting data from cache and then the GAM banner
      */
     private void onClickCachedBanner() {
-        OptableTargeting targeting = optable.targetingFromCache();
-        if (targeting != null) {
-            changeStatusText("Targeting from cache: " + targeting.getAudiences());
+        statusTextView.setText("");
+
+        AdManagerAdRequest.Builder requestBuilder = new AdManagerAdRequest.Builder();
+
+        OptableTargeting optableTargeting = optable.targetingFromCache();
+        if (optableTargeting != null) {
+            changeStatusText("Targeting from cache: " + optableTargeting.getAudiences());
+            applyOptableToGam(requestBuilder, optableTargeting);
         } else {
-            changeStatusText("Targeting data cache empty.");
+            changeStatusText("Targeting cache is empty");
         }
 
-        loadPrebidAd(targeting);
+        mAdView.loadAd(requestBuilder.build());
         profile();
         witness();
-    }
-
-    /**
-     * Clears targeting data cache.
-     */
-    private void onClickClearCache() {
-        statusTextView.setText("Clearing targeting data cache.\n\n");
-        optable.targetingClearCache();
-    }
-
-    private void applyOptableToPrebid(@Nullable OptableTargeting optableResult) {
-        if (optableResult == null) {
-            TargetingParams.setGlobalOrtbConfig(null);
-            return;
-        }
-
-        String openRtbJson = optableResult.getOpenRtbJson();
-        if (openRtbJson != null) {
-            TargetingParams.setGlobalOrtbConfig(openRtbJson);
-        }
     }
 
     private void applyOptableToGam(AdManagerAdRequest.Builder builder, @Nullable OptableTargeting targeting) {
@@ -164,6 +101,14 @@ public class PrebidBannerFragment extends Fragment {
         }
     }
 
+    /**
+     * Clears targeting data cache.
+     */
+    private void onClickClearCache() {
+        statusTextView.setText("Clearing targeting data cache.");
+        optable.targetingClearCache();
+    }
+
     private void profile() {
         HashMap<String, Object> traits = new HashMap<>();
         traits.put("gender", "F");
@@ -172,9 +117,9 @@ public class PrebidBannerFragment extends Fragment {
 
         optable.profile(traits, result -> {
             if (result instanceof OptableResult.Success) {
-                appendStatusText("Profile Success");
+                appendStatusText("Profile success");
             } else if (result instanceof OptableResult.Error<Unit> error) {
-                appendStatusText("Profile Error: " + error.getMessage());
+                appendStatusText("Profile error: " + error.getMessage());
             }
         });
     }
@@ -187,9 +132,9 @@ public class PrebidBannerFragment extends Fragment {
 
         optable.witness("GAMBannerFragment.loadAdButtonClicked", eventProperties, result -> {
             if (result instanceof OptableResult.Success) {
-                appendStatusText("Witness Success");
+                appendStatusText("Witness success");
             } else if (result instanceof OptableResult.Error<Unit> error) {
-                appendStatusText("Witness Error: " + error.getMessage());
+                appendStatusText("Witness error: " + error.getMessage());
             }
         });
     }

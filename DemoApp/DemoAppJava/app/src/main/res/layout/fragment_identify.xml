@@ -5,13 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingTop="50dp"
-    tools:context=".ui.Identify.IdentifyFragment">
+    tools:context=".ui.IdentifyFragment">
 
     <EditText
         android:id="@+id/editTextTextEmailAddress"
         android:layout_width="350dp"
         android:layout_height="60dp"
         android:ems="10"
+        android:text="test@test.com"
         android:inputType="textEmailAddress"
         android:hint="Email address"
         app:layout_constraintEnd_toEndOf="parent"

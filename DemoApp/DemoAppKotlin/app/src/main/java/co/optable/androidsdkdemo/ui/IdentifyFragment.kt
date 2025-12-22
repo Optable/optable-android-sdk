@@ -1,8 +1,4 @@
-/*
- * Copyright © 2020 Optable Technologies Inc. All rights reserved.
- * See LICENSE for details.
- */
-package co.optable.androidsdkdemo.ui.Identify
+package co.optable.androidsdkdemo.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,14 +10,17 @@ import android.widget.Switch
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import co.optable.android_sdk.OptableResult
-import co.optable.androidsdkdemo.MainActivity
+import co.optable.android_sdk.OptableSDK
 import co.optable.androidsdkdemo.R
+import co.optable.androidsdkdemo.TheApplication
 
 class IdentifyFragment : Fragment() {
 
     private lateinit var identifyView: TextView
     private lateinit var emailText: EditText
     private lateinit var gaidSwitch: Switch
+
+    private lateinit var optable: OptableSDK
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -30,6 +29,7 @@ class IdentifyFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_identify, container, false)
         initUi(root)
+        optable = TheApplication.optable
         return root
     }
 
@@ -49,14 +49,11 @@ class IdentifyFragment : Fragment() {
         val email = emailText.text.toString()
         val gaidStatus = gaidSwitch.isChecked
 
-        MainActivity.OPTABLE.identify(email, gaidStatus) { result ->
-            var msg = "Calling identify API... "
-            msg += if (result is OptableResult.Success) {
-                "Success"
-            } else {
-                "\n\nOptableSDK Error: ${(result as OptableResult.Error).message}"
+        optable.identify(email, gaidStatus) { result ->
+            val msg = when (result) {
+                is OptableResult.Success -> "Identify success"
+                is OptableResult.Error -> "OptableSDK Error: ${result.message}"
             }
-
             identifyView.text = msg
         }
     }

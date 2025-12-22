@@ -7,13 +7,13 @@
 
     <fragment
         android:id="@+id/navigation_identify"
-        android:name="co.optable.demoappjava.ui.Identify.IdentifyFragment"
+        android:name="co.optable.demoappjava.ui.IdentifyFragment"
         android:label="Identify API"
         tools:layout="@layout/fragment_identify" />
 
     <fragment
         android:id="@+id/navigation_gambanner"
-        android:name="co.optable.demoappjava.ui.GAMBanner.GAMBannerFragment"
+        android:name="co.optable.demoappjava.ui.GamBannerFragment"
         android:label="GAM Banner"
         tools:layout="@layout/fragment_gambanner" />
 
