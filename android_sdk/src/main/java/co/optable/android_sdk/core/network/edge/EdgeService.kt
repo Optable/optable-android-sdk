@@ -4,8 +4,7 @@
  */
 package co.optable.android_sdk.core.network.edge
 
-import co.optable.android_sdk.*
-import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -13,19 +12,16 @@ import retrofit2.http.Query
 
 interface EdgeService {
 
+    @GET("targeting")
+    suspend fun targeting(@Query("id") idList: List<String>): Response<TargetingResponse>
+
     @POST("identify")
-    fun identify(@Body idList: OptableIdentifyInput): Call<Unit>
+    suspend fun identify(@Body idList: List<String>): Response<Unit>
 
     @POST("profile")
-    suspend fun profile(@Body profileBody: HashMap<String, Any>): EdgeResponse<OptableProfileResponse, OptableResponse.Error>
-
-    @GET("targeting")
-    suspend fun targeting(): EdgeResponse<OptableTargetingResponse, OptableResponse.Error>
-
-    @GET("targeting")
-    fun targeting(@Query("id") idList: List<String>): Call<TargetingResponse>
+    suspend fun profile(@Body profileBody: HashMap<String, Any>): Response<Unit>
 
     @POST("witness")
-    suspend fun witness(@Body witnessBody: HashMap<String, Any>): EdgeResponse<OptableWitnessResponse, OptableResponse.Error>
+    suspend fun witness(@Body witnessBody: HashMap<String, Any>): Response<Unit>
 
 }
