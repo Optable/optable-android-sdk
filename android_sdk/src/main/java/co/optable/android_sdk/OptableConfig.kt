@@ -14,6 +14,7 @@ import android.content.Context
  * @param apiKey An optional API key for authentication. If the API Endpoint is enabled as private, a Service Account API key will be required.
  * @param customUserAgent An optional custom user agent string for network requests.
  * @param skipAdvertisingIdDetection Boolean flag to skip the detection of advertising IDs. Default is false.
+ * @param consents Optional `OptableConsents` object for providing custom consent information. If not provided, default values will be used.
  */
 class OptableConfig @JvmOverloads constructor(
     providedContext: Context,
@@ -25,6 +26,7 @@ class OptableConfig @JvmOverloads constructor(
     internal val apiKey: String? = null,
     internal val customUserAgent: String? = null,
     internal val skipAdvertisingIdDetection: Boolean = false,
+    var consents: OptableConsents = OptableConsents(),
 ) {
 
     internal val context = providedContext.applicationContext

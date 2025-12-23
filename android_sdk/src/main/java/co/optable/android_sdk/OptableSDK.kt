@@ -4,10 +4,7 @@
  */
 package co.optable.android_sdk
 
-import co.optable.android_sdk.core.GoogleAdIdManager
-import co.optable.android_sdk.core.IdentifiersEncoder
-import co.optable.android_sdk.core.LocalStorage
-import co.optable.android_sdk.core.UserAgentHolder
+import co.optable.android_sdk.core.*
 import co.optable.android_sdk.core.network.NetworkClient
 import co.optable.android_sdk.core.network.NetworkResponse
 import co.optable.android_sdk.core.network.RequestInterceptor
@@ -229,7 +226,8 @@ class OptableSDK(
 
     private fun createNetworkClient(): NetworkClient {
         val userAgentHolder = UserAgentHolder(config)
-        val requestInterceptor = RequestInterceptor(config, storage, userAgentHolder)
+        val consentsManager = ConsentsManager(config, storage)
+        val requestInterceptor = RequestInterceptor(config, storage, userAgentHolder, consentsManager)
         val responseInterceptor = ResponseInterceptor(storage)
         return NetworkClient(config, requestInterceptor, responseInterceptor)
     }

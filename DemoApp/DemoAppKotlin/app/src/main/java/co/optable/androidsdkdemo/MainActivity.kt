@@ -11,7 +11,6 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import co.optable.android_sdk.OptableSDK
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import org.prebid.mobile.PrebidMobile
@@ -19,8 +18,6 @@ import org.prebid.mobile.PrebidMobile
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        lateinit var OPTABLE: OptableSDK
-
         private const val TAG = "MainActivity"
     }
 

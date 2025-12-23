@@ -12,9 +12,18 @@ import co.optable.android_sdk.OptableConfig
 import co.optable.android_sdk.OptableTargeting
 import com.google.gson.Gson
 
+/**
+ * Manages SharedPreferences for Optable SDK.
+ */
 internal class LocalStorage(
     config: OptableConfig,
 ) {
+
+    companion object {
+        private const val KEY_SUBJECT_TO_GDPR = "IABTCF_gdprApplies"
+        private const val KEY_GDPR_CONSENT = "IABTCF_TCString"
+        private const val KEY_GPP_CONSENT = "IABGPP_2_TCString"
+    }
 
     private val prefs = PreferenceManager.getDefaultSharedPreferences(config.context)
     private val passportKey = generateUniqueKey("PASS", config)
@@ -55,6 +64,37 @@ internal class LocalStorage(
         prefs.edit(commit = true) {
             remove(targetingKey)
         }
+    }
+
+    fun getSubjectToGdpr(): Int? {
+        try {
+            val result = prefs.getInt(KEY_SUBJECT_TO_GDPR, -1)
+            if (result == -1) {
+                return null
+            }
+            return result
+        } catch (e: Exception) {
+            Log.e("OptableSDK", "Can't get subject to GDPR: ${e.message}")
+        }
+        return null
+    }
+
+    fun getGdprConsent(): String? {
+        try {
+            return prefs.getString(KEY_GDPR_CONSENT, null)
+        } catch (e: Exception) {
+            Log.e("OptableSDK", "Can't get GDPR consent: ${e.message}")
+        }
+        return null
+    }
+
+    fun getGppConsent(): String? {
+        try {
+            return prefs.getString(KEY_GPP_CONSENT, null)
+        } catch (e: Exception) {
+            Log.e("OptableSDK", "Can't get GPP consent: ${e.message}")
+        }
+        return null
     }
 
     private fun generateUniqueKey(kind: String, config: OptableConfig): String {
