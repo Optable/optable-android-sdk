@@ -81,10 +81,10 @@ class GamBannerFragment : Fragment() {
      */
     private fun onClickCachedBanner() {
         val requestBuilder = AdManagerAdRequest.Builder()
-        val cachedData = optable.targetingFromCache()
-        if (cachedData != null) {
-            changeStatusText("Targeting from cache: ${cachedData.audiences}")
-            applyOptableToGam(requestBuilder, cachedData)
+        val targeting = optable.targetingFromCache()
+        if (targeting != null) {
+            changeStatusText("Targeting from cache: ${targeting.audiences}")
+            applyOptableToGam(requestBuilder, targeting)
         } else {
             changeStatusText("Targeting cache is empty")
         }
@@ -115,36 +115,35 @@ class GamBannerFragment : Fragment() {
     }
 
     private fun profile() {
-        optable
-            .profile(hashMapOf("gender" to "F", "age" to 38, "hasAccount" to true)) { result ->
-                when (result) {
-                    is OptableResult.Success<*> -> {
-                        appendStatusText("Profile success")
-                    }
+        val traits = hashMapOf<String, Any>("gender" to "F", "age" to 38, "hasAccount" to true)
+        optable.profile(traits) { result ->
+            when (result) {
+                is OptableResult.Success<*> -> {
+                    appendStatusText("Profile success")
+                }
 
-                    is OptableResult.Error -> {
-                        appendStatusText("Profile error: ${result.message}")
-                    }
+                is OptableResult.Error -> {
+                    appendStatusText("Profile error: ${result.message}")
                 }
             }
+        }
     }
 
     private fun witness() {
-        optable
-            .witness(
-                "GAMBannerFragment.loadAdButtonClicked",
-                hashMapOf("exampleKey" to "exampleValue", "anotherExample" to 123, "foo" to false)
-            ) { result ->
-                when (result) {
-                    is OptableResult.Success<*> -> {
-                        appendStatusText("Witness success")
-                    }
+        optable.witness(
+            "GAMBannerFragment.loadAdButtonClicked",
+            hashMapOf("exampleKey" to "exampleValue", "anotherExample" to 123, "foo" to false)
+        ) { result ->
+            when (result) {
+                is OptableResult.Success<*> -> {
+                    appendStatusText("Witness success")
+                }
 
-                    is OptableResult.Error -> {
-                        appendStatusText("Witness error: ${result.message}")
-                    }
+                is OptableResult.Error -> {
+                    appendStatusText("Witness error: ${result.message}")
                 }
             }
+        }
     }
 
 

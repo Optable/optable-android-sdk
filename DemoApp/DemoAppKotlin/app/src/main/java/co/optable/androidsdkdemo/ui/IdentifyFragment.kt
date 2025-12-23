@@ -52,7 +52,7 @@ class IdentifyFragment : Fragment() {
         optable.identify(email, gaidStatus) { result ->
             val msg = when (result) {
                 is OptableResult.Success -> "Identify success"
-                is OptableResult.Error -> "OptableSDK Error: ${result.message}"
+                is OptableResult.Error -> "Identify error: ${result.message}"
             }
             identifyView.text = msg
         }
