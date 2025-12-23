@@ -31,6 +31,9 @@ class MockWebServerTest {
     @Mock
     private lateinit var userAgentHolder: UserAgentHolder
 
+    @Mock
+    private lateinit var consentsManager: ConsentsManager
+
     private lateinit var mockWebServer: MockWebServer
     private lateinit var client: OkHttpClient
     private lateinit var webServerUrl: HttpUrl
@@ -44,6 +47,10 @@ class MockWebServerTest {
         mockWebServer.enqueue(MockResponse())
         webServerUrl = mockWebServer.url("/")
 
+        whenever(consentsManager.subjectToGdpr()).thenReturn(null)
+        whenever(consentsManager.gdprConsent()).thenReturn(null)
+        whenever(consentsManager.gppConsent()).thenReturn(null)
+        whenever(consentsManager.gppSid()).thenReturn(null)
     }
 
     @After
@@ -124,13 +131,66 @@ class MockWebServerTest {
         whenever(config.originSlug).thenReturn("originSlug")
 
         val request = makeRequest().request
-        val expectedQueryParams =
-            "?osdk=android-${BuildConfig.VERSION_NAME}-${BuildConfig.VERSION_CODE}&t=tenant&o=originSlug"
+        val expectedQueryParams = "?osdk=android-${BuildConfig.VERSION_NAME}-${BuildConfig.VERSION_CODE}&t=tenant&o=originSlug"
         assertEquals(webServerUrl.toString() + expectedQueryParams, request.url.toString())
     }
 
+    @Test
+    fun `subject to GDPR, true`() {
+        whenever(consentsManager.subjectToGdpr()).thenReturn(true)
+
+        val request = makeRequest().request
+        assertEquals("1", request.url.queryParameter("gdpr"))
+    }
+
+    @Test
+    fun `subject to GDPR, false`() {
+        whenever(consentsManager.subjectToGdpr()).thenReturn(false)
+
+        val request = makeRequest().request
+        assertEquals("0", request.url.queryParameter("gdpr"))
+    }
+
+    @Test
+    fun `GDPR consent string`() {
+        whenever(consentsManager.gdprConsent()).thenReturn("gdpr_consent_string")
+
+        val request = makeRequest().request
+        assertEquals("gdpr_consent_string", request.url.queryParameter("gdpr_consent"))
+    }
+
+    @Test
+    fun `GPP consent string`() {
+        whenever(consentsManager.gppConsent()).thenReturn("gpp_consent_string")
+
+        val request = makeRequest().request
+        assertEquals("gpp_consent_string", request.url.queryParameter("gpp"))
+    }
+
+    @Test
+    fun `GPP sid`() {
+        whenever(consentsManager.gppSid()).thenReturn("gpp_sid")
+
+        val request = makeRequest().request
+        assertEquals("gpp_sid", request.url.queryParameter("gpp_sid"))
+    }
+
+    @Test
+    fun `all consents`() {
+        whenever(consentsManager.subjectToGdpr()).thenReturn(true)
+        whenever(consentsManager.gdprConsent()).thenReturn("gdpr_consent_string")
+        whenever(consentsManager.gppConsent()).thenReturn("gpp_consent_string")
+        whenever(consentsManager.gppSid()).thenReturn("gpp_sid")
+
+        val request = makeRequest().request
+        assertEquals("1", request.url.queryParameter("gdpr"))
+        assertEquals("gdpr_consent_string", request.url.queryParameter("gdpr_consent"))
+        assertEquals("gpp_consent_string", request.url.queryParameter("gpp"))
+        assertEquals("gpp_sid", request.url.queryParameter("gpp_sid"))
+    }
+
     private fun makeRequest(): Response {
-        val interceptor = RequestInterceptor(config, storage, userAgentHolder)
+        val interceptor = RequestInterceptor(config, storage, userAgentHolder, consentsManager)
         client = OkHttpClient.Builder()
             .addInterceptor(interceptor)
             .build()
