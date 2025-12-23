@@ -29,6 +29,7 @@ import co.optable.android_sdk.core.IdentifiersEncoder
  * @param utiq Utiq identifier. Encoding: normalized (whitespace removed, lowercased).
  * @param custom Additional identifier map (type -> value). Encoding: for key "v" whitespace removed; otherwise trimmed.
  * @param raw Pre-encoded EID strings to include as-is (no encoding applied). Required format: "type:value" (f.e. "c1:value")
+ * @param receiveGaidAutomatically Whether to automatically retrieve GAID (Google Advertising ID). Will be ignored if the `googleGaid` is set.
  */
 data class OptableIdentifiers @JvmOverloads constructor(
     val email: String? = null,
@@ -46,6 +47,7 @@ data class OptableIdentifiers @JvmOverloads constructor(
     val utiq: String? = null,
     val custom: Map<String, String>? = null,
     val raw: List<String>? = null,
+    val receiveGaidAutomatically: Boolean = false,
 ) {
 
     private val cachedEnrichedIds: List<String> by lazy { IdentifiersEncoder.encode(this) }
@@ -74,6 +76,7 @@ data class OptableIdentifiers @JvmOverloads constructor(
         private var utiq: String? = null
         private var custom: Map<String, String>? = null
         private var raw: List<String>? = null
+        private var receiveGaidAutomatically: Boolean = false
 
         /**
          * Sets the email address.
@@ -211,6 +214,15 @@ data class OptableIdentifiers @JvmOverloads constructor(
         }
 
         /**
+         * Sets whether to automatically retrieve GAID (Google Advertising ID).
+         *
+         * @param receiveGaidAutomatically Whether to automatically retrieve GAID (Google Advertising ID).
+         */
+        fun receiveGaidAutomatically(receiveGaidAutomatically: Boolean) = apply {
+            this.receiveGaidAutomatically = receiveGaidAutomatically
+        }
+
+        /**
          * Constructs the final immutable OptableIdentifiers object.
          */
         fun build(): OptableIdentifiers {
@@ -230,6 +242,7 @@ data class OptableIdentifiers @JvmOverloads constructor(
                 utiq = utiq,
                 custom = custom,
                 raw = raw,
+                receiveGaidAutomatically = receiveGaidAutomatically,
             )
         }
     }

@@ -1,14 +1,13 @@
 package co.optable.android_sdk.core
 
-import co.optable.android_sdk.OptableConfig
+import co.optable.android_sdk.OptableConsents
 
 internal class ConsentsManager(
-    private val config: OptableConfig,
     private val localStorage: LocalStorage,
+    var customConsents: OptableConsents = OptableConsents()
 ) {
 
     fun subjectToGdpr(): Boolean? {
-        val customConsents = config.consents
         if (customConsents.gdprSubject != null) {
             return customConsents.gdprSubject
         }
@@ -19,7 +18,6 @@ internal class ConsentsManager(
     }
 
     fun gdprConsent(): String? {
-        val customConsents = config.consents
         if (customConsents.gdprConsent != null) {
             return customConsents.gdprConsent
         }
@@ -30,7 +28,6 @@ internal class ConsentsManager(
     }
 
     fun gppConsent(): String? {
-        val customConsents = config.consents
         if (customConsents.gpp != null) {
             return customConsents.gpp
         }
@@ -41,8 +38,11 @@ internal class ConsentsManager(
     }
 
     fun gppSid(): String? {
-        val customConsents = config.consents
         return customConsents.gppSid
+    }
+
+    fun customRegulation(): String? {
+        return customConsents.reg
     }
 
 }

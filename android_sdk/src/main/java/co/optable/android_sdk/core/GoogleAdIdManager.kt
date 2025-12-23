@@ -11,8 +11,10 @@ internal class GoogleAdIdManager(
     val config: OptableConfig,
 ) {
 
-    private var adId: String? = null
-    private var limitAdTracking: Boolean? = true
+    companion object {
+        internal var adId: String? = null
+        internal var limitAdTracking: Boolean? = true
+    }
 
     init {
         if (!config.skipAdvertisingIdDetection) {

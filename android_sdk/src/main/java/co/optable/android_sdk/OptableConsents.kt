@@ -12,12 +12,12 @@ package co.optable.android_sdk
  * If not set, SDK will try to fetch data from SharedPreferences (key `IABGPP_2_TCString`), as stated in
  * [standard](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20CMP%20API%20v2.md#in-app-details)
  * @param gppSid  A comma-separated list of up to two sections applicable in a given GPP privacy string. This value is required when gpp is present.
- * @param req Optable privacy regulation override, which can be one of: `gdpr`, `can`, `us`, or `null` and will override all other privacy regulations when present.
+ * @param reg Optable privacy regulation override, which can be one of: `gdpr`, `can`, `us`, or `null` and will override all other privacy regulations when present.
  */
 data class OptableConsents(
     val gdprSubject: Boolean? = null,
     val gdprConsent: String? = null,
     val gpp: String? = null,
     val gppSid: String? = null,
-    val req: String? = null,
+    val reg: String? = null,
 )

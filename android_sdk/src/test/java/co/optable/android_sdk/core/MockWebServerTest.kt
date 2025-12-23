@@ -176,17 +176,27 @@ class MockWebServerTest {
     }
 
     @Test
+    fun `custom regulation`() {
+        whenever(consentsManager.customRegulation()).thenReturn("regulation")
+
+        val request = makeRequest().request
+        assertEquals("regulation", request.url.queryParameter("reg"))
+    }
+
+    @Test
     fun `all consents`() {
         whenever(consentsManager.subjectToGdpr()).thenReturn(true)
         whenever(consentsManager.gdprConsent()).thenReturn("gdpr_consent_string")
         whenever(consentsManager.gppConsent()).thenReturn("gpp_consent_string")
         whenever(consentsManager.gppSid()).thenReturn("gpp_sid")
+        whenever(consentsManager.customRegulation()).thenReturn("regulation")
 
         val request = makeRequest().request
         assertEquals("1", request.url.queryParameter("gdpr"))
         assertEquals("gdpr_consent_string", request.url.queryParameter("gdpr_consent"))
         assertEquals("gpp_consent_string", request.url.queryParameter("gpp"))
         assertEquals("gpp_sid", request.url.queryParameter("gpp_sid"))
+        assertEquals("regulation", request.url.queryParameter("reg"))
     }
 
     private fun makeRequest(): Response {

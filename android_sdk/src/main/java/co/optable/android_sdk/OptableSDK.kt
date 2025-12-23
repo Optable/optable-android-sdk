@@ -19,34 +19,24 @@ import kotlinx.coroutines.launch
  *  OptableSDK provides an API that is used by an Android app developer integrating with an
  *  Optable Sandbox.
  *
- *  An instance of OptableSDK refers to an Optable Sandbox specified by the caller via `host` and
- *  `app` arguments provided to the constructor. The `context` is required in order for the SDK to
- *  build a WebView() used to read the mobile browser's user-agent string value, which is passed
- *  to the Sandbox.
+ *  An instance of OptableSDK refers to an Optable Sandbox specified by the caller via config provided to the constructor.
+ *  The `context` is required in order for the SDK to build a WebView for receiving the user agent and SharedPreferences.
  *
  *  It is possible to create multiple instances of OptableSDK, should the developer want to
  *  integrate with multiple Sandboxes.
- *
- *  The OptableSDK keeps some state in SharedPreferences
- *  (https://developer.android.com/training/data-storage/shared-preferences), a key/value store
- *  persisted across launches of the app. The state is unique to the app+device, and not globally
- *  unique to the app across devices.
  */
 class OptableSDK(
     private val config: OptableConfig,
 ) {
 
     private val storage = LocalStorage(config)
+    private val consentsManager = ConsentsManager(storage)
     private val adIdManager = GoogleAdIdManager(config)
     private val networkClient = createNetworkClient()
 
     /**
-     *  identify(idList) calls the Optable Sandbox "identify" API, passing it the list of IDs
-     *  in idList, a list of type-prefixed identifiers.
-     *
-     *  It is asynchronous, so the caller may call observe() on the returned LiveData and expect
-     *  an instance of Response<OptableIdentifyResponse> in the result. Success can be checked by
-     *  comparing result.status to OptableSDK.Status.SUCCESS.
+     * Calls the Optable Sandbox "identify" API, passing it the list of IDs,
+     * a list of type-prefixed identifiers.
      */
     fun identify(ids: OptableIdentifiers, listener: OptableResultListener<Unit>) {
         GlobalScope.launch {
@@ -69,14 +59,11 @@ class OptableSDK(
 
 
     /**
-     *  identify(email, gaid?, ppid?) calls the Optable Sandbox "identify" API, passing it the
-     *  SHA-256 of the caller-provided 'email' and, when specified via the 'gaid' Boolean, the
-     *  Google Advertising ID of the device. If the 'ppid' String is specified, it will also be
-     *  sent for identity resolution.
+     *  Calls the Optable Sandbox "identify" API, passing only email, GAID and PPID.
      *
-     *  The function is async, so the caller may call observe() on the returned LiveData and expect
-     *  an instance of Response<OptableIdentifyResponse> in the result. Success can be checked by
-     *  comparing result.status to OptableSDK.Status.SUCCESS.
+     *  @param email email address to identify (encrypted with SHA256)
+     *  @param gaid Should receive Google Advertising ID of the device
+     *  @param ppid Should receive PPID of the device
      */
     @JvmOverloads
     fun identify(email: String, gaid: Boolean = false, ppid: String? = null, listener: OptableResultListener<Unit>) {
@@ -123,14 +110,9 @@ class OptableSDK(
     }
 
     /**
-     *  profile(traits) calls the Optable Sandbox "profile" API in order to associate the
-     *  specified keyvalue OptableProfileTraits 'traits', which can be subsequently used for
-     *  audience assembly.
-     *
-     *  It is asynchronous, so the caller may call observe() on the returned LiveData and expect
-     *  an instance of Response<OptableProfileResponse> in the result. Success can be checked by
-     *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
-     *  to an empty HashMap on success, and can therefore be ignored.
+     * Calls the Optable Sandbox "profile" API to associate the
+     * specified key-value traits, which can be subsequently used for
+     * audience assembly.
      */
     fun profile(traits: HashMap<String, Any>, listener: OptableResultListener<Unit>) {
         GlobalScope.launch {
@@ -152,13 +134,9 @@ class OptableSDK(
     }
 
     /**
-     *  targeting() calls the Optable Sandbox "targeting" API, which returns the key-value targeting
-     *  data matching the user/device/app.
-     *
-     *  It is asynchronous, so the caller should call observe() on the returned LiveData and expect
-     *  an instance of Response<OptableTargetingResponse> in the result. Success can be checked by
-     *  comparing result.status to OptableSDK.Status.SUCCESS, and when successful, result.data!! is
-     *  of type OptableTargetingResponse.
+     * Calls the Optable Sandbox "targeting" API, which returns the key-value targeting
+     * data matching the user/device/app and part of the OpenRTB code snippet.
+     * @see OptableTargeting
      */
     fun targeting(ids: OptableIdentifiers, listener: OptableResultListener<OptableTargeting>) {
         GlobalScope.launch {
@@ -184,23 +162,24 @@ class OptableSDK(
         }
     }
 
+    /**
+     * Returns the targeting data from the cache, if available.
+     */
     fun targetingFromCache(): OptableTargeting? {
         return storage.getTargeting()
     }
 
+    /**
+     * Clears the targeting data from the cache.
+     */
     fun targetingClearCache() {
         storage.clearTargeting()
     }
 
     /**
-     *  witness(event, properties) calls the Optable Sandbox "witness" API in order to log a
-     *  specified 'event' (e.g., "app.screenView", "ui.buttonPressed"), with the specified keyvalue
-     *  OptableWitnessProperties 'properties', which can be subsequently used for audience assembly.
-     *
-     *  It is asynchronous, so the caller may call observe() on the returned LiveData and expect
-     *  an instance of Response<OptableWitnessResponse> in the result. Success can be checked by
-     *  comparing result.status to OptableSDK.Status.SUCCESS. Note that result.data!! will point
-     *  to an empty HashMap on success, and can therefore be ignored.
+     * Calls the Optable Sandbox "witness" API to log a
+     * specified 'event' (e.g., "app.screenView", "ui.buttonPressed"), with the specified key-value
+     * 'properties', which can be subsequently used for audience assembly.
      */
     fun witness(
         event: String,
@@ -224,9 +203,17 @@ class OptableSDK(
         }
     }
 
+    /**
+     * Sets custom consents for the Optable SDK.
+     * @see OptableConsents
+     */
+    fun setConsents(consents: OptableConsents) {
+        consentsManager.customConsents = consents
+    }
+
     private fun createNetworkClient(): NetworkClient {
         val userAgentHolder = UserAgentHolder(config)
-        val consentsManager = ConsentsManager(config, storage)
+        val consentsManager = ConsentsManager(storage)
         val requestInterceptor = RequestInterceptor(config, storage, userAgentHolder, consentsManager)
         val responseInterceptor = ResponseInterceptor(storage)
         return NetworkClient(config, requestInterceptor, responseInterceptor)

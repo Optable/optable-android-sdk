@@ -205,6 +205,14 @@ OptableIdentifiers ids = new OptableIdentifiers.Builder()
         .build();
 ```
 
+Additionally, you can set automatic fetching GAID if it is available. It will be ignored if `googleGaid` is set. 
+
+```kotlin
+val ids = OptableIdentifiers(
+    receiveGaidAutomatically = true
+)
+```
+
 ### Identify API
 
 To associate a user device with an authenticated identifier such as an Email address, or with other known IDs such as
@@ -573,10 +581,7 @@ val consents = OptableConsents(
   req = "gdpr",                     // Regulatory framework to apply (e.g., "gdpr")
 )
 
-val config = OptableConfig(
-  // ...
-  consents = consents,
-)
+optable.setConsents(consents)
 ```
 
 Parameters: 

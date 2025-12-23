@@ -42,6 +42,11 @@ internal class RequestInterceptor(
             builder.addQueryParameter("gpp_sid", gppSid)
         }
 
+        val regulation = consentsManager.customRegulation()
+        if (regulation != null) {
+            builder.addQueryParameter("reg", regulation)
+        }
+
         val url = builder.build()
 
         val modifiedRequest = originalRequest.newBuilder().url(url)
