@@ -77,20 +77,16 @@ object IdentifiersEncoder {
     }
 
     /**
-     * eidFromURI(uri) is a helper that returns a type-prefixed ID based on the query string
-     * oeid=sha256value parameters in the specified uri, if one is found. Otherwise, it returns
-     * an empty string.
+     * Returns a type-prefixed ID based on the query string
+     * oeid=sha256value parameters in the specified uri, if one is found.
+     * Otherwise, it returns an empty string.
      *
      * The use for this is when handling incoming deep links which might contain an "oeid" value
      * with the SHA256(downcase(email)) of a user, such as encoded links in newsletter Emails
      * sent by the application developer. Such hashed Email values can be used in calls to
-     * identify()
-     *
-     * Algorithm.
-     * We first convert the Uri to a lowercase string then re-parse it so that we are
-     * not dependent on case-sensitivity of the "oeid" query parameter
+     * identify().
      */
-    fun eidFromUrl(urlString: String): String? {
+    fun prefixedIdFromUrl(urlString: String): String? {
         try {
             val uri = urlString.lowercase(Locale.ROOT).toUri()
             val id = uri.getQueryParameter("oeid")

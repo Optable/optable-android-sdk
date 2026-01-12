@@ -98,7 +98,7 @@ class OptableSDK(
      * as encoded links in newsletter Emails sent by the application developer.
      */
     fun tryIdentifyFromUrl(url: String, listener: OptableResultListener<Unit>) {
-        val id = IdentifiersEncoder.eidFromUrl(url)
+        val id = IdentifiersEncoder.prefixedIdFromUrl(url)
 
         if (id == null) {
             listener.onComplete(OptableResult.Error("Can't find `oeid` in url: $url"))

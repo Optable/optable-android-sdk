@@ -75,33 +75,33 @@ class IdentifiersEncoderTest {
     }
 
     @Test
-    fun eidFromUrl_isCorrect() {
+    fun prefixedIdFromUrl_isCorrect() {
         val url =
             "http://some.domain.com/some/path?some=query&something=else&oeid=a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3&foo=bar&baz"
         val expected = "e:a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
 
-        assertEquals(expected, IdentifiersEncoder.eidFromUrl(url))
+        assertEquals(expected, IdentifiersEncoder.prefixedIdFromUrl(url))
     }
 
     @Test
-    fun eidFromUrl_returnsEmptyWhenOeidAbsentFromQuerystr() {
+    fun prefixedIdFromUrl_returnsEmptyWhenOeidAbsentFromQuerystr() {
         val url = "http://some.domain.com/some/path?some=query&something=else"
 
-        assertNull(IdentifiersEncoder.eidFromUrl(url))
+        assertNull(IdentifiersEncoder.prefixedIdFromUrl(url))
     }
 
     @Test
     fun eidFromURI_returnsEmptyWhenQuerystrAbsent() {
         val url = "http://some.domain.com/some/path"
 
-        assertNull(IdentifiersEncoder.eidFromUrl(url))
+        assertNull(IdentifiersEncoder.prefixedIdFromUrl(url))
     }
 
     @Test
     fun eidFromURI_returnsEmptyWhenInputEmptyString() {
         val url = ""
 
-        assertNull(IdentifiersEncoder.eidFromUrl(url))
+        assertNull(IdentifiersEncoder.prefixedIdFromUrl(url))
     }
 
     @Test
@@ -109,7 +109,7 @@ class IdentifiersEncoderTest {
         val url =
             "http://some.domain.com/some/path?some=query&something=else&oeid=AAAAAAAa665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3&foo=bar&baz"
 
-        assertNull(IdentifiersEncoder.eidFromUrl(url))
+        assertNull(IdentifiersEncoder.prefixedIdFromUrl(url))
     }
 
     @Test
@@ -118,7 +118,7 @@ class IdentifiersEncoderTest {
             "http://some.domain.com/some/path?some=query&something=else&oEId=A665A45920422F9D417E4867EFDC4FB8A04A1F3FFF1FA07E998E86f7f7A27AE3&foo=bar&baz"
         val expected = "e:a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
 
-        assertEquals(expected, IdentifiersEncoder.eidFromUrl(url))
+        assertEquals(expected, IdentifiersEncoder.prefixedIdFromUrl(url))
     }
 
     private fun encode(ids: OptableIdentifiers): String {
