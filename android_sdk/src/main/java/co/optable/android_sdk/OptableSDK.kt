@@ -220,18 +220,18 @@ class OptableSDK(
     }
 
 
-    private fun parseAudiences(response: NetworkResponse.Success<TargetingResponse>): Map<String, List<String>>? {
+    private fun parseAudiences(response: NetworkResponse.Success<TargetingResponse>): Map<String, List<String>> {
         val audiences = response.result.audience
 
-        if (audiences.isNullOrEmpty()) return null
+        if (audiences.isNullOrEmpty()) return emptyMap()
 
         val result = mutableMapOf<String, List<String>>()
         for (audience in audiences) {
-            if (audience.provider.isNullOrBlank()) continue
+            if (audience.keyspace.isNullOrBlank()) continue
 
             if (audience.ids.isNullOrEmpty()) continue
 
-            result[audience.provider] = audience.ids.mapNotNull { it.id }
+            result[audience.keyspace] = audience.ids.mapNotNull { it.id }
         }
         return result
     }

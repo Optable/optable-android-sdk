@@ -8,7 +8,7 @@ data class TargetingResponse(
 ) {
 
     data class Audience(
-        val provider: String?,
+        val keyspace: String?,
         val ids: List<AudienceId>?,
     )
 
