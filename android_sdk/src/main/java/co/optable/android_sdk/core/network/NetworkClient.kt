@@ -38,7 +38,7 @@ internal class NetworkClient(
 
     suspend fun identify(idList: OptableIdentifiers): NetworkResponse<Unit> {
         return runSafe {
-            val ids = idList.generateEnrichedIds()
+            val ids = idList.generateEIDs()
             edgeService.identify(ids)
         }
     }
@@ -53,7 +53,7 @@ internal class NetworkClient(
 
     suspend fun targeting(idList: OptableIdentifiers): NetworkResponse<TargetingResponse> {
         return runSafe {
-            val ids = idList.generateEnrichedIds()
+            val ids = idList.generateEIDs()
             edgeService.targeting(ids)
         }
     }

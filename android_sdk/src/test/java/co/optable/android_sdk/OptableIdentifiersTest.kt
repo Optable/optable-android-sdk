@@ -9,142 +9,142 @@ import java.util.*
 class OptableIdentifiersTest {
 
     @Test
-    fun `generateEnrichedIds empty`() {
+    fun `generateEIDs empty`() {
         val ids = OptableIdentifiers()
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         assertEquals(emptyList<String>(), actual)
     }
 
     @Test
-    fun `generateEnrichedIds email`() {
+    fun `generateEIDs email`() {
         val ids = OptableIdentifiers(email = "  John.DOE+test@example.COM  ")
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("e:${sha256(normalize("  John.DOE+test@example.COM  "))}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds phoneNumber`() {
+    fun `generateEIDs phoneNumber`() {
         val ids = OptableIdentifiers(phoneNumber = " +1  (555)  123  45 67 ")
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("p:${sha256(normalize(" +1  (555)  123  45 67 "))}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds postalCode`() {
+    fun `generateEIDs postalCode`() {
         val ids = OptableIdentifiers(postalCode = " 12 3 45 ")
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("z:${normalize(" 12 3 45 ")}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds ipv4Address`() {
+    fun `generateEIDs ipv4Address`() {
         val ids = OptableIdentifiers(ipv4Address = " 192.168. 0. 1 ")
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("i4:${removeWhitespaces(" 192.168. 0. 1 ")}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds ipv6Address`() {
+    fun `generateEIDs ipv6Address`() {
         val ids = OptableIdentifiers(ipv6Address = " 2001:DB8:: 1 ")
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("i6:${normalize(" 2001:DB8:: 1 ")}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds appleIdfa`() {
+    fun `generateEIDs appleIdfa`() {
         val ids = OptableIdentifiers(appleIdfa = " A1B2C3D4-E5F6-7890-ABCD-EF0123456789 ")
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("a:${normalize(" A1B2C3D4-E5F6-7890-ABCD-EF0123456789 ")}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds googleGaid`() {
+    fun `generateEIDs googleGaid`() {
         val ids = OptableIdentifiers(googleGaid = " 38400000-8cf0-11bd-b23e-10b96e40000d ")
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("g:${normalize(" 38400000-8cf0-11bd-b23e-10b96e40000d ")}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds rokuRida`() {
+    fun `generateEIDs rokuRida`() {
         val ids = OptableIdentifiers(rokuRida = " ROKU-RIDA- 123 ")
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("r:${normalize(" ROKU-RIDA- 123 ")}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds samsungTifa`() {
+    fun `generateEIDs samsungTifa`() {
         val ids = OptableIdentifiers(samsungTifa = " TIFA  ABC ")
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("s:${normalize(" TIFA  ABC ")}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds amazonFireAfai`() {
+    fun `generateEIDs amazonFireAfai`() {
         val ids = OptableIdentifiers(amazonFireAfai = " AFAI  XYZ ")
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("f:${normalize(" AFAI  XYZ ")}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds netId`() {
+    fun `generateEIDs netId`() {
         val ids = OptableIdentifiers(netId = " net id  123 ")
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("n:${removeWhitespaces(" net id  123 ")}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds id5`() {
+    fun `generateEIDs id5`() {
         val ids = OptableIdentifiers(id5 = " id5   token ")
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("id5:${removeWhitespaces(" id5   token ")}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds utiq`() {
+    fun `generateEIDs utiq`() {
         val ids = OptableIdentifiers(utiq = " UTIQ  VALUE ")
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("utiq:${normalize(" UTIQ  VALUE ")}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds custom vid`() {
+    fun `generateEIDs custom vid`() {
         val ids = OptableIdentifiers(custom = mapOf("v" to "  vid value  "))
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("v:${removeWhitespaces("  vid value  ")}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds custom nonVid`() {
+    fun `generateEIDs custom nonVid`() {
         val ids = OptableIdentifiers(custom = mapOf("c1" to "  custom one  "))
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("c1:${"  custom one  ".trim()}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds raw`() {
+    fun `generateEIDs raw`() {
         val ids = OptableIdentifiers(raw = listOf("raw:alreadyEncoded", "custom:any"))
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
         val expected = listOf("raw:alreadyEncoded", "custom:any")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `generateEnrichedIds adds GAID from GoogleAdIdManager when googleGaid is null and receiveGaidAutomatically is true`() {
+    fun `generateEIDs adds GAID from GoogleAdIdManager when googleGaid is null and receiveGaidAutomatically is true`() {
         val previousAdId = GoogleAdIdManager.adId
         try {
             GoogleAdIdManager.adId = " 38400000-8CF0-11BD-b23e-10B96e40000D "
@@ -154,7 +154,7 @@ class OptableIdentifiersTest {
                 receiveGaidAutomatically = true
             )
 
-            val actual = ids.generateEnrichedIds()
+            val actual = ids.generateEIDs()
             val expected = listOf("g:${normalize(" 38400000-8CF0-11BD-b23e-10B96e40000D ")}")
             assertEquals(expected, actual)
         } finally {
@@ -163,7 +163,7 @@ class OptableIdentifiersTest {
     }
 
     @Test
-    fun `generateEnrichedIds does not add GAID from GoogleAdIdManager when googleGaid is set even if receiveGaidAutomatically is true`() {
+    fun `generateEIDs does not add GAID from GoogleAdIdManager when googleGaid is set even if receiveGaidAutomatically is true`() {
         val previousAdId = GoogleAdIdManager.adId
         try {
             GoogleAdIdManager.adId = " 38400000-8cf0-11bd-b23e-10b96e40000d "
@@ -173,7 +173,7 @@ class OptableIdentifiersTest {
                 receiveGaidAutomatically = true
             )
 
-            val actual = ids.generateEnrichedIds()
+            val actual = ids.generateEIDs()
             val expected = listOf("g:${normalize(" USER-PROVIDED-GAID ")}")
             assertEquals(expected, actual)
         } finally {
@@ -182,7 +182,7 @@ class OptableIdentifiersTest {
     }
 
     @Test
-    fun `generateEnrichedIds does not add GAID from GoogleAdIdManager when receiveGaidAutomatically is false`() {
+    fun `generateEIDs does not add GAID from GoogleAdIdManager when receiveGaidAutomatically is false`() {
         val previousAdId = GoogleAdIdManager.adId
         try {
             GoogleAdIdManager.adId = " 38400000-8cf0-11bd-b23e-10b96e40000d "
@@ -192,7 +192,7 @@ class OptableIdentifiersTest {
                 receiveGaidAutomatically = false
             )
 
-            val actual = ids.generateEnrichedIds()
+            val actual = ids.generateEIDs()
             assertEquals(emptyList<String>(), actual)
         } finally {
             GoogleAdIdManager.adId = previousAdId
@@ -201,7 +201,7 @@ class OptableIdentifiersTest {
 
 
     @Test
-    fun `generateEnrichedIds, all fields, same values`() {
+    fun `generateEIDs, all fields, same values`() {
         val email = "john.doe+test@example.com"
         val phone = "+1(555)1234567"
         val postal = "12345"
@@ -242,7 +242,7 @@ class OptableIdentifiersTest {
             raw = listOf(raw1, raw2)
         )
 
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
 
         val expected = listOf(
             "e:${sha256(email)}",
@@ -268,7 +268,7 @@ class OptableIdentifiersTest {
     }
 
     @Test
-    fun `generateEnrichedIds, all fields, different case and whitespaces`() {
+    fun `generateEIDs, all fields, different case and whitespaces`() {
         val ids = OptableIdentifiers(
             email = "  John.DOE+test@example.COM  ",
             phoneNumber = " +1  (555)  123  45 67 ",
@@ -294,7 +294,7 @@ class OptableIdentifiersTest {
             receiveGaidAutomatically = true,
         )
 
-        val actual = ids.generateEnrichedIds()
+        val actual = ids.generateEIDs()
 
         val expected = listOf(
             "e:${sha256(normalize("  John.DOE+test@Example.COM  "))}",
@@ -321,7 +321,7 @@ class OptableIdentifiersTest {
 
 
     @Test
-    fun `generateEnrichedIds, all fields, builder`() {
+    fun `generateEIDs, all fields, builder`() {
         val built = OptableIdentifiers.Builder()
             .email("  John.DOE+test@example.COM  ")
             .phoneNumber(" +1  (555)  123  45 67 ")
@@ -377,7 +377,7 @@ class OptableIdentifiersTest {
         )
 
         assertEquals(direct, built)
-        assertEquals(direct.generateEnrichedIds(), built.generateEnrichedIds())
+        assertEquals(direct.generateEIDs(), built.generateEIDs())
     }
 
     private fun sha256(value: String): String {

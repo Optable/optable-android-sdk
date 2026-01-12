@@ -53,9 +53,9 @@ data class OptableIdentifiers @JvmOverloads constructor(
     private val cachedEnrichedIds: List<String> by lazy { IdentifiersEncoder.encode(this) }
 
     /**
-     * Generates a list of encoded Enriched Identifiers (EIDs) based on the current contents of the dictionary.
+     * Generates a list of EIDs based on the current contents of the dictionary.
      */
-    fun generateEnrichedIds(): List<String> {
+    internal fun generateEIDs(): List<String> {
         return cachedEnrichedIds
     }
 
