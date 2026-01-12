@@ -60,7 +60,7 @@ class GamBannerFragment : Fragment() {
 
             when (result) {
                 is OptableResult.Success<OptableTargeting> -> {
-                    changeStatusText("Targeting success: ${result.data.audiences}")
+                    changeStatusText("Targeting success: ${result.data.gamTargetingKeywords}")
                     applyOptableToGam(requestBuilder, result.data)
                 }
 
@@ -83,7 +83,7 @@ class GamBannerFragment : Fragment() {
         val requestBuilder = AdManagerAdRequest.Builder()
         val targeting = optable.targetingFromCache()
         if (targeting != null) {
-            changeStatusText("Targeting from cache: ${targeting.audiences}")
+            changeStatusText("Targeting from cache: ${targeting.gamTargetingKeywords}")
             applyOptableToGam(requestBuilder, targeting)
         } else {
             changeStatusText("Targeting cache is empty")
@@ -106,7 +106,7 @@ class GamBannerFragment : Fragment() {
     private fun applyOptableToGam(builder: AdManagerAdRequest.Builder, targeting: OptableTargeting?) {
         if (targeting == null) return
 
-        val audiences = targeting.audiences
+        val audiences = targeting.gamTargetingKeywords
         if (audiences != null) {
             for (entry in audiences.entries) {
                 builder.addCustomTargeting(entry.key, entry.value)

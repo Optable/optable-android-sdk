@@ -12,7 +12,7 @@ public class TheApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        OptableConfig config = new OptableConfig(this, "prebidtest", "js-sdk", "ca.edge.optable.co");
+        OptableConfig config = new OptableConfig(this, "prebidtest", "js-sdk");
         optable = new OptableSDK(config);
     }
 

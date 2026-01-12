@@ -58,7 +58,7 @@ public class GamBannerFragment extends Fragment {
 
             if (result instanceof OptableResult.Success<OptableTargeting> success) {
                 applyOptableToGam(requestBuilder, success.getData());
-                changeStatusText("Targeting success: " + success.getData().getAudiences());
+                changeStatusText("Targeting success: " + success.getData().getGamTargetingKeywords());
             } else if (result instanceof OptableResult.Error<OptableTargeting> error) {
                 changeStatusText("Targeting error: " + error.getMessage());
             }
@@ -79,7 +79,7 @@ public class GamBannerFragment extends Fragment {
 
         OptableTargeting optableTargeting = optable.targetingFromCache();
         if (optableTargeting != null) {
-            changeStatusText("Targeting from cache: " + optableTargeting.getAudiences());
+            changeStatusText("Targeting from cache: " + optableTargeting.getGamTargetingKeywords());
             applyOptableToGam(requestBuilder, optableTargeting);
         } else {
             changeStatusText("Targeting cache is empty");
@@ -93,7 +93,7 @@ public class GamBannerFragment extends Fragment {
     private void applyOptableToGam(AdManagerAdRequest.Builder builder, @Nullable OptableTargeting targeting) {
         if (targeting == null) return;
 
-        Map<String, List<String>> audiences = targeting.getAudiences();
+        Map<String, List<String>> audiences = targeting.getGamTargetingKeywords();
         if (audiences != null) {
             for (Map.Entry<String, List<String>> entry : audiences.entrySet()) {
                 builder.addCustomTargeting(entry.getKey(), entry.getValue());

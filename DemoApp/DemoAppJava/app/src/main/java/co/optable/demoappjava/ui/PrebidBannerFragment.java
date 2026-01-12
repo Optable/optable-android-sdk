@@ -69,7 +69,7 @@ public class PrebidBannerFragment extends Fragment {
         optable.targeting(ids, optableResult -> {
             OptableTargeting optableTargeting = null;
             if (optableResult instanceof OptableResult.Success<OptableTargeting> success) {
-                changeStatusText("Targeting success: " + success.getData().getAudiences());
+                changeStatusText("Targeting success: " + success.getData().getGamTargetingKeywords());
                 optableTargeting = success.getData();
             } else if (optableResult instanceof OptableResult.Error<OptableTargeting> error) {
                 changeStatusText("Targeting error: " + error.getMessage());
@@ -123,7 +123,7 @@ public class PrebidBannerFragment extends Fragment {
     private void onClickCachedBanner() {
         OptableTargeting targeting = optable.targetingFromCache();
         if (targeting != null) {
-            changeStatusText("Targeting from cache: " + targeting.getAudiences());
+            changeStatusText("Targeting from cache: " + targeting.getGamTargetingKeywords());
         } else {
             changeStatusText("Targeting data cache empty.");
         }
@@ -156,7 +156,7 @@ public class PrebidBannerFragment extends Fragment {
     private void applyOptableToGam(AdManagerAdRequest.Builder builder, @Nullable OptableTargeting targeting) {
         if (targeting == null) return;
 
-        Map<String, List<String>> audiences = targeting.getAudiences();
+        Map<String, List<String>> audiences = targeting.getGamTargetingKeywords();
         if (audiences != null) {
             for (Map.Entry<String, List<String>> entry : audiences.entrySet()) {
                 builder.addCustomTargeting(entry.getKey(), entry.getValue());

@@ -74,7 +74,7 @@ class PrebidBannerFragment : Fragment() {
         optable.targeting(ids) { result ->
             val optableTargeting = when (result) {
                 is OptableResult.Success<OptableTargeting> -> {
-                    changeStatusText("Targeting success: ${result.data.audiences}")
+                    changeStatusText("Targeting success: ${result.data.gamTargetingKeywords}")
                     result.data
                 }
 
@@ -132,7 +132,7 @@ class PrebidBannerFragment : Fragment() {
     private fun onClickCachedBanner() {
         val targeting = optable.targetingFromCache()
         if (targeting != null) {
-            changeStatusText("Targeting from cache: ${targeting.audiences}")
+            changeStatusText("Targeting from cache: ${targeting.gamTargetingKeywords}")
         } else {
             changeStatusText("Targeting data cache empty.")
         }
@@ -167,7 +167,7 @@ class PrebidBannerFragment : Fragment() {
     private fun applyOptableToGam(builder: AdManagerAdRequest.Builder, targeting: OptableTargeting?) {
         if (targeting == null) return
 
-        val audiences = targeting.audiences
+        val audiences = targeting.gamTargetingKeywords
         if (audiences != null) {
             for (entry in audiences.entries) {
                 builder.addCustomTargeting(entry.key, entry.value)
