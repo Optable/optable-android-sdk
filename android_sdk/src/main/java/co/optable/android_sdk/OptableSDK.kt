@@ -145,10 +145,7 @@ class OptableSDK(
             MainScope().launch {
                 val optableResult = when (response) {
                     is NetworkResponse.Success -> {
-                        val targeting = OptableTargeting(
-                            parseAudiences(response),
-                            response.result.ortb2.toString()
-                        )
+                        val targeting = createOptableTargeting(response.result)
                         storage.setTargeting(targeting)
                         OptableResult.Success(targeting)
                     }
@@ -219,22 +216,32 @@ class OptableSDK(
         return NetworkClient(config, requestInterceptor, responseInterceptor)
     }
 
+    private fun createOptableTargeting(response: TargetingResponse): OptableTargeting {
+        val audiences = response.audience ?: return OptableTargeting(emptyMap(), response.ortb2.toString(), emptyMap())
 
-    private fun parseAudiences(response: NetworkResponse.Success<TargetingResponse>): Map<String, List<String>> {
-        val audiences = response.result.audience
+        val gamTargetingKeywords = mutableMapOf<String, List<String>>()
+        val targetingData = mutableMapOf<String, String>()
 
-        if (audiences.isNullOrEmpty()) return emptyMap()
-
-        val result = mutableMapOf<String, List<String>>()
         for (audience in audiences) {
-            if (audience.keyspace.isNullOrBlank()) continue
+            val keyspace = audience.asJsonObject.get("keyspace").asString
 
-            if (audience.ids.isNullOrEmpty()) continue
+            if (keyspace == null || keyspace.isBlank()) continue
 
-            result[audience.keyspace] = audience.ids.mapNotNull { it.id }
+            val ids = audience.asJsonObject.get("ids").asJsonArray
+            val gamIds = mutableListOf<String>()
+            for (id in ids) {
+                gamIds.add(id.asJsonObject.get("id").asString)
+            }
+
+            gamTargetingKeywords[keyspace] = gamIds
+            targetingData[keyspace] =  audience.toString()
         }
-        return result
-    }
 
+        return OptableTargeting(
+            gamTargetingKeywords,
+            response.ortb2.toString(),
+            targetingData,
+        )
+    }
 }
 
