@@ -122,9 +122,9 @@ class IdentifiersEncoderTest {
     }
 
     private fun encode(ids: OptableIdentifiers): String {
-        val enrichedIds = ids.generateEIDs()
-        assertEquals("This method checks only 1 string", 1, enrichedIds.size)
-        return enrichedIds.first()
+        val generatedIds = ids.generateEIDs()
+        assertEquals("This method checks only 1 string", 1, generatedIds.size)
+        return generatedIds.first()
     }
 
 }

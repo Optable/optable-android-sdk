@@ -4,7 +4,7 @@ import co.optable.android_sdk.core.IdentifiersEncoder
 
 /**
  * Immutable container for a set of user and device identifiers that can be transformed into
- * Optable Enriched Identifiers (EIDs).
+ * Optable EIDs.
  *
  * This type accepts multiple optional identifier values. When EIDs are generated, each supported
  * identifier is encoded according to its identifier type (for example, some values are normalized,
@@ -55,14 +55,14 @@ data class OptableIdentifiers @JvmOverloads constructor(
         internal var receiveGaidAutomatically: Boolean = true
     }
 
-    private val cachedEnrichedIds: List<String> by lazy { IdentifiersEncoder.encode(this) }
+    private val cachedEIDs: List<String> by lazy { IdentifiersEncoder.encode(this) }
 
 
     /**
      * Generates a list of EIDs based on the current contents of the dictionary.
      */
     internal fun generateEIDs(): List<String> {
-        return cachedEnrichedIds
+        return cachedEIDs
     }
 
     class Builder {

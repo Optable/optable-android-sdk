@@ -7,7 +7,7 @@ import java.security.MessageDigest
 import java.util.*
 
 /**
- * Utility object responsible for encoding raw identifiers into Optable Enriched Identifiers (EIDs).
+ * Utility object responsible for encoding raw identifiers into Optable EIDs.
  */
 object IdentifiersEncoder {
 
