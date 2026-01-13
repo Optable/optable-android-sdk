@@ -1,12 +1,18 @@
 package co.optable.android_sdk
 
 import co.optable.android_sdk.core.GoogleAdIdManager
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.security.MessageDigest
 import java.util.*
 
 class OptableIdentifiersTest {
+
+    @After
+    fun tearDown() {
+        OptableIdentifiers.receiveGaidAutomatically = true
+    }
 
     @Test
     fun `generateEIDs empty`() {
@@ -149,9 +155,9 @@ class OptableIdentifiersTest {
         try {
             GoogleAdIdManager.adId = " 38400000-8CF0-11BD-b23e-10B96e40000D "
 
+            OptableIdentifiers.receiveGaidAutomatically = true
             val ids = OptableIdentifiers(
                 googleGaid = null,
-                receiveGaidAutomatically = true
             )
 
             val actual = ids.generateEIDs()
@@ -168,9 +174,9 @@ class OptableIdentifiersTest {
         try {
             GoogleAdIdManager.adId = " 38400000-8cf0-11bd-b23e-10b96e40000d "
 
+            OptableIdentifiers.receiveGaidAutomatically = true
             val ids = OptableIdentifiers(
                 googleGaid = " USER-PROVIDED-GAID ",
-                receiveGaidAutomatically = true
             )
 
             val actual = ids.generateEIDs()
@@ -187,9 +193,9 @@ class OptableIdentifiersTest {
         try {
             GoogleAdIdManager.adId = " 38400000-8cf0-11bd-b23e-10b96e40000d "
 
+            OptableIdentifiers.receiveGaidAutomatically = false
             val ids = OptableIdentifiers(
                 googleGaid = null,
-                receiveGaidAutomatically = false
             )
 
             val actual = ids.generateEIDs()
@@ -238,7 +244,6 @@ class OptableIdentifiersTest {
                 "v" to vid,
                 "c1" to c1
             ),
-            receiveGaidAutomatically = true,
             raw = listOf(raw1, raw2)
         )
 
@@ -291,7 +296,6 @@ class OptableIdentifiersTest {
                 "raw:alreadyEncoded",
                 "x:someRawValue"
             ),
-            receiveGaidAutomatically = true,
         )
 
         val actual = ids.generateEIDs()
@@ -348,7 +352,6 @@ class OptableIdentifiersTest {
                     "x:someRawValue"
                 )
             )
-            .receiveGaidAutomatically(true)
             .build()
 
         val direct = OptableIdentifiers(
@@ -373,7 +376,6 @@ class OptableIdentifiersTest {
                 "raw:alreadyEncoded",
                 "x:someRawValue"
             ),
-            receiveGaidAutomatically = true,
         )
 
         assertEquals(direct, built)

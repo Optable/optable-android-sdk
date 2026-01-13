@@ -43,7 +43,7 @@ object IdentifiersEncoder {
         result.addIfNotNull(ID5, ids.id5, ::removeWhitespaces)
         result.addIfNotNull(UTIQ, ids.utiq, ::normalize)
 
-        if (ids.googleGaid == null && ids.receiveGaidAutomatically) {
+        if (ids.googleGaid == null && OptableIdentifiers.receiveGaidAutomatically) {
             GoogleAdIdManager.adId?.let { adId ->
                 result.addIfNotNull(GAID, adId, ::normalize)
             }
