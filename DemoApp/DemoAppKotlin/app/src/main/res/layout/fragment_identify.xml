@@ -28,17 +28,6 @@
         android:layout_marginTop="8dp"
         android:text="Identify"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/gaidSwitch" />
-
-    <Switch
-        android:id="@+id/gaidSwitch"
-        android:layout_width="84dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginLeft="32dp"
-        android:layout_marginTop="8dp"
-        android:text="GAID"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextTextEmailAddress" />
 
     <TextView

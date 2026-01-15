@@ -5,10 +5,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.Switch;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import co.optable.android_sdk.OptableIdentifiers;
 import co.optable.android_sdk.OptableResult;
 import co.optable.android_sdk.OptableSDK;
 import co.optable.demoappjava.R;
@@ -19,7 +19,6 @@ public class IdentifyFragment extends Fragment {
 
     private TextView identifyView;
     private EditText emailText;
-    private Switch gaidSwitch;
 
     private OptableSDK optable;
 
@@ -34,7 +33,6 @@ public class IdentifyFragment extends Fragment {
     private void initUi(View root) {
         identifyView = root.findViewById(R.id.identifyView);
         emailText = root.findViewById(R.id.editTextTextEmailAddress);
-        gaidSwitch = root.findViewById(R.id.gaidSwitch);
 
         root.findViewById(R.id.identifyButton).setOnClickListener(view -> onClickIdentify());
     }
@@ -42,7 +40,10 @@ public class IdentifyFragment extends Fragment {
     private void onClickIdentify() {
         identifyView.setText("");
 
-        optable.identify(emailText.getText().toString(), gaidSwitch.isChecked(), result -> {
+        OptableIdentifiers ids = new OptableIdentifiers.Builder()
+                .email(emailText.getText().toString())
+                .build();
+        optable.identify(ids, result -> {
             if (result instanceof OptableResult.Success) {
                 identifyView.setText("Identify success");
             } else if (result instanceof OptableResult.Error<Unit> error) {

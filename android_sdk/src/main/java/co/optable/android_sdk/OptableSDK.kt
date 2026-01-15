@@ -57,37 +57,6 @@ class OptableSDK(
         }
     }
 
-
-    /**
-     *  Calls the Optable Sandbox "identify" API, passing only email, GAID and PPID.
-     *
-     *  @param email email address to identify (encrypted with SHA256)
-     *  @param gaid Should receive Google Advertising ID of the device
-     *  @param ppid Should receive PPID of the device
-     */
-    @JvmOverloads
-    fun identify(email: String, gaid: Boolean = false, ppid: String? = null, listener: OptableResultListener<Unit>) {
-        val emailValue = if (email.isNotBlank() && android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            email
-        } else null
-
-        val gaid = if (gaid) {
-            adIdManager.getId()
-        } else null
-
-        val ppid = if (ppid != null) {
-            listOf("c:$ppid")
-        } else null
-
-        val ids = OptableIdentifiers(
-            email = emailValue,
-            googleGaid = gaid,
-            raw = ppid
-        )
-
-        return identify(ids, listener)
-    }
-
     /**
      * tryIdentifyFromURI(uri) is a helper that attempts to find a valid-looking "oeid"
      * parameter in the specified uri's query string parameters and, if found, calls
