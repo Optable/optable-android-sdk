@@ -4,6 +4,7 @@
  */
 package co.optable.android_sdk.core.network.edge
 
+import com.google.gson.JsonObject
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -13,7 +14,7 @@ import retrofit2.http.Query
 interface EdgeService {
 
     @GET("targeting")
-    suspend fun targeting(@Query("id") idList: List<String>): Response<TargetingResponse>
+    suspend fun targeting(@Query("id") idList: List<String>): Response<JsonObject>
 
     @POST("identify")
     suspend fun identify(@Body idList: List<String>): Response<Unit>

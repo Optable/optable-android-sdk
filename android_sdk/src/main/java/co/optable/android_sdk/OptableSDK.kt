@@ -9,7 +9,6 @@ import co.optable.android_sdk.core.network.NetworkClient
 import co.optable.android_sdk.core.network.NetworkResponse
 import co.optable.android_sdk.core.network.RequestInterceptor
 import co.optable.android_sdk.core.network.ResponseInterceptor
-import co.optable.android_sdk.core.network.edge.TargetingResponse
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -33,6 +32,7 @@ class OptableSDK(
     private val consentsManager = ConsentsManager(storage)
     private val adIdManager = GoogleAdIdManager(config)
     private val networkClient = createNetworkClient()
+    private val useCases = UseCases()
 
     /**
      * Calls the Optable Sandbox "identify" API, passing it the list of IDs,
@@ -142,18 +142,19 @@ class OptableSDK(
         GlobalScope.launch {
             val response = networkClient.targeting(ids)
 
-            MainScope().launch {
-                val optableResult = when (response) {
-                    is NetworkResponse.Success -> {
-                        val targeting = createOptableTargeting(response.result)
-                        storage.setTargeting(targeting)
-                        OptableResult.Success(targeting)
-                    }
-
-                    is NetworkResponse.Error -> {
-                        OptableResult.Error(response.message)
-                    }
+            val optableResult = when (response) {
+                is NetworkResponse.Success -> {
+                    val targeting = useCases.parseTargetingResponse(response.result)
+                    storage.setTargeting(targeting)
+                    OptableResult.Success(targeting)
                 }
+
+                is NetworkResponse.Error -> {
+                    OptableResult.Error(response.message)
+                }
+            }
+
+            MainScope().launch {
                 listener.onComplete(optableResult)
             }
         }
@@ -216,32 +217,5 @@ class OptableSDK(
         return NetworkClient(config, requestInterceptor, responseInterceptor)
     }
 
-    private fun createOptableTargeting(response: TargetingResponse): OptableTargeting {
-        val audiences = response.audience ?: return OptableTargeting(emptyMap(), response.ortb2.toString(), emptyMap())
-
-        val gamTargetingKeywords = mutableMapOf<String, List<String>>()
-        val targetingData = mutableMapOf<String, String>()
-
-        for (audience in audiences) {
-            val keyspace = audience.asJsonObject.get("keyspace").asString
-
-            if (keyspace == null || keyspace.isBlank()) continue
-
-            val ids = audience.asJsonObject.get("ids").asJsonArray
-            val gamIds = mutableListOf<String>()
-            for (id in ids) {
-                gamIds.add(id.asJsonObject.get("id").asString)
-            }
-
-            gamTargetingKeywords[keyspace] = gamIds
-            targetingData[keyspace] =  audience.toString()
-        }
-
-        return OptableTargeting(
-            gamTargetingKeywords,
-            response.ortb2.toString(),
-            targetingData,
-        )
-    }
 }
 

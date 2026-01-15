@@ -3,7 +3,7 @@ package co.optable.android_sdk.core.network
 import co.optable.android_sdk.OptableConfig
 import co.optable.android_sdk.OptableIdentifiers
 import co.optable.android_sdk.core.network.edge.EdgeService
-import co.optable.android_sdk.core.network.edge.TargetingResponse
+import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -51,7 +51,7 @@ internal class NetworkClient(
         }
     }
 
-    suspend fun targeting(idList: OptableIdentifiers): NetworkResponse<TargetingResponse> {
+    suspend fun targeting(idList: OptableIdentifiers): NetworkResponse<JsonObject> {
         return runSafe {
             val ids = idList.generateEIDs()
             edgeService.targeting(ids)
