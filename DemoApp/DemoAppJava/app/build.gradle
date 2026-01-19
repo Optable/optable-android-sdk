@@ -41,7 +41,7 @@ android {
 dependencies {
     // Optable SDK
     if (useReleaseSdk == "true") {
-        implementation "com.github.Optable:optable-android-sdk:" + optableVersionName
+        implementation "com.github.Optable:optable-android-sdk:1.0.0"
     } else {
         implementation "co.optable:local-sdk"
     }
