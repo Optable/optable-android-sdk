@@ -4,14 +4,13 @@
  */
 package co.optable.android_sdk
 
+import android.util.Log
 import co.optable.android_sdk.core.*
 import co.optable.android_sdk.core.network.NetworkClient
 import co.optable.android_sdk.core.network.NetworkResponse
 import co.optable.android_sdk.core.network.RequestInterceptor
 import co.optable.android_sdk.core.network.ResponseInterceptor
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 
 /**
@@ -34,12 +33,15 @@ class OptableSDK(
     private val networkClient = createNetworkClient()
     private val useCases = UseCases()
 
+    private val ceh = CoroutineExceptionHandler { _, e -> Log.e("OptableSDK", "Internal exception: $e") }
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + ceh)
+
     /**
      * Calls the Optable Sandbox "identify" API, passing it the list of IDs,
      * a list of type-prefixed identifiers.
      */
     fun identify(ids: OptableIdentifiers, listener: OptableResultListener<Unit>) {
-        GlobalScope.launch {
+        scope.launch {
             val response = networkClient.identify(ids)
 
             MainScope().launch {
@@ -84,7 +86,7 @@ class OptableSDK(
      * audience assembly.
      */
     fun profile(traits: HashMap<String, Any>, listener: OptableResultListener<Unit>) {
-        GlobalScope.launch {
+        scope.launch {
             val response = networkClient.profile(traits)
 
             MainScope().launch {
@@ -108,7 +110,7 @@ class OptableSDK(
      * @see OptableTargeting
      */
     fun targeting(ids: OptableIdentifiers, listener: OptableResultListener<OptableTargeting>) {
-        GlobalScope.launch {
+        scope.launch {
             val response = networkClient.targeting(ids)
 
             val optableResult = when (response) {
@@ -153,7 +155,7 @@ class OptableSDK(
         properties: HashMap<String, Any>,
         listener: OptableResultListener<Unit>,
     ) {
-        GlobalScope.launch {
+        scope.launch {
             val response = networkClient.witness(event, properties)
             MainScope().launch {
                 val optableResult = when (response) {
