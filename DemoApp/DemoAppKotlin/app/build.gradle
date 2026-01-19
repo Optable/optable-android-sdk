@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application") version "8.9.3"
     id("org.jetbrains.kotlin.android") version "2.0.21"
-    id("de.nanogiants.android-versioning") version "2.4.0"
 }
 
 android {
@@ -13,8 +12,8 @@ android {
         minSdkVersion 23
         targetSdkVersion 34
 
-        versionCode versioning.getVersionCode()
-        versionName versioning.getVersionName(false)
+        versionCode 1
+        versionName "1.0.0"
         archivesBaseName = "optable-android-sdk-demo-kotlin"
 
         multiDexEnabled true
@@ -42,7 +41,7 @@ android {
 dependencies {
     // Optable SDK
     if (useReleaseSdk == "true") {
-        implementation "com.github.Optable:optable-android-sdk:" + versioning.getVersionName(false)
+        implementation "com.github.Optable:optable-android-sdk:" + optableVersionName
     } else {
         implementation "co.optable:local-sdk"
     }
