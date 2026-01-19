@@ -47,7 +47,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="84dp"
         app:adSize="BANNER"
         app:adUnitId="/22081946781/android-sdk-demo/mobile-leaderboard" />
 

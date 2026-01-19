@@ -1,6 +1,9 @@
 package co.optable.demoappjava.ui;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,9 +18,11 @@ import co.optable.demoappjava.R;
 import co.optable.demoappjava.TheApplication;
 import kotlin.Unit;
 
+import java.nio.charset.StandardCharsets;
+
 public class IdentifyFragment extends Fragment {
 
-    private TextView identifyView;
+    private TextView statusTextView;
     private EditText emailText;
 
     private OptableSDK optable;
@@ -31,25 +36,35 @@ public class IdentifyFragment extends Fragment {
     }
 
     private void initUi(View root) {
-        identifyView = root.findViewById(R.id.identifyView);
+        statusTextView = root.findViewById(R.id.statusTextView);
         emailText = root.findViewById(R.id.editTextTextEmailAddress);
 
         root.findViewById(R.id.identifyButton).setOnClickListener(view -> onClickIdentify());
     }
 
     private void onClickIdentify() {
-        identifyView.setText("");
+        statusTextView.setText("");
 
         OptableIdentifiers ids = new OptableIdentifiers.Builder()
                 .email(emailText.getText().toString())
                 .build();
         optable.identify(ids, result -> {
             if (result instanceof OptableResult.Success) {
-                identifyView.setText("Identify success");
+                statusTextView.setText("Identify success");
+                checkVisitorId();
             } else if (result instanceof OptableResult.Error<Unit> error) {
-                identifyView.setText("Identify error: " + error.getMessage());
+                statusTextView.setText("Identify error: " + error.getMessage());
             }
         });
+    }
+
+    private void checkVisitorId() {
+        String sfx = "na.edge.optable.co/prebidtest/js-sdk";
+        String visitorKey = "OPTABLE_PASS_" + Base64.encodeToString(sfx.getBytes(StandardCharsets.UTF_8), 0);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        String visitorId = prefs.getString(visitorKey, "null");
+        statusTextView.append("\nVisitor ID: " + visitorId);
     }
 
 }

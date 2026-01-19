@@ -69,8 +69,11 @@ public class PrebidBannerFragment extends Fragment {
         optable.targeting(ids, optableResult -> {
             OptableTargeting optableTargeting = null;
             if (optableResult instanceof OptableResult.Success<OptableTargeting> success) {
-                changeStatusText("Targeting success: " + success.getData().getGamTargetingKeywords());
                 optableTargeting = success.getData();
+                changeStatusText("Targeting success");
+                appendStatusText("GAM targeting keywords: " + optableTargeting.getGamTargetingKeywords());
+                appendStatusText("OpenRTB JSON: " + optableTargeting.getOpenRtbJson());
+                appendStatusText("Targeting data: " + optableTargeting.getTargetingData());
             } else if (optableResult instanceof OptableResult.Error<OptableTargeting> error) {
                 changeStatusText("Targeting error: " + error.getMessage());
             }
@@ -123,7 +126,10 @@ public class PrebidBannerFragment extends Fragment {
     private void onClickCachedBanner() {
         OptableTargeting targeting = optable.targetingFromCache();
         if (targeting != null) {
-            changeStatusText("Targeting from cache: " + targeting.getGamTargetingKeywords());
+            changeStatusText("Targeting success");
+            appendStatusText("GAM targeting keywords: " + targeting.getGamTargetingKeywords());
+            appendStatusText("OpenRTB JSON: " + targeting.getOpenRtbJson());
+            appendStatusText("Targeting data: " + targeting.getTargetingData());
         } else {
             changeStatusText("Targeting data cache empty.");
         }

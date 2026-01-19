@@ -74,7 +74,11 @@ class PrebidBannerFragment : Fragment() {
         optable.targeting(ids) { result ->
             val optableTargeting = when (result) {
                 is OptableResult.Success<OptableTargeting> -> {
-                    changeStatusText("Targeting success: ${result.data.gamTargetingKeywords}")
+                    val targeting: OptableTargeting = result.data
+                    changeStatusText("Targeting success")
+                    appendStatusText("GAM targeting keywords: " + targeting.gamTargetingKeywords)
+                    appendStatusText("OpenRTB JSON: " + targeting.openRtbJson)
+                    appendStatusText("Targeting data: " + targeting.targetingData)
                     result.data
                 }
 
@@ -132,7 +136,10 @@ class PrebidBannerFragment : Fragment() {
     private fun onClickCachedBanner() {
         val targeting = optable.targetingFromCache()
         if (targeting != null) {
-            changeStatusText("Targeting from cache: ${targeting.gamTargetingKeywords}")
+            changeStatusText("Targeting from cache success")
+            appendStatusText("GAM targeting keywords: " + targeting.gamTargetingKeywords)
+            appendStatusText("OpenRTB JSON: " + targeting.openRtbJson)
+            appendStatusText("Targeting data: " + targeting.targetingData)
         } else {
             changeStatusText("Targeting data cache empty.")
         }

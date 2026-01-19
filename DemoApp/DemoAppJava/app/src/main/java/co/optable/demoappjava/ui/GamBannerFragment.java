@@ -57,8 +57,12 @@ public class GamBannerFragment extends Fragment {
             AdManagerAdRequest.Builder requestBuilder = new AdManagerAdRequest.Builder();
 
             if (result instanceof OptableResult.Success<OptableTargeting> success) {
-                applyOptableToGam(requestBuilder, success.getData());
-                changeStatusText("Targeting success: " + success.getData().getGamTargetingKeywords());
+                OptableTargeting targeting = success.getData();
+                changeStatusText("Targeting success");
+                appendStatusText("GAM targeting keywords: " + targeting.getGamTargetingKeywords());
+                appendStatusText("OpenRTB JSON: " + targeting.getOpenRtbJson());
+                appendStatusText("Targeting data: " + targeting.getTargetingData());
+                applyOptableToGam(requestBuilder, targeting);
             } else if (result instanceof OptableResult.Error<OptableTargeting> error) {
                 changeStatusText("Targeting error: " + error.getMessage());
             }
@@ -79,7 +83,10 @@ public class GamBannerFragment extends Fragment {
 
         OptableTargeting optableTargeting = optable.targetingFromCache();
         if (optableTargeting != null) {
-            changeStatusText("Targeting from cache: " + optableTargeting.getGamTargetingKeywords());
+            changeStatusText("Targeting from cache success");
+            appendStatusText("GAM targeting keywords: " + optableTargeting.getGamTargetingKeywords());
+            appendStatusText("OpenRTB JSON: " + optableTargeting.getOpenRtbJson());
+            appendStatusText("Targeting data: " + optableTargeting.getTargetingData());
             applyOptableToGam(requestBuilder, optableTargeting);
         } else {
             changeStatusText("Targeting cache is empty");

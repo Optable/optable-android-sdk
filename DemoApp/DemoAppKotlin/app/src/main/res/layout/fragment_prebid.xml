@@ -40,6 +40,12 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/adContainer"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="vertical" />
+
     <ScrollView
         android:layout_width="match_parent"
         android:padding="8dp"
@@ -52,11 +58,5 @@
             android:layout_height="wrap_content" />
 
     </ScrollView>
-
-    <LinearLayout
-        android:id="@+id/adContainer"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:orientation="vertical" />
 
 </LinearLayout>

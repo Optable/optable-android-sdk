@@ -1,6 +1,8 @@
 package co.optable.androidsdkdemo.ui
 
 import android.os.Bundle
+import android.preference.PreferenceManager
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,10 +15,12 @@ import co.optable.android_sdk.OptableResult
 import co.optable.android_sdk.OptableSDK
 import co.optable.androidsdkdemo.R
 import co.optable.androidsdkdemo.TheApplication
+import java.nio.charset.StandardCharsets
+
 
 class IdentifyFragment : Fragment() {
 
-    private lateinit var identifyView: TextView
+    private lateinit var statusTextView: TextView
     private lateinit var emailText: EditText
 
     private lateinit var optable: OptableSDK
@@ -33,7 +37,7 @@ class IdentifyFragment : Fragment() {
     }
 
     private fun initUi(root: View) {
-        identifyView = root.findViewById(R.id.identifyView)
+        statusTextView = root.findViewById(R.id.statusTextView)
         emailText = root.findViewById(R.id.editTextTextEmailAddress)
 
         root.findViewById<Button>(R.id.identifyButton).setOnClickListener {
@@ -42,7 +46,7 @@ class IdentifyFragment : Fragment() {
     }
 
     private fun onClickIdentify() {
-        identifyView.text = ""
+        statusTextView.text = ""
 
         val ids = OptableIdentifiers.Builder()
             .email(emailText.getText().toString())
@@ -52,8 +56,19 @@ class IdentifyFragment : Fragment() {
                 is OptableResult.Success -> "Identify success"
                 is OptableResult.Error -> "Identify error: ${result.message}"
             }
-            identifyView.text = msg
+            statusTextView.text = msg
+            checkVisitorId()
         }
+    }
+
+
+    private fun checkVisitorId() {
+        val sfx = "na.edge.optable.co/prebidtest/js-sdk"
+        val visitorKey = "OPTABLE_PASS_" + Base64.encodeToString(sfx.toByteArray(StandardCharsets.UTF_8), 0)
+
+        val prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        val visitorId: String = prefs.getString(visitorKey, "null")!!
+        statusTextView.append("\nVisitor ID: " + visitorId)
     }
 
 }
