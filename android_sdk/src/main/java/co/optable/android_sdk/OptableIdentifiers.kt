@@ -82,7 +82,6 @@ data class OptableIdentifiers @JvmOverloads constructor(
         private var utiq: String? = null
         private var custom: Map<String, String>? = null
         private var raw: List<String>? = null
-        private var receiveGaidAutomatically: Boolean = false
 
         /**
          * Sets the email address.
