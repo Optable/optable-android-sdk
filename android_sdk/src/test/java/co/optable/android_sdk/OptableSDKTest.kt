@@ -146,21 +146,25 @@ class OptableSDKTest {
 
     @Test
     fun `profile success should call listener with success`() = runTest(testDispatcher) {
-        val listener = mockk<OptableResultListener<Unit>>(relaxed = true)
+        val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
         val traits = hashMapOf<String, Any>("age" to 30)
-        coEvery { mockNetworkClient.profile(traits) } returns NetworkResponse.Success(Unit)
+        val targetingJson = JsonObject()
+        val expectedTargeting = mockk<OptableTargeting>()
+        coEvery { mockNetworkClient.profile(traits) } returns NetworkResponse.Success(targetingJson)
+        every { mockUseCases.parseTargetingResponse(targetingJson) } returns expectedTargeting
 
         sdk.profile(traits, listener)
         advanceUntilIdle()
 
-        val slot = slot<OptableResult<Unit>>()
+        val slot = slot<OptableResult<OptableTargeting>>()
         verify { listener.onComplete(capture(slot)) }
         assertTrue(slot.captured is OptableResult.Success)
+        assertEquals(expectedTargeting, (slot.captured as OptableResult.Success).data)
     }
 
     @Test
     fun `profile error should call listener with error`() = runTest(testDispatcher) {
-        val listener = mockk<OptableResultListener<Unit>>(relaxed = true)
+        val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
         val traits = hashMapOf<String, Any>("age" to 30)
         val errorMessage = "Profile Failure"
         coEvery { mockNetworkClient.profile(traits) } returns NetworkResponse.Error(errorMessage)
@@ -168,7 +172,7 @@ class OptableSDKTest {
         sdk.profile(traits, listener)
         advanceUntilIdle()
 
-        val slot = slot<OptableResult<Unit>>()
+        val slot = slot<OptableResult<OptableTargeting>>()
         verify { listener.onComplete(capture(slot)) }
         assertTrue(slot.captured is OptableResult.Error)
         assertEquals(errorMessage, (slot.captured as OptableResult.Error).message)

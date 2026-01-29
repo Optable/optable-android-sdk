@@ -43,7 +43,7 @@ internal class NetworkClient(
         }
     }
 
-    suspend fun profile(traits: HashMap<String, Any>): NetworkResponse<Unit> {
+    suspend fun profile(traits: HashMap<String, Any>): NetworkResponse<JsonObject> {
         return runSafe {
             val profileBody = HashMap<String, Any>()
             profileBody["traits"] = traits

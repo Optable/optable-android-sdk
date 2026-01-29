@@ -85,14 +85,15 @@ class OptableSDK(
      * specified key-value traits, which can be subsequently used for
      * audience assembly.
      */
-    fun profile(traits: HashMap<String, Any>, listener: OptableResultListener<Unit>) {
+    fun profile(traits: HashMap<String, Any>, listener: OptableResultListener<OptableTargeting>) {
         scope.launch {
             val response = networkClient.profile(traits)
 
             MainScope().launch {
                 val optableResult = when (response) {
                     is NetworkResponse.Success -> {
-                        OptableResult.Success(Unit)
+                        val targeting = useCases.parseTargetingResponse(response.result)
+                        OptableResult.Success(targeting)
                     }
 
                     is NetworkResponse.Error -> {

@@ -20,7 +20,7 @@ interface EdgeService {
     suspend fun identify(@Body idList: List<String>): Response<Unit>
 
     @POST("profile")
-    suspend fun profile(@Body profileBody: HashMap<String, Any>): Response<Unit>
+    suspend fun profile(@Body profileBody: HashMap<String, Any>): Response<JsonObject>
 
     @POST("witness")
     suspend fun witness(@Body witnessBody: HashMap<String, Any>): Response<Unit>

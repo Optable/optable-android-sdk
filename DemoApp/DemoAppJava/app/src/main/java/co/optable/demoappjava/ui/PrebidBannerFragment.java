@@ -179,7 +179,7 @@ public class PrebidBannerFragment extends Fragment {
         optable.profile(traits, result -> {
             if (result instanceof OptableResult.Success) {
                 appendStatusText("Profile Success");
-            } else if (result instanceof OptableResult.Error<Unit> error) {
+            } else if (result instanceof OptableResult.Error<OptableTargeting> error) {
                 appendStatusText("Profile Error: " + error.getMessage());
             }
         });

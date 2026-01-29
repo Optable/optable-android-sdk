@@ -90,21 +90,22 @@ class NetworkClientTest {
     @Test
     fun profile_shouldReturnSuccess_whenApiCallIsSuccessful() = runBlocking {
         val traits = hashMapOf<String, Any>("key" to "value")
-        val expectedResponse: Response<Unit> = Response.success(Unit)
+        val jsonObject = JsonObject().apply { addProperty("status", "success") }
+        val expectedResponse: Response<JsonObject> = Response.success(jsonObject)
 
         `when`(mockEdgeService.profile(traits)).thenReturn(expectedResponse)
 
         val result = networkClient.profile(traits)
 
         assertTrue(result is NetworkResponse.Success)
-        assertEquals(Unit, (result as NetworkResponse.Success).result)
+        assertEquals(jsonObject, (result as NetworkResponse.Success).result)
     }
 
     @Test
     fun profile_shouldReturnError_whenApiCallIsUnsuccessful() = runBlocking {
         val traits = hashMapOf<String, Any>("key" to "value")
         val errorBody = ResponseBody.create(null, "Error")
-        val expectedResponse: Response<Unit> = Response.error(400, errorBody)
+        val expectedResponse: Response<JsonObject> = Response.error(400, errorBody)
 
         `when`(mockEdgeService.profile(traits)).thenReturn(expectedResponse)
 
