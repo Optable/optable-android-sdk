@@ -2,67 +2,74 @@ package co.optable.android_sdk.core
 
 import android.util.Log
 import androidx.core.net.toUri
-import co.optable.android_sdk.OptableIdentifiers
+import co.optable.android_sdk.OptableIdentifier
 import java.security.MessageDigest
 import java.util.*
 
 /**
  * Utility object responsible for encoding raw identifiers into Optable EIDs.
  */
-object IdentifiersEncoder {
+internal class IdentifiersEncoder(
+    private val googleAdIdManager: GoogleAdIdManager,
+) {
 
-    private const val EMAIL = "e"
-    private const val PHONE = "p"
-    private const val POSTAL = "z"
-    private const val IPV4 = "i4"
-    private const val IPV6 = "i6"
-    private const val IDFA = "a"
-    private const val GAID = "g"
-    private const val RIDA = "r"
-    private const val TIFA = "s"
-    private const val AFAI = "f"
-    private const val NETID = "n"
-    private const val ID5 = "id5"
-    private const val UTIQ = "utiq"
-    private const val VID = "v"
+    companion object {
+        private const val EMAIL = "e"
+        private const val PHONE = "p"
+        private const val POSTAL = "z"
+        private const val IPV4 = "i4"
+        private const val IPV6 = "i6"
+        private const val IDFA = "a"
+        private const val GAID = "g"
+        private const val RIDA = "r"
+        private const val TIFA = "s"
+        private const val AFAI = "f"
+        private const val NETID = "n"
+        private const val ID5 = "id5"
+        private const val UTIQ = "utiq"
+        private const val VID = "v"
+    }
 
-    fun encode(ids: OptableIdentifiers): List<String> {
+
+    fun encode(identifiers: List<OptableIdentifier>): List<String> {
         val result = mutableListOf<String>()
 
-        result.addIfNotNull(EMAIL, ids.email, ::encrypt)
-        result.addIfNotNull(PHONE, ids.phoneNumber, ::encrypt)
-        result.addIfNotNull(POSTAL, ids.postalCode, ::normalize)
-        result.addIfNotNull(IPV4, ids.ipv4Address, ::removeWhitespaces)
-        result.addIfNotNull(IPV6, ids.ipv6Address, ::normalize)
-        result.addIfNotNull(IDFA, ids.appleIdfa, ::normalize)
-        result.addIfNotNull(GAID, ids.googleGaid, ::normalize)
-        result.addIfNotNull(RIDA, ids.rokuRida, ::normalize)
-        result.addIfNotNull(TIFA, ids.samsungTifa, ::normalize)
-        result.addIfNotNull(AFAI, ids.amazonFireAfai, ::normalize)
-        result.addIfNotNull(NETID, ids.netId, ::removeWhitespaces)
-        result.addIfNotNull(ID5, ids.id5, ::removeWhitespaces)
-        result.addIfNotNull(UTIQ, ids.utiq, ::normalize)
+        var containsCustomGaid = false
+        for (identifier in identifiers) {
+            when (identifier) {
+                is OptableIdentifier.Email -> result.addIfNotNull(EMAIL, identifier.value, ::encrypt)
+                is OptableIdentifier.PhoneNumber -> result.addIfNotNull(PHONE, identifier.value, ::encrypt)
+                is OptableIdentifier.PostalCode -> result.addIfNotNull(POSTAL, identifier.value, ::normalize)
+                is OptableIdentifier.IPv4 -> result.addIfNotNull(IPV4, identifier.value, ::removeWhitespaces)
+                is OptableIdentifier.IPv6 -> result.addIfNotNull(IPV6, identifier.value, ::normalize)
+                is OptableIdentifier.AppleIdfa -> result.addIfNotNull(IDFA, identifier.value, ::normalize)
+                is OptableIdentifier.RokuRida -> result.addIfNotNull(RIDA, identifier.value, ::normalize)
+                is OptableIdentifier.SamsungTifa -> result.addIfNotNull(TIFA, identifier.value, ::normalize)
+                is OptableIdentifier.AmazonFireAfai -> result.addIfNotNull(AFAI, identifier.value, ::normalize)
+                is OptableIdentifier.NetId -> result.addIfNotNull(NETID, identifier.value, ::removeWhitespaces)
+                is OptableIdentifier.ID5 -> result.addIfNotNull(ID5, identifier.value, ::removeWhitespaces)
+                is OptableIdentifier.Utiq -> result.addIfNotNull(UTIQ, identifier.value, ::normalize)
 
-        if (ids.googleGaid == null && OptableIdentifiers.receiveGaidAutomatically) {
-            GoogleAdIdManager.adId?.let { adId ->
-                result.addIfNotNull(GAID, adId, ::normalize)
+                is OptableIdentifier.GoogleGaid -> {
+                    result.addIfNotNull(GAID, identifier.value, ::normalize)
+                    containsCustomGaid = true
+                }
+
+                is OptableIdentifier.Custom -> {
+                    if (identifier.key == VID) {
+                        result.addIfNotNull(identifier.key, identifier.value, ::removeWhitespaces)
+                    } else {
+                        result.addIfNotNull(identifier.key, identifier.value, ::trim)
+                    }
+                }
+
+                is OptableIdentifier.Raw -> result.add(identifier.value)
             }
         }
 
-        for ((key, value) in ids.custom ?: emptyMap()) {
-            when {
-                key == VID -> {
-                    result.addIfNotNull(key, value, ::removeWhitespaces)
-                }
-
-                else -> {
-                    result.addIfNotNull(key, value, ::trim)
-                }
-            }
-        }
-
-        for (rawValue in ids.raw ?: emptyList()) {
-            result.add(rawValue)
+        val googleAdId = googleAdIdManager.getId()
+        if (!containsCustomGaid && googleAdId != null) {
+            result.addIfNotNull(GAID, googleAdId, ::trim)
         }
 
         return result

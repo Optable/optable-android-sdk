@@ -10,7 +10,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import co.optable.android_sdk.OptableIdentifiers
+import co.optable.android_sdk.OptableIdentifier
 import co.optable.android_sdk.OptableResult
 import co.optable.android_sdk.OptableSDK
 import co.optable.androidsdkdemo.R
@@ -48,9 +48,7 @@ class IdentifyFragment : Fragment() {
     private fun onClickIdentify() {
         statusTextView.text = ""
 
-        val ids = OptableIdentifiers.Builder()
-            .email(emailText.getText().toString())
-            .build()
+        val ids = listOf(OptableIdentifier.Email(emailText.text.toString()))
         optable.identify(ids) { result ->
             val msg = when (result) {
                 is OptableResult.Success -> "Identify success"

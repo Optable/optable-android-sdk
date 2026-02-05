@@ -75,10 +75,9 @@ class OptableSDKTest {
     @Test
     fun `identify success should call listener with success`() = runTest(testDispatcher) {
         val listener = mockk<OptableResultListener<Unit>>(relaxed = true)
-        val ids = OptableIdentifiers.Builder().build()
-        coEvery { mockNetworkClient.identify(ids) } returns NetworkResponse.Success(Unit)
+        coEvery { mockNetworkClient.identify(emptyList()) } returns NetworkResponse.Success(Unit)
 
-        sdk.identify(ids, listener)
+        sdk.identify(emptyList(), listener)
         advanceUntilIdle()
 
         val slot = slot<OptableResult<Unit>>()
@@ -89,11 +88,10 @@ class OptableSDKTest {
     @Test
     fun `identify error should call listener with error`() = runTest(testDispatcher) {
         val listener = mockk<OptableResultListener<Unit>>(relaxed = true)
-        val ids = OptableIdentifiers.Builder().build()
         val errorMessage = "Network Failure"
-        coEvery { mockNetworkClient.identify(ids) } returns NetworkResponse.Error(errorMessage)
+        coEvery { mockNetworkClient.identify(emptyList()) } returns NetworkResponse.Error(errorMessage)
 
-        sdk.identify(ids, listener)
+        sdk.identify(emptyList(), listener)
         advanceUntilIdle()
 
         val slot = slot<OptableResult<Unit>>()
@@ -105,11 +103,10 @@ class OptableSDKTest {
     @Test
     fun `identify throws exception should be handled`() = runTest(testDispatcher) {
         val listener = mockk<OptableResultListener<Unit>>(relaxed = true)
-        val ids = OptableIdentifiers.Builder().build()
         val exception = RuntimeException("Coroutine Canceled")
-        coEvery { mockNetworkClient.identify(ids) } throws exception
+        coEvery { mockNetworkClient.identify(emptyList()) } throws exception
 
-        sdk.identify(ids, listener)
+        sdk.identify(emptyList(), listener)
         advanceUntilIdle()
 
         verify(exactly = 0) { listener.onComplete(any()) }
@@ -181,13 +178,12 @@ class OptableSDKTest {
     @Test
     fun `targeting success should parse and store targeting data`() = runTest(testDispatcher) {
         val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
-        val ids = OptableIdentifiers.Builder().build()
         val targetingJson = JsonObject()
         val expectedTargeting = mockk<OptableTargeting>()
-        coEvery { mockNetworkClient.targeting(ids) } returns NetworkResponse.Success(targetingJson)
+        coEvery { mockNetworkClient.targeting(emptyList()) } returns NetworkResponse.Success(targetingJson)
         every { mockUseCases.parseTargetingResponse(targetingJson) } returns expectedTargeting
 
-        sdk.targeting(ids, listener)
+        sdk.targeting(emptyList(), listener)
         advanceUntilIdle()
 
         verify { mockStorage.setTargeting(expectedTargeting) }
@@ -200,11 +196,10 @@ class OptableSDKTest {
     @Test
     fun `targeting error should call listener with error`() = runTest(testDispatcher) {
         val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
-        val ids = OptableIdentifiers.Builder().build()
         val errorMessage = "Targeting Failure"
-        coEvery { mockNetworkClient.targeting(ids) } returns NetworkResponse.Error(errorMessage)
+        coEvery { mockNetworkClient.targeting(emptyList()) } returns NetworkResponse.Error(errorMessage)
 
-        sdk.targeting(ids, listener)
+        sdk.targeting(emptyList(), listener)
         advanceUntilIdle()
 
         verify(exactly = 0) { mockStorage.setTargeting(any()) }

@@ -8,7 +8,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import co.optable.android_sdk.OptableIdentifiers;
+import co.optable.android_sdk.OptableIdentifier;
 import co.optable.android_sdk.OptableResult;
 import co.optable.android_sdk.OptableSDK;
 import co.optable.android_sdk.OptableTargeting;
@@ -18,11 +18,13 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.admanager.AdManagerAdRequest;
 import com.google.android.gms.ads.admanager.AdManagerAdView;
+import com.google.common.collect.Lists;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.prebid.mobile.BannerAdUnit;
 import org.prebid.mobile.TargetingParams;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +67,9 @@ public class PrebidBannerFragment extends Fragment {
     private void onClickLoadAd() {
         statusTextView.setText("");
 
-        OptableIdentifiers ids = new OptableIdentifiers.Builder().email("test@test.com").build();
+        ArrayList<OptableIdentifier.Email> ids = Lists.newArrayList(
+                new OptableIdentifier.Email("test@test.com")
+        );
         optable.targeting(ids, optableResult -> {
             OptableTargeting optableTargeting = null;
             if (optableResult instanceof OptableResult.Success<OptableTargeting> success) {

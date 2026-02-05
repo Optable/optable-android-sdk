@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import co.optable.android_sdk.OptableIdentifiers
+import co.optable.android_sdk.OptableIdentifier
 import co.optable.android_sdk.OptableResult
 import co.optable.android_sdk.OptableSDK
 import co.optable.android_sdk.OptableTargeting
@@ -54,7 +54,7 @@ class GamBannerFragment : Fragment() {
      * Loads targeting data and then the GAM banner.
      */
     private fun onClickLoadAd() {
-        val ids = OptableIdentifiers(email = "test@test.com")
+        val ids = listOf(OptableIdentifier.Email("test@test.com"))
         optable.targeting(ids) { result ->
             val requestBuilder = AdManagerAdRequest.Builder()
 

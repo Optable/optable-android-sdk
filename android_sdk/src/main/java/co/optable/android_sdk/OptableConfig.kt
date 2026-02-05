@@ -29,10 +29,6 @@ class OptableConfig @JvmOverloads constructor(
     var consents: OptableConsents = OptableConsents(),
 ) {
 
-    init {
-        OptableIdentifiers.receiveGaidAutomatically = !skipAdvertisingIdDetection
-    }
-
     internal val context = providedContext.applicationContext
 
     internal fun getBaseUrl(): String {

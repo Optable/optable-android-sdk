@@ -1,7 +1,6 @@
 package co.optable.android_sdk.core.network
 
 import co.optable.android_sdk.OptableConfig
-import co.optable.android_sdk.OptableIdentifiers
 import co.optable.android_sdk.core.network.edge.EdgeService
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
@@ -36,9 +35,8 @@ internal class NetworkClient(
         edgeService = retrofit.create(EdgeService::class.java)
     }
 
-    suspend fun identify(idList: OptableIdentifiers): NetworkResponse<Unit> {
+    suspend fun identify(ids: List<String>): NetworkResponse<Unit> {
         return runSafe {
-            val ids = idList.generateEIDs()
             edgeService.identify(ids)
         }
     }
@@ -51,9 +49,8 @@ internal class NetworkClient(
         }
     }
 
-    suspend fun targeting(idList: OptableIdentifiers): NetworkResponse<JsonObject> {
+    suspend fun targeting(ids: List<String>): NetworkResponse<JsonObject> {
         return runSafe {
-            val ids = idList.generateEIDs()
             edgeService.targeting(ids)
         }
     }

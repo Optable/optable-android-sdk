@@ -29,20 +29,28 @@ class OptableSDK(
 
     private val storage = LocalStorage(config)
     private val consentsManager = ConsentsManager(storage)
-    private val adIdManager = GoogleAdIdManager(config)
+    private val googleAdIdManager = GoogleAdIdManager(config)
     private val networkClient = createNetworkClient()
     private val useCases = UseCases()
+    private val identifiersEncoder = IdentifiersEncoder(googleAdIdManager)
 
     private val ceh = CoroutineExceptionHandler { _, e -> Log.e("OptableSDK", "Internal exception: $e") }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + ceh)
+
+    init {
+        if (!config.skipAdvertisingIdDetection) {
+            googleAdIdManager.updateAdvertisingId()
+        }
+    }
 
     /**
      * Calls the Optable Sandbox "identify" API, passing it the list of IDs,
      * a list of type-prefixed identifiers.
      */
-    fun identify(ids: OptableIdentifiers, listener: OptableResultListener<Unit>) {
+    fun identify(ids: List<OptableIdentifier>, listener: OptableResultListener<Unit>) {
         scope.launch {
-            val response = networkClient.identify(ids)
+            val encodedIds = identifiersEncoder.encode(ids)
+            val response = networkClient.identify(encodedIds)
 
             MainScope().launch {
                 val optableResult = when (response) {
@@ -69,15 +77,14 @@ class OptableSDK(
      * as encoded links in newsletter Emails sent by the application developer.
      */
     fun tryIdentifyFromUrl(url: String, listener: OptableResultListener<Unit>) {
-        val id = IdentifiersEncoder.prefixedIdFromUrl(url)
+        val id = identifiersEncoder.prefixedIdFromUrl(url)
 
         if (id == null) {
             listener.onComplete(OptableResult.Error("Can't find `oeid` in url: $url"))
             return
         }
 
-        val ids = OptableIdentifiers.Builder().raw(listOf(id)).build()
-        this.identify(ids, listener)
+        this.identify(listOf(OptableIdentifier.Raw(id)), listener)
     }
 
     /**
@@ -109,9 +116,14 @@ class OptableSDK(
      * Calls the Optable Sandbox "targeting" API, which returns the key-value targeting
      * data matching the user/device/app and part of the OpenRTB code snippet.
      * @see OptableTargeting
+     *
+     * This type accepts multiple optional identifier values. When EIDs are generated, each supported
+     * identifier is encoded according to its identifier type (for example, some values are normalized,
+     * whitespace-stripped, or encrypted). Additional identifiers may be supplied through the `Raw` or `Custom` type.
      */
-    fun targeting(ids: OptableIdentifiers, listener: OptableResultListener<OptableTargeting>) {
+    fun targeting(ids: List<OptableIdentifier>, listener: OptableResultListener<OptableTargeting>) {
         scope.launch {
+            val ids = identifiersEncoder.encode(ids)
             val response = networkClient.targeting(ids)
 
             val optableResult = when (response) {
@@ -183,7 +195,6 @@ class OptableSDK(
 
     private fun createNetworkClient(): NetworkClient {
         val userAgentHolder = UserAgentHolder(config)
-        val consentsManager = ConsentsManager(storage)
         val requestInterceptor = RequestInterceptor(config, storage, userAgentHolder, consentsManager)
         val responseInterceptor = ResponseInterceptor(storage)
         return NetworkClient(config, requestInterceptor, responseInterceptor)

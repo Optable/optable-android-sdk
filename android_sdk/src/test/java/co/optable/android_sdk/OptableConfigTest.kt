@@ -19,17 +19,9 @@ class OptableConfigTest {
     @Mock
     private lateinit var mockApplicationContext: Context
 
-    private var originalReceiveGaidAutomatically: Boolean = false
-
     @Before
     fun setUp() {
         `when`(mockContext.applicationContext).thenReturn(mockApplicationContext)
-        originalReceiveGaidAutomatically = OptableIdentifiers.receiveGaidAutomatically
-    }
-
-    @After
-    fun tearDown() {
-        OptableIdentifiers.receiveGaidAutomatically = originalReceiveGaidAutomatically
     }
 
     @Test
@@ -106,30 +98,6 @@ class OptableConfigTest {
 
         val expectedUrl = "http://my.host.com/api/"
         assertEquals(expectedUrl, config.getBaseUrl())
-    }
-
-    @Test
-    fun `init should set receiveGaidAutomatically to true when skip is false`() {
-        OptableConfig(
-            providedContext = mockContext,
-            tenant = "test-tenant",
-            originSlug = "test-slug",
-            skipAdvertisingIdDetection = false
-        )
-
-        assertTrue(OptableIdentifiers.receiveGaidAutomatically)
-    }
-
-    @Test
-    fun `init should set receiveGaidAutomatically to false when skip is true`() {
-        OptableConfig(
-            providedContext = mockContext,
-            tenant = "test-tenant",
-            originSlug = "test-slug",
-            skipAdvertisingIdDetection = true
-        )
-
-        assertFalse(OptableIdentifiers.receiveGaidAutomatically)
     }
 
     @Test

@@ -12,14 +12,8 @@ internal class GoogleAdIdManager(
 ) {
 
     companion object {
-        internal var adId: String? = null
-        internal var limitAdTracking: Boolean? = true
-    }
-
-    init {
-        if (!config.skipAdvertisingIdDetection) {
-            updateAdvertisingId()
-        }
+        var adId: String? = null
+        var limitAdTracking: Boolean? = null
     }
 
     fun updateAdvertisingId() {
@@ -35,10 +29,6 @@ internal class GoogleAdIdManager(
                 limitAdTracking = adInfo?.isLimitAdTrackingEnabled
             }
         }
-    }
-
-    fun hasId(): Boolean {
-        return ((adId != null) && (limitAdTracking == false) && !TextUtils.isEmpty(adId!!))
     }
 
     fun getId(): String? {

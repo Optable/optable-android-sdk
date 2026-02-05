@@ -11,7 +11,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import co.optable.android_sdk.OptableIdentifiers
+import co.optable.android_sdk.OptableIdentifier
 import co.optable.android_sdk.OptableResult
 import co.optable.android_sdk.OptableSDK
 import co.optable.android_sdk.OptableTargeting
@@ -70,7 +70,7 @@ class PrebidBannerFragment : Fragment() {
     private fun onClickLoadAd() {
         statusTextView.text = ""
 
-        val ids = OptableIdentifiers(email = "test@test.com")
+        val ids = listOf(OptableIdentifier.Email("test@test.com"))
         optable.targeting(ids) { result ->
             val optableTargeting = when (result) {
                 is OptableResult.Success<OptableTargeting> -> {

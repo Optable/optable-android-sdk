@@ -17,7 +17,7 @@ interface EdgeService {
     suspend fun targeting(@Query("id") idList: List<String>): Response<JsonObject>
 
     @POST("identify")
-    suspend fun identify(@Body idList: List<String>): Response<Unit>
+    suspend fun identify(@Body ids: List<String>): Response<Unit>
 
     @POST("profile")
     suspend fun profile(@Body profileBody: HashMap<String, Any>): Response<JsonObject>

@@ -1,7 +1,6 @@
 package co.optable.android_sdk.core.network
 
 import co.optable.android_sdk.OptableConfig
-import co.optable.android_sdk.OptableIdentifiers
 import co.optable.android_sdk.core.network.edge.EdgeService
 import com.google.gson.JsonObject
 import io.mockk.every
@@ -47,13 +46,11 @@ class NetworkClientTest {
 
     @Test
     fun identify_shouldReturnSuccess_whenApiCallIsSuccessful() = runBlocking {
-        val identifiers = OptableIdentifiers()
-        val expectedIds = identifiers.generateEIDs()
         val expectedResponse: Response<Unit> = Response.success(Unit)
 
-        `when`(mockEdgeService.identify(expectedIds)).thenReturn(expectedResponse)
+        `when`(mockEdgeService.identify(emptyList())).thenReturn(expectedResponse)
 
-        val result = networkClient.identify(identifiers)
+        val result = networkClient.identify(emptyList())
 
         assertTrue(result is NetworkResponse.Success)
         assertEquals(Unit, (result as NetworkResponse.Success).result)
@@ -61,27 +58,23 @@ class NetworkClientTest {
 
     @Test
     fun identify_shouldReturnError_whenApiCallIsUnsuccessful() = runBlocking {
-        val identifiers = OptableIdentifiers()
-        val expectedIds = identifiers.generateEIDs()
         val errorBody = ResponseBody.create(null, "Error")
         val expectedResponse: Response<Unit> = Response.error(404, errorBody)
 
-        `when`(mockEdgeService.identify(expectedIds)).thenReturn(expectedResponse)
+        `when`(mockEdgeService.identify(emptyList())).thenReturn(expectedResponse)
 
-        val result = networkClient.identify(identifiers)
+        val result = networkClient.identify(emptyList())
 
         assertTrue(result is NetworkResponse.Error)
     }
 
     @Test
     fun identify_shouldReturnError_whenApiCallThrowsException() = runBlocking {
-        val identifiers = OptableIdentifiers()
-        val expectedIds = identifiers.generateEIDs()
         val exception = RuntimeException("Network error")
 
-        `when`(mockEdgeService.identify(expectedIds)).thenThrow(exception)
+        `when`(mockEdgeService.identify(emptyList())).thenThrow(exception)
 
-        val result = networkClient.identify(identifiers)
+        val result = networkClient.identify(emptyList())
 
         assertTrue(result is NetworkResponse.Error)
         assertEquals(exception.message, (result as NetworkResponse.Error).message)
@@ -129,14 +122,12 @@ class NetworkClientTest {
 
     @Test
     fun targeting_shouldReturnSuccessWithData_whenApiCallIsSuccessful() = runBlocking {
-        val identifiers = OptableIdentifiers()
-        val expectedIds = identifiers.generateEIDs()
         val jsonObject = JsonObject().apply { addProperty("targetingKey", "targetingValue") }
         val expectedResponse: Response<JsonObject> = Response.success(jsonObject)
 
-        `when`(mockEdgeService.targeting(expectedIds)).thenReturn(expectedResponse)
+        `when`(mockEdgeService.targeting(emptyList())).thenReturn(expectedResponse)
 
-        val result = networkClient.targeting(identifiers)
+        val result = networkClient.targeting(emptyList())
 
         assertTrue(result is NetworkResponse.Success)
         assertEquals(jsonObject, (result as NetworkResponse.Success).result)
@@ -144,27 +135,23 @@ class NetworkClientTest {
 
     @Test
     fun targeting_shouldReturnError_whenApiCallIsUnsuccessful() = runBlocking {
-        val identifiers = OptableIdentifiers()
-        val expectedIds = identifiers.generateEIDs()
         val errorBody = ResponseBody.create(null, "Error")
         val expectedResponse: Response<JsonObject> = Response.error(500, errorBody)
 
-        `when`(mockEdgeService.targeting(expectedIds)).thenReturn(expectedResponse)
+        `when`(mockEdgeService.targeting(emptyList())).thenReturn(expectedResponse)
 
-        val result = networkClient.targeting(identifiers)
+        val result = networkClient.targeting(emptyList())
 
         assertTrue(result is NetworkResponse.Error)
     }
 
     @Test
     fun targeting_shouldReturnError_whenApiCallThrowsException() = runBlocking {
-        val identifiers = OptableIdentifiers()
-        val expectedIds = identifiers.generateEIDs()
         val exception = RuntimeException("Network error")
 
-        `when`(mockEdgeService.targeting(expectedIds)).thenThrow(exception)
+        `when`(mockEdgeService.targeting(emptyList())).thenThrow(exception)
 
-        val result = networkClient.targeting(identifiers)
+        val result = networkClient.targeting(emptyList())
 
         assertTrue(result is NetworkResponse.Error)
         assertEquals(exception.message, (result as NetworkResponse.Error).message)
