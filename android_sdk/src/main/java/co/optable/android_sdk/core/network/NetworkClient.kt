@@ -1,6 +1,8 @@
 package co.optable.android_sdk.core.network
 
 import co.optable.android_sdk.OptableConfig
+import co.optable.android_sdk.OptableTraits
+import co.optable.android_sdk.core.network.data.TraitsRequest
 import co.optable.android_sdk.core.network.edge.EdgeService
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
@@ -41,11 +43,10 @@ internal class NetworkClient(
         }
     }
 
-    suspend fun profile(traits: HashMap<String, Any>): NetworkResponse<JsonObject> {
+    suspend fun profile(traits: OptableTraits): NetworkResponse<JsonObject> {
         return runSafe {
-            val profileBody = HashMap<String, Any>()
-            profileBody["traits"] = traits
-            edgeService.profile(traits)
+            val request = TraitsRequest.from(traits)
+            edgeService.profile(request)
         }
     }
 

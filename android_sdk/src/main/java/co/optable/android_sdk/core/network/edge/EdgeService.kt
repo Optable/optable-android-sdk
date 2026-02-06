@@ -4,6 +4,7 @@
  */
 package co.optable.android_sdk.core.network.edge
 
+import co.optable.android_sdk.core.network.data.TraitsRequest
 import com.google.gson.JsonObject
 import retrofit2.Response
 import retrofit2.http.Body
@@ -20,7 +21,7 @@ interface EdgeService {
     suspend fun identify(@Body ids: List<String>): Response<Unit>
 
     @POST("profile")
-    suspend fun profile(@Body profileBody: HashMap<String, Any>): Response<JsonObject>
+    suspend fun profile(@Body body: TraitsRequest): Response<JsonObject>
 
     @POST("witness")
     suspend fun witness(@Body witnessBody: HashMap<String, Any>): Response<Unit>

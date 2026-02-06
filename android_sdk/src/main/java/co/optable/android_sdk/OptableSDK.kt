@@ -92,7 +92,7 @@ class OptableSDK(
      * specified key-value traits, which can be subsequently used for
      * audience assembly.
      */
-    fun profile(traits: HashMap<String, Any>, listener: OptableResultListener<OptableTargeting>) {
+    fun profile(traits: OptableTraits, listener: OptableResultListener<OptableTargeting>) {
         scope.launch {
             val response = networkClient.profile(traits)
 

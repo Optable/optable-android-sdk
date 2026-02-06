@@ -145,12 +145,13 @@ class OptableSDKTest {
     fun `profile success should call listener with success`() = runTest(testDispatcher) {
         val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
         val traits = hashMapOf<String, Any>("age" to 30)
+        val traitsRequest = OptableTraits(traits)
         val targetingJson = JsonObject()
         val expectedTargeting = mockk<OptableTargeting>()
-        coEvery { mockNetworkClient.profile(traits) } returns NetworkResponse.Success(targetingJson)
+        coEvery { mockNetworkClient.profile(traitsRequest) } returns NetworkResponse.Success(targetingJson)
         every { mockUseCases.parseTargetingResponse(targetingJson) } returns expectedTargeting
 
-        sdk.profile(traits, listener)
+        sdk.profile(traitsRequest, listener)
         advanceUntilIdle()
 
         val slot = slot<OptableResult<OptableTargeting>>()
@@ -163,10 +164,11 @@ class OptableSDKTest {
     fun `profile error should call listener with error`() = runTest(testDispatcher) {
         val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
         val traits = hashMapOf<String, Any>("age" to 30)
+        val traitsRequest = OptableTraits(traits)
         val errorMessage = "Profile Failure"
-        coEvery { mockNetworkClient.profile(traits) } returns NetworkResponse.Error(errorMessage)
+        coEvery { mockNetworkClient.profile(OptableTraits(traits)) } returns NetworkResponse.Error(errorMessage)
 
-        sdk.profile(traits, listener)
+        sdk.profile(traitsRequest, listener)
         advanceUntilIdle()
 
         val slot = slot<OptableResult<OptableTargeting>>()
