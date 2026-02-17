@@ -7,7 +7,10 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import co.optable.android_sdk.*
+import co.optable.android_sdk.OptableIdentifier
+import co.optable.android_sdk.OptableResult
+import co.optable.android_sdk.OptableSDK
+import co.optable.android_sdk.OptableTargeting
 import co.optable.androidsdkdemo.R
 import co.optable.androidsdkdemo.TheApplication
 import com.google.android.gms.ads.admanager.AdManagerAdRequest
@@ -126,8 +129,7 @@ class GamBannerFragment : Fragment() {
             "sampleFloat" to 0.75,
         )
 
-        val traitsRequest = OptableTraits(traits, "c:12", setOf("c:id1", "c:id2"))
-        optable.profile(traitsRequest) { result ->
+        optable.profile(traits, "c:12", setOf("c:id1", "c:id2")) { result ->
             when (result) {
                 is OptableResult.Success<*> -> {
                     appendStatusText("Profile success")

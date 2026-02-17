@@ -1,7 +1,6 @@
 package co.optable.android_sdk.core.network
 
 import co.optable.android_sdk.OptableConfig
-import co.optable.android_sdk.OptableTraits
 import co.optable.android_sdk.core.network.data.TraitsRequest
 import co.optable.android_sdk.core.network.edge.EdgeService
 import com.google.gson.JsonObject
@@ -85,14 +84,13 @@ class NetworkClientTest {
     @Test
     fun profile_shouldReturnSuccess_whenApiCallIsSuccessful() = runBlocking {
         val traits = hashMapOf<String, Any>("key" to "value")
-        val optableTraits = OptableTraits(traits)
-        val traitsRequest = TraitsRequest.from(optableTraits)
+        val traitsRequest = TraitsRequest.from(traits, null, setOf())
         val jsonObject = JsonObject().apply { addProperty("status", "success") }
         val expectedResponse: Response<JsonObject> = Response.success(jsonObject)
 
         `when`(mockEdgeService.profile(traitsRequest)).thenReturn(expectedResponse)
 
-        val result = networkClient.profile(optableTraits)
+        val result = networkClient.profile(traits, null, setOf())
 
         assertTrue(result is NetworkResponse.Success)
         assertEquals(jsonObject, (result as NetworkResponse.Success).result)
@@ -101,14 +99,13 @@ class NetworkClientTest {
     @Test
     fun profile_shouldReturnError_whenApiCallIsUnsuccessful() = runBlocking {
         val traits = hashMapOf<String, Any>("key" to "value")
-        val optableTraits = OptableTraits(traits)
-        val traitsRequest = TraitsRequest.from(optableTraits)
+        val traitsRequest = TraitsRequest.from(traits, null, setOf())
         val errorBody = ResponseBody.create(null, "Error")
         val expectedResponse: Response<JsonObject> = Response.error(400, errorBody)
 
         `when`(mockEdgeService.profile(traitsRequest)).thenReturn(expectedResponse)
 
-        val result = networkClient.profile(optableTraits)
+        val result = networkClient.profile(traits, null, setOf())
 
         assertTrue(result is NetworkResponse.Error)
     }
@@ -116,13 +113,12 @@ class NetworkClientTest {
     @Test
     fun profile_shouldReturnError_whenApiCallThrowsException() = runBlocking {
         val traits = hashMapOf<String, Any>("key" to "value")
-        val optableTraits = OptableTraits(traits)
-        val traitsRequest = TraitsRequest.from(optableTraits)
+        val traitsRequest = TraitsRequest.from(traits, null, setOf())
         val exception = RuntimeException("Network error")
 
         `when`(mockEdgeService.profile(traitsRequest)).thenThrow(exception)
 
-        val result = networkClient.profile(optableTraits)
+        val result = networkClient.profile(traits, null, setOf())
 
         assertTrue(result is NetworkResponse.Error)
         assertEquals(exception.message, (result as NetworkResponse.Error).message)

@@ -1,6 +1,5 @@
 package co.optable.android_sdk.core.network.data
 
-import co.optable.android_sdk.OptableTraits
 import com.google.gson.annotations.SerializedName
 
 data class TraitsRequest(
@@ -13,10 +12,11 @@ data class TraitsRequest(
 ) {
 
     companion object {
-        fun from(domain: OptableTraits): TraitsRequest {
-            val onlyPrimitivesMap = HashMap<String, Any>(domain.traits.size)
-            for (trait in domain.traits) {
-                val isPrimitive = trait.value is Boolean || trait.value is String || trait.value is Int || trait.value is Long || trait.value is Double || trait.value is Float
+        fun from(traits: Map<String, Any>, id: String?, neighbors: Set<String>): TraitsRequest {
+            val onlyPrimitivesMap = HashMap<String, Any>(traits.size)
+            for (trait in traits) {
+                val isPrimitive =
+                    trait.value is Boolean || trait.value is String || trait.value is Int || trait.value is Long || trait.value is Double || trait.value is Float
                 if (isPrimitive) {
                     onlyPrimitivesMap[trait.key] = trait.value
                 } else {
@@ -25,8 +25,8 @@ data class TraitsRequest(
             }
 
             return TraitsRequest(
-                id = domain.id,
-                neighbors = if (domain.neighbors.isEmpty()) null else domain.neighbors.toList(),
+                id = id,
+                neighbors = if (neighbors.isEmpty()) null else neighbors.toList(),
                 traits = onlyPrimitivesMap
             )
         }

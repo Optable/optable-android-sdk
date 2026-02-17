@@ -1,7 +1,6 @@
 package co.optable.android_sdk.core.network
 
 import co.optable.android_sdk.OptableConfig
-import co.optable.android_sdk.OptableTraits
 import co.optable.android_sdk.core.network.data.TraitsRequest
 import co.optable.android_sdk.core.network.edge.EdgeService
 import com.google.gson.JsonObject
@@ -43,9 +42,13 @@ internal class NetworkClient(
         }
     }
 
-    suspend fun profile(traits: OptableTraits): NetworkResponse<JsonObject> {
+    suspend fun profile(
+        traits: Map<String, Any>,
+        id: String?,
+        neighbors: Set<String>,
+    ): NetworkResponse<JsonObject> {
         return runSafe {
-            val request = TraitsRequest.from(traits)
+            val request = TraitsRequest.from(traits, id, neighbors)
             edgeService.profile(request)
         }
     }

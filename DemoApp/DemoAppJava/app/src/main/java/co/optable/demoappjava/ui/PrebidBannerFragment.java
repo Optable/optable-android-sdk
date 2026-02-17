@@ -8,7 +8,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import co.optable.android_sdk.*;
+import co.optable.android_sdk.OptableIdentifier;
+import co.optable.android_sdk.OptableResult;
+import co.optable.android_sdk.OptableSDK;
+import co.optable.android_sdk.OptableTargeting;
 import co.optable.demoappjava.R;
 import co.optable.demoappjava.TheApplication;
 import com.google.android.gms.ads.AdListener;
@@ -175,8 +178,7 @@ public class PrebidBannerFragment extends Fragment {
         traits.put("hasAccount", true);
         traits.put("sampleFloat", 0.75);
 
-        OptableTraits traitsRequest = new OptableTraits(traits, "c:12", Set.of("c:id1", "c:id2"));
-        optable.profile(traitsRequest, result -> {
+        optable.profile(traits, "c:12", Set.of("c:id1", "c:id2"), result -> {
             if (result instanceof OptableResult.Success) {
                 appendStatusText("Profile Success");
             } else if (result instanceof OptableResult.Error<OptableTargeting> error) {

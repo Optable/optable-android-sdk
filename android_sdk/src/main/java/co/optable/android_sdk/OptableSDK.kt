@@ -91,10 +91,22 @@ class OptableSDK(
      * Calls the Optable Sandbox "profile" API to associate the
      * specified key-value traits, which can be subsequently used for
      * audience assembly.
+     *
+     * @param traits Contains an object composed of key / values to be associated with the profile.
+     * Values must be of simple types (String, Int, Boolean, Double) or they will be stringified with `toString`.
+     * @param id The identifier that traits and neighbors will be linked to. This value takes precedence over the passport if provided.
+     * @param neighbors An array of identifiers to link to the id or passport
+     *
      */
-    fun profile(traits: OptableTraits, listener: OptableResultListener<OptableTargeting>) {
+    @JvmOverloads
+    fun profile(
+        traits: Map<String, Any>,
+        id: String? = null,
+        neighbors: Set<String> = emptySet(),
+        listener: OptableResultListener<OptableTargeting>
+    ) {
         scope.launch {
-            val response = networkClient.profile(traits)
+            val response = networkClient.profile(traits, id, neighbors)
 
             MainScope().launch {
                 val optableResult = when (response) {

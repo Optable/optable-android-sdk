@@ -1,6 +1,5 @@
 package co.optable.android_sdk.core
 
-import android.text.TextUtils
 import co.optable.android_sdk.OptableConfig
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import kotlinx.coroutines.GlobalScope
@@ -12,8 +11,8 @@ internal class GoogleAdIdManager(
 ) {
 
     companion object {
-        var adId: String? = null
-        var limitAdTracking: Boolean? = null
+        private var adId: String? = null
+        private var limitAdTracking: Boolean? = null
     }
 
     fun updateAdvertisingId() {
@@ -32,6 +31,9 @@ internal class GoogleAdIdManager(
     }
 
     fun getId(): String? {
+        if (limitAdTracking == true) {
+            return null
+        }
         return adId
     }
 

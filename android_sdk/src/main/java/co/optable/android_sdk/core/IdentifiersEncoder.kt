@@ -98,10 +98,10 @@ internal class IdentifiersEncoder(
             val uri = urlString.lowercase(Locale.ROOT).toUri()
             val id = uri.getQueryParameter("oeid")
 
-            val wrongId = (id == null) || (id.length != 64) || (id.matches("^[a-f0-9]$".toRegex()))
-            if (!wrongId) {
-                return "e:$id"
-            }
+            val wrongId = (id == null) || (id.length != 64) || (!id.matches("^[a-f0-9]+$".toRegex()))
+            if (wrongId) return null
+
+            return "e:$id"
         } catch (e: Exception) {
             Log.e("OptableSDK", "Can't get eid from $urlString", e)
         }

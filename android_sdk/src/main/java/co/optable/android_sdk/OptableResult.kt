@@ -1,5 +1,10 @@
 package co.optable.android_sdk
 
+/**
+ *  A generic wrapper for various OptableSDK result types.
+ *  `Success` represents a successful API call with a result.
+ *  `Error` represents an error result with a message.
+ */
 sealed class OptableResult<T> {
 
     data class Success<T>(

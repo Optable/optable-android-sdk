@@ -159,58 +159,49 @@ Sensitive data as email and phone number encrypted using SHA256.
 #### Kotlin
 
 ```kotlin
-val ids = OptableIdentifiers(
-    email = "john.doe+test@example.com",
-    phoneNumber = "+1(555)1234567",
-    postalCode = "12345",
-    ipv4Address = "192.168.0.1",
-    ipv6Address = "2001:db8::1",
-    appleIdfa = "a1b2c3d4-e5f6-7890-abcd-ef0123456789",
-    googleGaid = "38400000-8cf0-11bd-b23e-10b96e40000d",
-    rokuRida = "roku-rida-123",
-    samsungTifa = "tifaabc",
-    amazonFireAfai = "afaixyz",
-    netId = "netid123",
-    id5 = "id5token",
-    utiq = "utiqvalue",
-    custom = mapOf(
-        "v" to "vidvalue",
-        "c1" to "custom one"
-    ),
-    raw = listOf("raw:alreadyEncoded", "ultra:someRawValue")
+val ids = listOf(
+  OptableIdentifier.Email("john.doe+test@example.com"),
+  OptableIdentifier.PhoneNumber("+1(555)1234567"),
+  OptableIdentifier.PostalCode("12345"),
+  OptableIdentifier.IPv4("192.168.0.1"),
+  OptableIdentifier.IPv6("2001:db8::1"),
+  OptableIdentifier.AppleIdfa("a1b2c3d4-e5f6-7890-abcd-ef0123456789"),
+  OptableIdentifier.GoogleGaid("38400000-8cf0-11bd-b23e-10b96e40000d"),
+  OptableIdentifier.RokuRida("roku-rida-123"),
+  OptableIdentifier.SamsungTifa("tifaabc"),
+  OptableIdentifier.AmazonFireAfai("afaixyz"),
+  OptableIdentifier.NetId("netid123"),
+  OptableIdentifier.ID5("id5token"),
+  OptableIdentifier.Utiq("utiqvalue"),
+  OptableIdentifier.Custom("v", "vidvalue"),
+  OptableIdentifier.Custom("c1", "custom one"),
+  OptableIdentifier.Raw("raw:alreadyEncoded"),
+  OptableIdentifier.Raw("ultra:someRawValue")
 )
 ```
 
 #### Java
 
-You can use the Builder pattern for Java implementation. 
-
 ```java
-OptableIdentifiers ids = new OptableIdentifiers.Builder()
-        .email("john.doe+test@example.com")
-        .phoneNumber("+1(555)1234567")
-        .postalCode("12345")
-        .ipv4Address("192.168.0.1")
-        .ipv6Address("2001:db8::1")
-        .appleIdfa("a1b2c3d4-e5f6-7890-abcd-ef0123456789")
-        .googleGaid("38400000-8cf0-11bd-b23e-10b96e40000d")
-        .rokuRida("roku-rida-123")
-        .samsungTifa("tifaabc")
-        .amazonFireAfai("afaixyz")
-        .netId("netid123")
-        .id5("id5token")
-        .utiq("utiqvalue")
-        .custom(Map.of("v", "vidvalue", "c1", "custom one"))
-        .raw(List.of("raw:alreadyEncoded", "ultra:someRawValue"))
-        .build();
-```
-
-Additionally, you can set automatic fetching GAID if it is available. It will be ignored if `googleGaid` is set. 
-
-```kotlin
-val ids = OptableIdentifiers(
-    receiveGaidAutomatically = true
-)
+ArrayList<OptableIdentifier> ids = Lists.newArrayList(
+  new OptableIdentifier.Email("john.doe+test@example.com"),
+  new OptableIdentifier.PhoneNumber("+1(555)1234567"),
+  new OptableIdentifier.PostalCode("12345"),
+  new OptableIdentifier.IPv4("192.168.0.1"),
+  new OptableIdentifier.IPv6("2001:db8::1"),
+  new OptableIdentifier.AppleIdfa("a1b2c3d4-e5f6-7890-abcd-ef0123456789"),
+  new OptableIdentifier.GoogleGaid("38400000-8cf0-11bd-b23e-10b96e40000d"),
+  new OptableIdentifier.RokuRida("roku-rida-123"),
+  new OptableIdentifier.SamsungTifa("tifaabc"),
+  new OptableIdentifier.AmazonFireAfai("afaixyz"),
+  new OptableIdentifier.NetId("netid123"),
+  new OptableIdentifier.ID5("id5token"),
+  new OptableIdentifier.Utiq("utiqvalue"),
+  new OptableIdentifier.Custom("v", "vidvalue"),
+  new OptableIdentifier.Custom("c1", "custom one"),
+  new OptableIdentifier.Raw("raw:alreadyEncoded"),
+  new OptableIdentifier.Raw("ultra:someRawValue")
+);
 ```
 
 ### Identify API
@@ -221,9 +212,9 @@ the Google Advertising ID, or even your own vendor or app level `PPID`, you can 
 #### Kotlin
 
 ```kotlin
-val ids = OptableIdentifiers(
-  email = "some.email@address.com",
-  raw = listOf("c:my-id-123")
+val ids = listOf(
+  OptableIdentifier.Email("john.doe+test@example.com"),
+  OptableIdentifier.PhoneNumber("+1(555)1234567")
 )
 optable.identify(ids) { result ->
   val msg = when (result) {
@@ -237,10 +228,10 @@ optable.identify(ids) { result ->
 #### Java
 
 ```java
-OptableIdentifiers ids = new OptableIdentifiers.Builder()
-        .email("some.email@address.com")
-        .raw(Lists.newArrayList("c:my-id-123"))
-        .build();
+ArrayList<OptableIdentifier> ids = Lists.newArrayList(
+    new OptableIdentifier.Email("john.doe+test@example.com"),
+    new OptableIdentifier.PhoneNumber("+1(555)1234567")
+);
 optable.identify(ids, result -> {
     if (result instanceof OptableResult.Success) {
         Log.d(TAG, "Identify success");
@@ -257,18 +248,6 @@ The frequency of invocation of `identify` is up to you, however for optimal iden
 the `identify()` method on your SDK instance every time you authenticate a user, as well as periodically, such as for
 example once every 15 to 60 minutes while the application is being actively used and an internet connection is
 available.
-
-Alternatively, you can use simplified identify: 
-
-```kotlin
-optable.identify(email, true, "ppid") { result ->
-    ...
-}
-```
-
-The second (`sendGoogleAdIDBoolean`) and third (`ppid`) arguments to `identify()` are optional. Since the `gaid` value provided to `identify()` is `true`, the SDK will fetch and send the Google
-Advertising ID in the call to `identify` too, unless the user has turned on "Limit ad tracking" in their Google device
-advertising settings.
 
 
 ### Profile API
@@ -314,6 +293,12 @@ The specified traits are associated with the user's device and can be used for m
 traits are of type `HashMap<String, Any>`, and should consist only of key-value pairs where the key is a string and the value is either a string, number, or
 boolean.
 
+Additionally you can provide `id` and `neighbors` to associate the profile with other identifiers. The `id` parameter takes precedence over the passport if provided.
+
+```kotlin
+optable.profile(traits, "c:12", setOf("c:id1", "c:id2")) { ... }
+```
+
 ### Targeting API
 
 To get the targeting key values associated by the configured DCN with the device in real-time, you can call the
@@ -322,7 +307,9 @@ To get the targeting key values associated by the configured DCN with the device
 #### Kotlin
 
 ```kotlin
-val ids = OptableIdentifiers(email = "test@test.com")
+val ids = listOf(
+  OptableIdentifier.Email("test@test.com"),
+)
 optable.targeting(ids) { result ->
     val requestBuilder = AdManagerAdRequest.Builder()
 
@@ -344,7 +331,9 @@ optable.targeting(ids) { result ->
 #### Java
 
 ```java
-OptableIdentifiers ids = new OptableIdentifiers.Builder().email("test@test.com").build();
+ArrayList<OptableIdentifier> ids = Lists.newArrayList(
+        new OptableIdentifier.Email("test@test.com")
+)
 optable.targeting(ids, result -> {
     if (result instanceof OptableResult.Success<OptableTargeting> success) {
         Map<String, List<String>> audiences = success.getData().getAudiences();
@@ -469,7 +458,7 @@ private fun onClickLoadAd() {
 private fun applyOptableToGam(builder: AdManagerAdRequest.Builder, targeting: OptableTargeting?) {
   if (targeting == null) return
 
-  val audiences = targeting.audiences
+  val audiences = targeting.gamTargetingKeywords
   if (audiences != null) {
     for (entry in audiences.entries) {
       builder.addCustomTargeting(entry.key, entry.value)
@@ -500,7 +489,7 @@ private fun applyOptableToGam(builder: AdManagerAdRequest.Builder, targeting: Op
     private void applyOptableToGam(AdManagerAdRequest.Builder builder, @Nullable OptableTargeting targeting) {
       if (targeting == null) return;
     
-      Map<String, List<String>> audiences = targeting.getAudiences();
+      Map<String, List<String>> audiences = targeting.getGamTargetingKeywords();
       if (audiences != null) {
         for (Map.Entry<String, List<String>> entry : audiences.entrySet()) {
           builder.addCustomTargeting(entry.getKey(), entry.getValue());
