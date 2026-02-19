@@ -11,11 +11,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import co.optable.android_sdk.OptableIdentifier;
-import co.optable.android_sdk.OptableResult;
-import co.optable.android_sdk.OptableSDK;
 import co.optable.demoappjava.R;
 import co.optable.demoappjava.TheApplication;
+import co.optable.sdk.OptableIdentifier;
+import co.optable.sdk.OptableResult;
+import co.optable.sdk.OptableSDK;
 import com.google.common.collect.Lists;
 import kotlin.Unit;
 

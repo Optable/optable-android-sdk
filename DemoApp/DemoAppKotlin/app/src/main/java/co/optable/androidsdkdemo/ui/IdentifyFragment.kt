@@ -10,11 +10,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import co.optable.android_sdk.OptableIdentifier
-import co.optable.android_sdk.OptableResult
-import co.optable.android_sdk.OptableSDK
 import co.optable.androidsdkdemo.R
 import co.optable.androidsdkdemo.TheApplication
+import co.optable.sdk.OptableIdentifier
+import co.optable.sdk.OptableResult
+import co.optable.sdk.OptableSDK
 import java.nio.charset.StandardCharsets
 
 

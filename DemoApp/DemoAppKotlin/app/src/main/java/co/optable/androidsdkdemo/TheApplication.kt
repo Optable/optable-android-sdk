@@ -1,8 +1,8 @@
 package co.optable.androidsdkdemo
 
 import android.app.Application
-import co.optable.android_sdk.OptableConfig
-import co.optable.android_sdk.OptableSDK
+import co.optable.sdk.OptableConfig
+import co.optable.sdk.OptableSDK
 
 class TheApplication : Application() {
 
