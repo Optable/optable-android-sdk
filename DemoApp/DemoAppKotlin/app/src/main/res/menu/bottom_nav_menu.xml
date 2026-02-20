@@ -4,11 +4,16 @@
     <item
         android:id="@+id/navigation_identify"
         android:icon="@drawable/ic_identify_black"
-        android:title="@string/identify_api" />
+        android:title="Identify API" />
 
     <item
         android:id="@+id/navigation_gambanner"
         android:icon="@drawable/ic_gambanner_black_24dp"
-        android:title="@string/gam_banner" />
+        android:title="GAM Banner" />
+
+    <item
+        android:id="@+id/navigation_prebid"
+        android:icon="@drawable/ic_gambanner_black_24dp"
+        android:title="Prebid Banner" />
 
 </menu>

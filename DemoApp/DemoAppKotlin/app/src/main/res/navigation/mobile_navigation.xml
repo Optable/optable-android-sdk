@@ -7,14 +7,20 @@
 
     <fragment
         android:id="@+id/navigation_identify"
-        android:name="co.optable.androidsdkdemo.ui.Identify.IdentifyFragment"
-        android:label="@string/title_identify"
+        android:name="co.optable.androidsdkdemo.ui.IdentifyFragment"
+        android:label="Identify API"
         tools:layout="@layout/fragment_identify" />
 
     <fragment
         android:id="@+id/navigation_gambanner"
-        android:name="co.optable.androidsdkdemo.ui.GAMBanner.GAMBannerFragment"
-        android:label="@string/title_gambanner"
+        android:name="co.optable.androidsdkdemo.ui.GamBannerFragment"
+        android:label="GAM Banner"
         tools:layout="@layout/fragment_gambanner" />
+
+    <fragment
+        android:id="@+id/navigation_prebid"
+        android:name="co.optable.androidsdkdemo.ui.PrebidBannerFragment"
+        android:label="Prebid Banner"
+        tools:layout="@layout/fragment_prebid" />
 
 </navigation>

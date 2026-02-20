@@ -1,27 +1,26 @@
 plugins {
     id("com.android.library") version "8.9.3"
     id("org.jetbrains.kotlin.android") version "2.0.21"
-    id("de.nanogiants.android-versioning") version "2.4.0"
+    id("org.jetbrains.kotlinx.kover") version "0.9.4"
 }
 
 android {
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         namespace "co.optable"
         minSdkVersion 23
-        targetSdkVersion 34
+        targetSdkVersion 35
 
-        // Here we get version code and version name from latest git release tags:
-        versionCode versioning.getVersionCode()
-        versionName versioning.getVersionName(false)
+        versionCode optableVersionCode as Integer
+        versionName optableVersionName
         archivesBaseName = "optable-android-sdk"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
 
-        buildConfigField "String", "VERSION_NAME", "\"${versioning.getVersionName(false)}\""
-        buildConfigField "String", "VERSION_CODE", "\"${versioning.getVersionCode().toString()}\""
+        buildConfigField "String", "VERSION_CODE", "\"${optableVersionCode}\""
+        buildConfigField "String", "VERSION_NAME", "\"${optableVersionName}\""
     }
 
     buildTypes {
@@ -65,9 +64,33 @@ dependencies {
 
     // Unit tests
     testImplementation("junit:junit:4.13.2")
+
+    testImplementation("org.mockito:mockito-core:5.12.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+    testImplementation("io.mockk:mockk:1.13.17")
+
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     testImplementation("org.robolectric:robolectric:4.16")
 
     // UI tests
     androidTestImplementation 'androidx.test.ext:junit:1.3.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
+}
+
+kover {
+    currentProject {
+        instrumentation {
+            excludedClasses.add("**.BuildConfig")
+        }
+
+        reports {
+            filters {
+                excludes {
+                    classes("**.BuildConfig")
+                    annotatedBy("kotlin.jvm.JvmOverloads")
+                }
+            }
+        }
+    }
 }

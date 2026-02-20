@@ -16,4 +16,9 @@ dependencyResolutionManagement {
 }
 
 include ':app'
+includeBuild("../..") {
+    dependencySubstitution {
+        substitute(module("co.optable:local-sdk")).using(project(":android_sdk"))
+    }
+}
 rootProject.name = "DemoJava"
