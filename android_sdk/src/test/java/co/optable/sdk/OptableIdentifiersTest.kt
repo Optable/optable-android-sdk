@@ -178,10 +178,19 @@ class OptableIdentifiersTest {
 
     @Test
     fun `custom gaid`() {
-        every { mockGoogleAdIdManager.getId() } returns "managerId"
+        every { mockGoogleAdIdManager.getId() } returns null
 
         val actual = identifiersEncoder.encode(listOf(OptableIdentifier.GoogleGaid("customId")))
         val expected = listOf("g:customid")
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `both gaids, manager win`() {
+        every { mockGoogleAdIdManager.getId() } returns "managerId"
+
+        val actual = identifiersEncoder.encode(listOf(OptableIdentifier.GoogleGaid("customId")))
+        val expected = listOf("g:managerId")
         assertEquals(expected, actual)
     }
 

@@ -60,7 +60,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.9.4"
 
     // Advertising ID
-    implementation 'com.google.android.gms:play-services-ads-identifier:18.2.0'
+    implementation 'com.google.android.gms:play-services-ads-identifier:18.3.0'
 
     // Unit tests
     testImplementation("junit:junit:4.13.2")
