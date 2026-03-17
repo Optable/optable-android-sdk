@@ -13,7 +13,7 @@ class TheApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        val config = OptableConfig(this, "prebidtest", "js-sdk")
+        val config = OptableConfig(this, "prebidtest", "android-sdk")
         optable = OptableSDK(config)
     }
 
