@@ -36,7 +36,7 @@ internal class IdentifiersEncoder(
 
         val googleAdId = googleAdIdManager.getId()
         if (googleAdId != null) {
-            result.addIfNotNull(GAID, googleAdId, ::trim)
+            result.addIfNotNull(GAID, googleAdId, ::normalize)
         }
 
         for (identifier in identifiers) {
@@ -55,9 +55,7 @@ internal class IdentifiersEncoder(
                 is OptableIdentifier.Utiq -> result.addIfNotNull(UTIQ, identifier.value, ::normalize)
 
                 is OptableIdentifier.GoogleGaid -> {
-                    if (googleAdId == null) {
-                        result.addIfNotNull(GAID, identifier.value, ::normalize)
-                    }
+                    result.addIfNotNull(GAID, identifier.value, ::normalize)
                 }
 
                 is OptableIdentifier.Custom -> {
