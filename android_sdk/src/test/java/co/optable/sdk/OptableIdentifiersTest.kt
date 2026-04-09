@@ -195,6 +195,15 @@ class OptableIdentifiersTest {
     }
 
     @Test
+    fun `both gaids equals, send only one`() {
+        every { mockGoogleAdIdManager.getId() } returns "sameId"
+
+        val actual = identifiersEncoder.encode(listOf(OptableIdentifier.GoogleGaid("sameid")))
+        val expected = listOf("g:sameid")
+        assertEquals(expected, actual)
+    }
+
+    @Test
     fun `gaid from manager`() {
         every { mockGoogleAdIdManager.getId() } returns "managerId"
 

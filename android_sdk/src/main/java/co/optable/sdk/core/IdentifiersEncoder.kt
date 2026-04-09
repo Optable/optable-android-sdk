@@ -55,6 +55,9 @@ internal class IdentifiersEncoder(
                 is OptableIdentifier.Utiq -> result.addIfNotNull(UTIQ, identifier.value, ::normalize)
 
                 is OptableIdentifier.GoogleGaid -> {
+                    if (normalize(googleAdId ?: "") == normalize(identifier.value)) {
+                        continue
+                    }
                     result.addIfNotNull(GAID, identifier.value, ::normalize)
                 }
 
