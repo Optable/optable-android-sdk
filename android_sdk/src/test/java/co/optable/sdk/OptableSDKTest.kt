@@ -45,8 +45,10 @@ class OptableSDKTest {
         mockkStatic(Log::class)
         every { Log.e(any(), any()) } returns 0
         every { Log.e(any(), any(), any()) } returns 0
+        every { Log.w(any(), any<String>()) } returns 0
 
         mockkStatic(Base64::class)
+
         every { Base64.encodeToString(any(), any()) } returns "mockedBase64String"
 
         sdk = OptableSDK(mockConfig)

@@ -38,8 +38,8 @@ class OptableSDK(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + ceh)
 
     init {
-        if (!config.skipAdvertisingIdDetection) {
-            googleAdIdManager.updateAdvertisingId()
+        scope.launch {
+            googleAdIdManager.fetchAdvertisingId()
         }
     }
 
@@ -49,6 +49,7 @@ class OptableSDK(
      */
     fun identify(ids: List<OptableIdentifier>, listener: OptableResultListener<Unit>) {
         scope.launch {
+            googleAdIdManager.deferredTask.await()
             val encodedIds = identifiersEncoder.encode(ids)
             val response = networkClient.identify(encodedIds)
 
@@ -135,6 +136,7 @@ class OptableSDK(
      */
     fun targeting(ids: List<OptableIdentifier>, listener: OptableResultListener<OptableTargeting>) {
         scope.launch {
+            googleAdIdManager.deferredTask.await()
             val ids = identifiersEncoder.encode(ids)
             val response = networkClient.targeting(ids)
 

@@ -34,7 +34,11 @@ internal class IdentifiersEncoder(
     fun encode(identifiers: List<OptableIdentifier>): List<String> {
         val result = mutableListOf<String>()
 
-        var containsCustomGaid = false
+        val googleAdId = googleAdIdManager.getId()
+        if (googleAdId != null) {
+            result.addIfNotNull(GAID, googleAdId, ::normalize)
+        }
+
         for (identifier in identifiers) {
             when (identifier) {
                 is OptableIdentifier.Email -> result.addIfNotNull(EMAIL, identifier.value, ::encrypt)
@@ -51,8 +55,10 @@ internal class IdentifiersEncoder(
                 is OptableIdentifier.Utiq -> result.addIfNotNull(UTIQ, identifier.value, ::normalize)
 
                 is OptableIdentifier.GoogleGaid -> {
+                    if (normalize(googleAdId ?: "") == normalize(identifier.value)) {
+                        continue
+                    }
                     result.addIfNotNull(GAID, identifier.value, ::normalize)
-                    containsCustomGaid = true
                 }
 
                 is OptableIdentifier.Custom -> {
@@ -67,10 +73,6 @@ internal class IdentifiersEncoder(
             }
         }
 
-        val googleAdId = googleAdIdManager.getId()
-        if (!containsCustomGaid && googleAdId != null) {
-            result.addIfNotNull(GAID, googleAdId, ::trim)
-        }
 
         return result
     }
