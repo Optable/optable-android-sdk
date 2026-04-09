@@ -604,3 +604,13 @@ To build the Kotlin demo app, from [Android Studio](https://developer.android.co
 open the `DemoApp/DemoAppKotlin` directory. To build the Java demo app, open the `DemoApp/DemoAppJava` directory. In
 both cases, you should be able to build and run the resulting project directly, since it will automatically download the
 `co.optable.android_sdk` library from the [JitPack](https://jitpack.io/) Maven repository.
+
+### Development
+
+Test coverage is measured using the Kotlinx Kover plugin. To generate a report, run the following command:
+
+```bash
+./gradlew android_sdk:koverHtmlReportDebug
+```
+
+The HTML report will be available at `./android_sdk/build/reports/kover/htmlDebug/index.html`.
