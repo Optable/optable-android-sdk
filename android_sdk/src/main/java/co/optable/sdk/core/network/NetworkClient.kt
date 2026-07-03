@@ -53,9 +53,16 @@ internal class NetworkClient(
         }
     }
 
-    suspend fun targeting(ids: List<String>): NetworkResponse<JsonObject> {
+    suspend fun targeting(
+        ids: List<String>,
+        hids: List<String>,
+        bundle: String?,
+        version: String?,
+        userAgent: String?,
+        id5Signature: String?,
+    ): NetworkResponse<JsonObject> {
         return runSafe {
-            edgeService.targeting(ids)
+            edgeService.targeting(ids, hids, bundle, version, userAgent, id5Signature)
         }
     }
 

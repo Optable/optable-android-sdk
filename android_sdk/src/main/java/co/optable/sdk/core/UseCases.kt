@@ -14,6 +14,33 @@ class UseCases {
         return OptableTargeting(gamTargetingKeywords, openRtbJson, targetingData)
     }
 
+    fun parseId5Signature(responseJson: JsonObject): String? {
+        try {
+            val eids = responseJson
+                .getAsJsonObject("ortb2")
+                ?.getAsJsonObject("user")
+                ?.getAsJsonArray("eids") ?: return null
+
+            for (eid in eids) {
+                val eidObj = eid.asJsonObject
+                val source = eidObj.get("source")?.asString
+                if (source == null || !source.contains("id5", ignoreCase = true)) continue
+
+                val uids = eidObj.getAsJsonArray("uids") ?: continue
+                for (uid in uids) {
+                    val signature = uid.asJsonObject
+                        .getAsJsonObject("ext")
+                        ?.get("signature")
+                        ?.asString
+                    if (!signature.isNullOrBlank()) return signature
+                }
+            }
+        } catch (e: Exception) {
+            Log.d("OptableSDK", "Can't parse ID5 signature: ${e.message}")
+        }
+        return null
+    }
+
     private fun parseTargetingData(responseJson: JsonObject): JSONObject {
         var targetingData = JSONObject()
         try {

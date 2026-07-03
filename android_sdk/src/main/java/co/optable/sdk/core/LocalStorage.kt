@@ -28,6 +28,7 @@ internal class LocalStorage(
     private val prefs = PreferenceManager.getDefaultSharedPreferences(config.context)
     private val passportKey = generateUniqueKey("PASS", config)
     private val targetingKey = generateUniqueKey("TGT", config)
+    private val id5SignatureKey = generateUniqueKey("ID5SIG", config)
 
     fun getPassport(): String? {
         return prefs.getString(passportKey, null)
@@ -63,6 +64,16 @@ internal class LocalStorage(
     fun clearTargeting() {
         prefs.edit(commit = true) {
             remove(targetingKey)
+        }
+    }
+
+    fun getId5Signature(): String? {
+        return prefs.getString(id5SignatureKey, null)
+    }
+
+    fun setId5Signature(signature: String) {
+        prefs.edit(commit = true) {
+            putString(id5SignatureKey, signature)
         }
     }
 

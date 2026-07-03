@@ -129,9 +129,9 @@ class NetworkClientTest {
         val jsonObject = JsonObject().apply { addProperty("targetingKey", "targetingValue") }
         val expectedResponse: Response<JsonObject> = Response.success(jsonObject)
 
-        `when`(mockEdgeService.targeting(emptyList())).thenReturn(expectedResponse)
+        `when`(mockEdgeService.targeting(emptyList(), emptyList(), null, null, null, null)).thenReturn(expectedResponse)
 
-        val result = networkClient.targeting(emptyList())
+        val result = networkClient.targeting(emptyList(), emptyList(), null, null, null, null)
 
         assertTrue(result is NetworkResponse.Success)
         assertEquals(jsonObject, (result as NetworkResponse.Success).result)
@@ -142,9 +142,9 @@ class NetworkClientTest {
         val errorBody = ResponseBody.create(null, "Error")
         val expectedResponse: Response<JsonObject> = Response.error(500, errorBody)
 
-        `when`(mockEdgeService.targeting(emptyList())).thenReturn(expectedResponse)
+        `when`(mockEdgeService.targeting(emptyList(), emptyList(), null, null, null, null)).thenReturn(expectedResponse)
 
-        val result = networkClient.targeting(emptyList())
+        val result = networkClient.targeting(emptyList(), emptyList(), null, null, null, null)
 
         assertTrue(result is NetworkResponse.Error)
     }
@@ -153,12 +153,28 @@ class NetworkClientTest {
     fun targeting_shouldReturnError_whenApiCallThrowsException() = runBlocking {
         val exception = RuntimeException("Network error")
 
-        `when`(mockEdgeService.targeting(emptyList())).thenThrow(exception)
+        `when`(mockEdgeService.targeting(emptyList(), emptyList(), null, null, null, null)).thenThrow(exception)
 
-        val result = networkClient.targeting(emptyList())
+        val result = networkClient.targeting(emptyList(), emptyList(), null, null, null, null)
 
         assertTrue(result is NetworkResponse.Error)
         assertEquals(exception.message, (result as NetworkResponse.Error).message)
+    }
+
+    @Test
+    fun targeting_shouldForwardAllParamsToEdgeService() = runBlocking {
+        val jsonObject = JsonObject()
+        val expectedResponse: Response<JsonObject> = Response.success(jsonObject)
+        val ids = listOf("e:abc")
+        val hids = listOf("i6:2001:db8::1")
+
+        `when`(mockEdgeService.targeting(ids, hids, "co.optable.app", "1.2.3", "ua-string", "sig"))
+            .thenReturn(expectedResponse)
+
+        val result = networkClient.targeting(ids, hids, "co.optable.app", "1.2.3", "ua-string", "sig")
+
+        assertTrue(result is NetworkResponse.Success)
+        assertEquals(jsonObject, (result as NetworkResponse.Success).result)
     }
 
     @Test

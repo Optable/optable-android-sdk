@@ -2,9 +2,11 @@ package co.optable.sdk
 
 import android.util.Base64
 import android.util.Log
+import co.optable.sdk.core.AppInfoHolder
 import co.optable.sdk.core.ConsentsManager
 import co.optable.sdk.core.LocalStorage
 import co.optable.sdk.core.UseCases
+import co.optable.sdk.core.UserAgentHolder
 import co.optable.sdk.core.network.NetworkClient
 import co.optable.sdk.core.network.NetworkResponse
 import com.google.gson.JsonObject
@@ -39,7 +41,9 @@ class OptableSDKTest {
         every { mockConfig.getBaseUrl() } returns "https://test.com"
         mockNetworkClient = mockk()
         mockStorage = mockk(relaxed = true)
+        every { mockStorage.getId5Signature() } returns null
         mockUseCases = mockk()
+        every { mockUseCases.parseId5Signature(any()) } returns null
         mockConsentsManager = mockk(relaxed = true)
 
         mockkStatic(Log::class)
@@ -182,7 +186,9 @@ class OptableSDKTest {
         val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
         val targetingJson = JsonObject()
         val expectedTargeting = mockk<OptableTargeting>()
-        coEvery { mockNetworkClient.targeting(emptyList()) } returns NetworkResponse.Success(targetingJson)
+        coEvery {
+            mockNetworkClient.targeting(emptyList(), emptyList(), any(), any(), any(), any())
+        } returns NetworkResponse.Success(targetingJson)
         every { mockUseCases.parseTargetingResponse(targetingJson) } returns expectedTargeting
 
         sdk.targeting(emptyList(), listener)
@@ -199,7 +205,9 @@ class OptableSDKTest {
     fun `targeting error should call listener with error`() = runTest(testDispatcher) {
         val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
         val errorMessage = "Targeting Failure"
-        coEvery { mockNetworkClient.targeting(emptyList()) } returns NetworkResponse.Error(errorMessage)
+        coEvery {
+            mockNetworkClient.targeting(emptyList(), emptyList(), any(), any(), any(), any())
+        } returns NetworkResponse.Error(errorMessage)
 
         sdk.targeting(emptyList(), listener)
         advanceUntilIdle()
@@ -208,6 +216,116 @@ class OptableSDKTest {
         val slot = slot<OptableResult<OptableTargeting>>()
         verify { listener.onComplete(capture(slot)) }
         assertTrue(slot.captured is OptableResult.Error)
+    }
+
+    @Test
+    fun `targeting forwards encoded hints and cached id5 signature`() = runTest(testDispatcher) {
+        val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
+        val targetingJson = JsonObject()
+        val expectedTargeting = mockk<OptableTargeting>()
+        every { mockStorage.getId5Signature() } returns "sig-xyz"
+        coEvery {
+            mockNetworkClient.targeting(any(), any(), any(), any(), any(), any())
+        } returns NetworkResponse.Success(targetingJson)
+        every { mockUseCases.parseTargetingResponse(targetingJson) } returns expectedTargeting
+
+        val hids = listOf(OptableIdentifier.IPv6("2001:DB8::1"))
+        sdk.targeting(emptyList(), hids, listener)
+        advanceUntilIdle()
+
+        coVerify {
+            mockNetworkClient.targeting(
+                emptyList(),
+                listOf("i6:2001:db8::1"),
+                any(),
+                any(),
+                any(),
+                "sig-xyz",
+            )
+        }
+    }
+
+    @Test
+    fun `targeting stores id5 signature extracted from response`() = runTest(testDispatcher) {
+        val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
+        val targetingJson = JsonObject()
+        coEvery {
+            mockNetworkClient.targeting(any(), any(), any(), any(), any(), any())
+        } returns NetworkResponse.Success(targetingJson)
+        every { mockUseCases.parseTargetingResponse(targetingJson) } returns mockk()
+        every { mockUseCases.parseId5Signature(targetingJson) } returns "new-sig"
+
+        sdk.targeting(emptyList(), listener)
+        advanceUntilIdle()
+
+        verify { mockStorage.setId5Signature("new-sig") }
+    }
+
+    @Test
+    fun `targeting keeps previous id5 signature when response has none`() = runTest(testDispatcher) {
+        val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
+        val targetingJson = JsonObject()
+        coEvery {
+            mockNetworkClient.targeting(any(), any(), any(), any(), any(), any())
+        } returns NetworkResponse.Success(targetingJson)
+        every { mockUseCases.parseTargetingResponse(targetingJson) } returns mockk()
+        every { mockUseCases.parseId5Signature(targetingJson) } returns null
+
+        sdk.targeting(emptyList(), listener)
+        advanceUntilIdle()
+
+        verify(exactly = 0) { mockStorage.setId5Signature(any()) }
+    }
+
+    @Test
+    fun `targeting forwards app info when sendAppInfo is true`() = runTest(testDispatcher) {
+        injectAppInfo(bundle = "co.optable.app", appVersion = "1.2.3", userAgent = "ua-string")
+
+        val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
+        val targetingJson = JsonObject()
+        coEvery {
+            mockNetworkClient.targeting(any(), any(), any(), any(), any(), any())
+        } returns NetworkResponse.Success(targetingJson)
+        every { mockUseCases.parseTargetingResponse(targetingJson) } returns mockk()
+
+        sdk.targeting(emptyList(), listener)
+        advanceUntilIdle()
+
+        // Pins both the gate (true -> forwarded) and the holder field -> param position mapping.
+        coVerify {
+            mockNetworkClient.targeting(emptyList(), emptyList(), "co.optable.app", "1.2.3", "ua-string", null)
+        }
+    }
+
+    @Test
+    fun `targeting suppresses app info when sendAppInfo is false`() = runTest(testDispatcher) {
+        injectAppInfo(bundle = "co.optable.app", appVersion = "1.2.3", userAgent = "ua-string")
+
+        val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
+        val targetingJson = JsonObject()
+        coEvery {
+            mockNetworkClient.targeting(any(), any(), any(), any(), any(), any())
+        } returns NetworkResponse.Success(targetingJson)
+        every { mockUseCases.parseTargetingResponse(targetingJson) } returns mockk()
+
+        sdk.targeting(emptyList(), listener)
+        advanceUntilIdle()
+
+        coVerify {
+            mockNetworkClient.targeting(emptyList(), emptyList(), null, null, null, null)
+        }
+    }
+
+    private fun injectAppInfo(bundle: String?, appVersion: String?, userAgent: String?) {
+        val mockAppInfoHolder = mockk<AppInfoHolder> {
+            every { this@mockk.bundle } returns bundle
+            every { this@mockk.appVersion } returns appVersion
+        }
+        val mockUserAgentHolder = mockk<UserAgentHolder> {
+            every { getUserAgent() } returns userAgent
+        }
+        setPrivateField(sdk, "appInfoHolder", mockAppInfoHolder)
+        setPrivateField(sdk, "userAgentHolder", mockUserAgentHolder)
     }
 
     @Test
