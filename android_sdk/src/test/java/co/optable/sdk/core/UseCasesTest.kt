@@ -93,15 +93,27 @@ class UseCasesTest {
           "uids": [
             {
               "id": "ID5-abc",
-              "atype": 1,
+              "atype": 2,
               "ext": {
-                "linkType": 2,
-                "signature": "id5-signature-value"
+                "linktype": 2,
+                "optable": {
+                  "ref": "0"
+                }
               }
             }
           ]
         }
       ]
+    }
+  },
+  "refs": {
+    "0": {
+      "created_at": "2026-07-14T22:20:25Z",
+      "signature": "id5-signature-value",
+      "privacy": {
+        "jurisdiction": "other",
+        "id5_consent": true
+      }
     }
   }
 }

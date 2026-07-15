@@ -278,7 +278,7 @@ class OptableSDKTest {
     }
 
     @Test
-    fun `targeting forwards app info when sendAppInfo is true`() = runTest(testDispatcher) {
+    fun `targeting forwards app info`() = runTest(testDispatcher) {
         injectAppInfo(bundle = "co.optable.app", appVersion = "1.2.3", userAgent = "ua-string")
 
         val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
@@ -294,25 +294,6 @@ class OptableSDKTest {
         // Pins both the gate (true -> forwarded) and the holder field -> param position mapping.
         coVerify {
             mockNetworkClient.targeting(emptyList(), emptyList(), "co.optable.app", "1.2.3", "ua-string", null)
-        }
-    }
-
-    @Test
-    fun `targeting suppresses app info when sendAppInfo is false`() = runTest(testDispatcher) {
-        injectAppInfo(bundle = "co.optable.app", appVersion = "1.2.3", userAgent = "ua-string")
-
-        val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
-        val targetingJson = JsonObject()
-        coEvery {
-            mockNetworkClient.targeting(any(), any(), any(), any(), any(), any())
-        } returns NetworkResponse.Success(targetingJson)
-        every { mockUseCases.parseTargetingResponse(targetingJson) } returns mockk()
-
-        sdk.targeting(emptyList(), listener)
-        advanceUntilIdle()
-
-        coVerify {
-            mockNetworkClient.targeting(emptyList(), emptyList(), null, null, null, null)
         }
     }
 

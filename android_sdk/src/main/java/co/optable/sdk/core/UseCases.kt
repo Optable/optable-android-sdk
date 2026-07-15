@@ -21,6 +21,8 @@ class UseCases {
                 ?.getAsJsonObject("user")
                 ?.getAsJsonArray("eids") ?: return null
 
+            val refs = responseJson.getAsJsonObject("refs")
+
             for (eid in eids) {
                 val eidObj = eid.asJsonObject
                 val source = eidObj.get("source")?.asString
@@ -28,8 +30,14 @@ class UseCases {
 
                 val uids = eidObj.getAsJsonArray("uids") ?: continue
                 for (uid in uids) {
-                    val signature = uid.asJsonObject
+                    val ref = uid.asJsonObject
                         .getAsJsonObject("ext")
+                        ?.getAsJsonObject("optable")
+                        ?.get("ref")
+                        ?.asString ?: continue
+
+                    val signature = refs
+                        ?.getAsJsonObject(ref)
                         ?.get("signature")
                         ?.asString
                     if (!signature.isNullOrBlank()) return signature

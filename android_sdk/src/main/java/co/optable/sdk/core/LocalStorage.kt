@@ -64,6 +64,7 @@ internal class LocalStorage(
     fun clearTargeting() {
         prefs.edit(commit = true) {
             remove(targetingKey)
+            remove(id5SignatureKey)
         }
     }
 
