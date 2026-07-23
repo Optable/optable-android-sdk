@@ -1,6 +1,7 @@
 package co.optable.sdk.core
 
 import com.google.gson.Gson
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -62,6 +63,18 @@ class UseCasesTest {
     fun `parse id5 signature returns null when absent`() {
         val responseJson = Gson().fromJson(RESPONSE, JsonObject::class.java)
         assertEquals(null, useCases.parseId5Signature(responseJson))
+    }
+
+    @Test
+    fun `parse id5 signature skips malformed eid entries`() {
+        // A malformed entry ahead of the ID5 eid must not abort the scan.
+        val responseJson = Gson().fromJson(RESPONSE_WITH_ID5, JsonObject::class.java)
+        val eids = responseJson.getAsJsonObject("ortb2").getAsJsonObject("user").getAsJsonArray("eids")
+        val malformed = Gson().fromJson("""[42, {"source": "id5-sync.com", "uids": "not-an-array"}]""", JsonArray::class.java)
+        malformed.addAll(eids)
+        responseJson.getAsJsonObject("ortb2").getAsJsonObject("user").add("eids", malformed)
+
+        assertEquals("id5-signature-value", useCases.parseId5Signature(responseJson))
     }
 
     @Test

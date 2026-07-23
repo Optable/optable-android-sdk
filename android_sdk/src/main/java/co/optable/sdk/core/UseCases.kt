@@ -24,23 +24,28 @@ class UseCases {
             val refs = responseJson.getAsJsonObject("refs")
 
             for (eid in eids) {
-                val eidObj = eid.asJsonObject
-                val source = eidObj.get("source")?.asString
-                if (source == null || !source.contains("id5", ignoreCase = true)) continue
+                // A malformed entry must not abort the scan - a valid ID5 entry may follow it.
+                try {
+                    val eidObj = eid.asJsonObject
+                    val source = eidObj.get("source")?.asString
+                    if (source == null || !source.contains("id5", ignoreCase = true)) continue
 
-                val uids = eidObj.getAsJsonArray("uids") ?: continue
-                for (uid in uids) {
-                    val ref = uid.asJsonObject
-                        .getAsJsonObject("ext")
-                        ?.getAsJsonObject("optable")
-                        ?.get("ref")
-                        ?.asString ?: continue
+                    val uids = eidObj.getAsJsonArray("uids") ?: continue
+                    for (uid in uids) {
+                        val ref = uid.asJsonObject
+                            .getAsJsonObject("ext")
+                            ?.getAsJsonObject("optable")
+                            ?.get("ref")
+                            ?.asString ?: continue
 
-                    val signature = refs
-                        ?.getAsJsonObject(ref)
-                        ?.get("signature")
-                        ?.asString
-                    if (!signature.isNullOrBlank()) return signature
+                        val signature = refs
+                            ?.getAsJsonObject(ref)
+                            ?.get("signature")
+                            ?.asString
+                        if (!signature.isNullOrBlank()) return signature
+                    }
+                } catch (e: Exception) {
+                    Log.d("OptableSDK", "Skipping malformed eid entry: ${e.message}")
                 }
             }
         } catch (e: Exception) {
