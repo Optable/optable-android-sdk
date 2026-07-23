@@ -360,9 +360,10 @@ an identifier. The SDK automatically attaches the following parameters to every 
 - `ua` — the device user agent (the same value sent in the `User-Agent` header; overridable via `customUserAgent`).
 
 You can supply additional hint identifiers (HIDs) through an overload of `targeting()` that accepts a `hids` list. Each
-hint is encoded exactly like the primary identifiers — with its Optable type prefix (for example `e:`, `p:`, `a:`, `g:`,
-`i6:`, and custom `c1:`…`c9:` used for IDFV or a publisher-provided user ID), and, as with the primary `ids` list, the
-device's Google Advertising ID is added automatically when available.
+hint is encoded exactly like the primary identifiers — with its Optable type prefix (for example `e:`, `p:`, `g:`,
+`i6:`, and custom `c1:`…`c9:` used for a publisher-provided user ID), and, as with the primary `ids` list, the
+device's Google Advertising ID is added automatically when available. Any identifier type may be passed as a hint -
+the SDK forwards hints as-is, and which of them a resolver consumes is determined server-side.
 
 The ID5 signature is managed by the SDK: when a `targeting` response returns one, it is cached on the device and resent
 automatically on subsequent `targeting` calls to increase ID5 resolve rates and accuracy. No application code is required.
@@ -374,8 +375,8 @@ val ids = listOf(OptableIdentifier.Email("test@test.com"))
 val hids = listOf(
     OptableIdentifier.IPv6("2001:0db8:5b96:0000:0000:426f:8e17:642a"),
     OptableIdentifier.PhoneNumber("+1(555)1234567"),
-    OptableIdentifier.AppleIdfa("a1b2c3d4-e5f6-7890-abcd-ef0123456789"),
-    OptableIdentifier.Custom("c1", "idfv-or-puid-value"),
+    OptableIdentifier.Email("user@example.com"),
+    OptableIdentifier.Custom("c1", "puid-value"),
 )
 optable.targeting(ids, hids) { result ->
     when (result) {
@@ -396,8 +397,8 @@ optable.targeting(ids, hids) { result ->
 ArrayList<OptableIdentifier> hids = Lists.newArrayList(
         new OptableIdentifier.IPv6("2001:0db8:5b96:0000:0000:426f:8e17:642a"),
         new OptableIdentifier.PhoneNumber("+1(555)1234567"),
-        new OptableIdentifier.AppleIdfa("a1b2c3d4-e5f6-7890-abcd-ef0123456789"),
-        new OptableIdentifier.Custom("c1", "idfv-or-puid-value")
+        new OptableIdentifier.Email("user@example.com"),
+        new OptableIdentifier.Custom("c1", "puid-value")
 );
 optable.targeting(ids, hids, result -> {
     if (result instanceof OptableResult.Success<OptableTargeting> success) {

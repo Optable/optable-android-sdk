@@ -162,7 +162,7 @@ class OptableSDK(
             val response = networkClient.targeting(
                 ids = encodedIds,
                 hids = encodedHids,
-                bundle = appInfoHolder.bundle ,
+                bundle = appInfoHolder.bundle,
                 version = appInfoHolder.appVersion,
                 userAgent = userAgentHolder.getUserAgent(),
                 id5Signature = storage.getId5Signature(),

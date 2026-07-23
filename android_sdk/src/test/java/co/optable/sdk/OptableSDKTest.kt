@@ -291,7 +291,7 @@ class OptableSDKTest {
         sdk.targeting(emptyList(), listener)
         advanceUntilIdle()
 
-        // Pins both the gate (true -> forwarded) and the holder field -> param position mapping.
+        // Pins the holder field -> param position mapping.
         coVerify {
             mockNetworkClient.targeting(emptyList(), emptyList(), "co.optable.app", "1.2.3", "ua-string", null)
         }
