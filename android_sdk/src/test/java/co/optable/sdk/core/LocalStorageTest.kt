@@ -108,6 +108,32 @@ class LocalStorageTest {
     }
 
     @Test
+    fun `getId5Signature should return null when not set`() {
+        val id5SignatureKey = getPrivateKey(localStorage, "id5SignatureKey")
+        every { mockSharedPreferences.getString(id5SignatureKey, null) } returns null
+        assertNull(localStorage.getId5Signature())
+    }
+
+    @Test
+    fun `setId5Signature and getId5Signature should store and retrieve the value`() {
+        val signature = "test-id5-signature"
+        val id5SignatureKey = getPrivateKey(localStorage, "id5SignatureKey")
+        every { mockSharedPreferences.getString(id5SignatureKey, null) } returns signature
+
+        localStorage.setId5Signature(signature)
+
+        verify { mockEditor.putString(id5SignatureKey, signature) }
+        assertEquals(signature, localStorage.getId5Signature())
+    }
+
+    @Test
+    fun `clearTargeting should also remove the id5 signature`() {
+        val id5SignatureKey = getPrivateKey(localStorage, "id5SignatureKey")
+        localStorage.clearTargeting()
+        verify { mockEditor.remove(id5SignatureKey) }
+    }
+
+    @Test
     fun `getTargeting should handle invalid JSON gracefully`() {
         val targetingKey = getPrivateKey(localStorage, "targetingKey")
         every { mockSharedPreferences.getString(targetingKey, null) } returns "{invalid-json}"
