@@ -13,7 +13,13 @@ class TheApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        val config = OptableConfig(this, "prebidtest", "android-sdk", "ca.edge.optable.co")
+        val config = OptableConfig(
+            providedContext = this,
+            tenant = "prebidtest",
+            originSlug = "android-sdk",
+            host = "ca.edge.optable.co",
+            origin = "https://www.optable.co",
+        )
         optable = OptableSDK(config)
     }
 

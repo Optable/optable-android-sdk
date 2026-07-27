@@ -15,6 +15,7 @@ import android.content.Context
  * @param customUserAgent An optional custom user agent string for network requests.
  * @param skipAdvertisingIdDetection Boolean flag to skip the detection of advertising IDs. Default is false.
  * @param consents Optional `OptableConsents` object for providing custom consent information. If not provided, default values will be used.
+ * @param origin An optional value for the HTTP `Origin` header sent with Optable API requests. Unrelated to `originSlug`.
  */
 class OptableConfig @JvmOverloads constructor(
     providedContext: Context,
@@ -27,6 +28,7 @@ class OptableConfig @JvmOverloads constructor(
     internal val customUserAgent: String? = null,
     internal val skipAdvertisingIdDetection: Boolean = false,
     var consents: OptableConsents = OptableConsents(),
+    internal val origin: String? = null,
 ) {
 
     internal val context = providedContext.applicationContext

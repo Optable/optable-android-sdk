@@ -39,6 +39,7 @@ class OptableConfigTest {
         assertNull(config.apiKey)
         assertNull(config.customUserAgent)
         assertFalse(config.skipAdvertisingIdDetection)
+        assertNull(config.origin)
         assertEquals(mockApplicationContext, config.context)
     }
 
@@ -55,7 +56,8 @@ class OptableConfigTest {
             apiKey = "test-api-key",
             customUserAgent = "TestAgent/1.0",
             skipAdvertisingIdDetection = true,
-            consents = customConsents
+            consents = customConsents,
+            origin = "https://www.optable.co"
         )
 
         assertEquals("custom-tenant", config.tenant)
@@ -67,6 +69,7 @@ class OptableConfigTest {
         assertEquals("TestAgent/1.0", config.customUserAgent)
         assertTrue(config.skipAdvertisingIdDetection)
         assertEquals(customConsents, config.consents)
+        assertEquals("https://www.optable.co", config.origin)
     }
 
     @Test
