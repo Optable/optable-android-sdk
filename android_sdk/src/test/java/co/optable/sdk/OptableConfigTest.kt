@@ -41,6 +41,8 @@ class OptableConfigTest {
         assertFalse(config.skipAdvertisingIdDetection)
         assertNull(config.origin)
         assertEquals(mockApplicationContext, config.context)
+        assertEquals(24 * 60 * 60L, config.cacheTtl)
+        assertEquals(OptableConfig.DEFAULT_TARGETING_CACHE_TTL_SECONDS, config.cacheTtl)
     }
 
     @Test
@@ -57,6 +59,7 @@ class OptableConfigTest {
             customUserAgent = "TestAgent/1.0",
             skipAdvertisingIdDetection = true,
             consents = customConsents,
+            cacheTtl = 60L,
             origin = "https://www.optable.co"
         )
 
@@ -70,6 +73,7 @@ class OptableConfigTest {
         assertTrue(config.skipAdvertisingIdDetection)
         assertEquals(customConsents, config.consents)
         assertEquals("https://www.optable.co", config.origin)
+        assertEquals(60L, config.cacheTtl)
     }
 
     @Test

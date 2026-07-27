@@ -189,6 +189,9 @@ class OptableSDK(
 
     /**
      * Returns the targeting data from the cache, if available.
+     *
+     * Cached data older than `OptableConfig.cacheTtl` seconds (24 hours by default) is considered
+     * absent: null is returned and the expired data is cleared from the cache.
      */
     fun targetingFromCache(): OptableTargeting? {
         return storage.getTargeting()
