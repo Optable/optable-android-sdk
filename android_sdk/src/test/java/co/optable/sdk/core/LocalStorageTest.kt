@@ -155,6 +155,20 @@ class LocalStorageTest {
     }
 
     @Test
+    fun `getTargeting should return null and clear the cache when the timestamp is in the future`() {
+        val targetingKey = getPrivateKey(localStorage, "targetingKey")
+        val timestampKey = getPrivateKey(localStorage, "targetingTimestampKey")
+        every { mockSharedPreferences.getString(targetingKey, null) } returns Gson().toJson(targeting)
+        // A device clock that moved backwards leaves the entry stamped in the future, making its age unusable.
+        cacheTimestamp(localStorage, System.currentTimeMillis() + HOUR_MS)
+
+        assertNull(localStorage.getTargeting())
+
+        verify { mockEditor.remove(targetingKey) }
+        verify { mockEditor.remove(timestampKey) }
+    }
+
+    @Test
     fun `getTargeting should return null when the cached data has no timestamp`() {
         val targetingKey = getPrivateKey(localStorage, "targetingKey")
         every { mockSharedPreferences.getString(targetingKey, null) } returns Gson().toJson(targeting)
