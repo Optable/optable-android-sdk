@@ -161,6 +161,13 @@ val config = OptableConfig(
 )
 ```
 
+`origin` can also be set after the config has been created, which is the convenient form from Java:
+
+```java
+OptableConfig config = new OptableConfig(this, "prebidtest", "android-sdk");
+config.setOrigin("https://www.acmeco.com");
+```
+
 ### OptableIdentifiers
 
 There are many fields to identify the users. You can provide any user information using `OptableIdentifiers` class. 

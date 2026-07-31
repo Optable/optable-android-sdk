@@ -103,6 +103,21 @@ class OptableConfigTest {
     }
 
     @Test
+    fun `origin property should be updatable`() {
+        val config = OptableConfig(
+            providedContext = mockContext,
+            tenant = "test-tenant",
+            originSlug = "test-slug"
+        )
+
+        assertNull(config.origin)
+
+        config.origin = "https://www.acmeco.com"
+
+        assertEquals("https://www.acmeco.com", config.origin)
+    }
+
+    @Test
     fun `consents property should be updatable`() {
         val config = OptableConfig(
             providedContext = mockContext,
