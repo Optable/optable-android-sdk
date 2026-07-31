@@ -117,6 +117,15 @@ class MockWebServerTest {
     }
 
     @Test
+    fun `no origin header when origin is empty`() {
+        whenever(config.origin).thenReturn("")
+
+        val request = makeRequest().request
+
+        assertNull(request.headers["Origin"])
+    }
+
+    @Test
     fun `no origin header when origin is null`() {
         whenever(config.origin).thenReturn(null)
 
