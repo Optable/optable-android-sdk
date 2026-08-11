@@ -6,6 +6,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -34,12 +35,34 @@ class IdentifiersEncoderTest {
 
     @Test
     fun `phoneNumber is encrypted`() {
-        val expected = "e:97ed57b6d666c803e1d0a74b0e3ecc5157f23c02800d007f2e4b8b2fabea8dbb"
+        val expected = "p:97ed57b6d666c803e1d0a74b0e3ecc5157f23c02800d007f2e4b8b2fabea8dbb"
 
-        assertEquals(expected, encode(OptableIdentifier.Email("+123467890")))
-        assertEquals(expected, encode(OptableIdentifier.Email(" +123467890")))
-        assertEquals(expected, encode(OptableIdentifier.Email("+123467890 ")))
-        assertEquals(expected, encode(OptableIdentifier.Email(" +123467890 ")))
+        assertEquals(expected, encode(OptableIdentifier.PhoneNumber("+123467890")))
+        assertEquals(expected, encode(OptableIdentifier.PhoneNumber(" +123467890")))
+        assertEquals(expected, encode(OptableIdentifier.PhoneNumber("+123467890 ")))
+        assertEquals(expected, encode(OptableIdentifier.PhoneNumber(" +123467890 ")))
+    }
+
+    @Test
+    fun `primary ids include device gaid`() {
+        whenever(mockGoogleAdIdManager.getId()).thenReturn("38400000-8cf0-11bd-b23e-10b96e40000d")
+
+        val ids = identifiersEncoder.encode(listOf(OptableIdentifier.IPv6("2001:db8::1")))
+
+        assertEquals(
+            listOf("g:38400000-8cf0-11bd-b23e-10b96e40000d", "i6:2001:db8::1"),
+            ids,
+        )
+    }
+
+    @Test
+    fun `caller gaid matching device gaid is deduped for primary ids`() {
+        val deviceGaid = "38400000-8cf0-11bd-b23e-10b96e40000d"
+        whenever(mockGoogleAdIdManager.getId()).thenReturn(deviceGaid)
+
+        val ids = identifiersEncoder.encode(listOf(OptableIdentifier.GoogleGaid(deviceGaid)))
+
+        assertEquals(listOf("g:$deviceGaid"), ids)
     }
 
     @Test

@@ -30,6 +30,8 @@ class OptableSDK(
     private val storage = LocalStorage(config)
     private val consentsManager = ConsentsManager(storage)
     private val googleAdIdManager = GoogleAdIdManager(config)
+    private val userAgentHolder = UserAgentHolder(config)
+    private val appInfoHolder = AppInfoHolder(config)
     private val networkClient = createNetworkClient()
     private val useCases = UseCases()
     private val identifiersEncoder = IdentifiersEncoder(googleAdIdManager)
@@ -135,15 +137,42 @@ class OptableSDK(
      * whitespace-stripped, or encrypted). Additional identifiers may be supplied through the `Raw` or `Custom` type.
      */
     fun targeting(ids: List<OptableIdentifier>, listener: OptableResultListener<OptableTargeting>) {
+        targeting(ids, emptyList(), listener)
+    }
+
+    /**
+     * Calls the Optable Sandbox "targeting" API, which returns the key-value targeting
+     * data matching the user/device/app and part of the OpenRTB code snippet,
+     * additionally forwarding [hids] (hint identifiers) for third-party identity resolvers.
+     * @see OptableTargeting
+     *
+     * This type accepts multiple optional identifier values. When EIDs are generated, each supported
+     * identifier is encoded according to its identifier type (for example, some values are normalized,
+     * whitespace-stripped, or encrypted). Additional identifiers may be supplied through the `Raw` or `Custom` type.
+     */
+    fun targeting(
+        ids: List<OptableIdentifier>,
+        hids: List<OptableIdentifier>,
+        listener: OptableResultListener<OptableTargeting>,
+    ) {
         scope.launch {
             googleAdIdManager.deferredTask.await()
-            val ids = identifiersEncoder.encode(ids)
-            val response = networkClient.targeting(ids)
+            val encodedIds = identifiersEncoder.encode(ids)
+            val encodedHids = identifiersEncoder.encode(hids)
+            val response = networkClient.targeting(
+                ids = encodedIds,
+                hids = encodedHids,
+                bundle = appInfoHolder.bundle,
+                version = appInfoHolder.appVersion,
+                userAgent = userAgentHolder.getUserAgent(),
+                id5Signature = storage.getId5Signature(),
+            )
 
             val optableResult = when (response) {
                 is NetworkResponse.Success -> {
                     val targeting = useCases.parseTargetingResponse(response.result)
                     storage.setTargeting(targeting)
+                    useCases.parseId5Signature(response.result)?.let { storage.setId5Signature(it) }
                     OptableResult.Success(targeting)
                 }
 
@@ -208,7 +237,6 @@ class OptableSDK(
     }
 
     private fun createNetworkClient(): NetworkClient {
-        val userAgentHolder = UserAgentHolder(config)
         val requestInterceptor = RequestInterceptor(config, storage, userAgentHolder, consentsManager)
         val responseInterceptor = ResponseInterceptor(storage)
         return NetworkClient(config, requestInterceptor, responseInterceptor)

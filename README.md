@@ -350,6 +350,65 @@ On success, the resulting key values are typically sent as part of a subsequent 
 either call `targeting()` before each ad call, or in parallel periodically, caching the resulting key values which you
 then provide in ad calls.
 
+#### Resolver hints (ID5 Mobile In-App)
+
+Some third-party identity resolvers, such as [ID5](https://id5.io/) Mobile In-App, require additional context to return
+an identifier. The SDK automatically attaches the following parameters to every `targeting` call:
+
+- `bundle` — the app's package name.
+- `ver` — the app's version name.
+- `ua` — the device user agent (the same value sent in the `User-Agent` header; overridable via `customUserAgent`).
+
+You can supply additional hint identifiers (HIDs) through an overload of `targeting()` that accepts a `hids` list. Each
+hint is encoded exactly like the primary identifiers — with its Optable type prefix (for example `e:`, `p:`, `g:`,
+`i6:`, and custom `c1:`…`c9:` used for a publisher-provided user ID), and, as with the primary `ids` list, the
+device's Google Advertising ID is added automatically when available. Any identifier type may be passed as a hint -
+the SDK forwards hints as-is, and which of them a resolver consumes is determined server-side.
+
+The ID5 signature is managed by the SDK: when a `targeting` response returns one, it is cached on the device and resent
+automatically on subsequent `targeting` calls to increase ID5 resolve rates and accuracy. No application code is required.
+
+##### Kotlin
+
+```kotlin
+val ids = listOf(OptableIdentifier.Email("test@test.com"))
+val hids = listOf(
+    OptableIdentifier.IPv6("2001:0db8:5b96:0000:0000:426f:8e17:642a"),
+    OptableIdentifier.PhoneNumber("+1(555)1234567"),
+    OptableIdentifier.Email("user@example.com"),
+    OptableIdentifier.Custom("c1", "puid-value"),
+)
+optable.targeting(ids, hids) { result ->
+    when (result) {
+        is OptableResult.Success<OptableTargeting> -> {
+            // Targeting key-values are available via result.data.
+        }
+
+        is OptableResult.Error<OptableTargeting> -> {
+            Log.d(TAG, "Targeting error: ${result.message}")
+        }
+    }
+}
+```
+
+##### Java
+
+```java
+ArrayList<OptableIdentifier> hids = Lists.newArrayList(
+        new OptableIdentifier.IPv6("2001:0db8:5b96:0000:0000:426f:8e17:642a"),
+        new OptableIdentifier.PhoneNumber("+1(555)1234567"),
+        new OptableIdentifier.Email("user@example.com"),
+        new OptableIdentifier.Custom("c1", "puid-value")
+);
+optable.targeting(ids, hids, result -> {
+    if (result instanceof OptableResult.Success<OptableTargeting> success) {
+        // success.getData() exposes the targeting key-values.
+    } else if (result instanceof OptableResult.Error<OptableTargeting> error) {
+        Log.d(TAG, "Targeting error: " + error.getMessage());
+    }
+});
+```
+
 #### Caching Targeting Data
 
 The `targeting` API will automatically cache resulting key value data in client storage on success. You can subsequently

@@ -15,7 +15,14 @@ import retrofit2.http.Query
 interface EdgeService {
 
     @GET("targeting")
-    suspend fun targeting(@Query("id") idList: List<String>): Response<JsonObject>
+    suspend fun targeting(
+        @Query("id") idList: List<String>,
+        @Query("hid") hidList: List<String>,
+        @Query("bundle") bundle: String?,
+        @Query("ver") version: String?,
+        @Query("ua") userAgent: String?,
+        @Query("id5_signature") id5Signature: String?,
+    ): Response<JsonObject>
 
     @POST("identify")
     suspend fun identify(@Body ids: List<String>): Response<Unit>
