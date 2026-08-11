@@ -13,6 +13,7 @@ public class TheApplication extends Application {
         super.onCreate();
 
         OptableConfig config = new OptableConfig(this, "prebidtest", "android-sdk");
+        config.setOrigin("https://www.optable.co");
         optable = new OptableSDK(config);
     }
 

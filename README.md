@@ -103,6 +103,7 @@ developers running the DCN locally for testing.
 - `customUserAgent` An optional custom user agent string for network requests.
 - `skipAdvertisingIdDetection` Boolean flag to skip the detection of advertising IDs. Default is false.
 - `consents` Optional `OptableConsents` object for providing custom consent information. If not provided, default values will be used.
+- `origin` An optional value for the HTTP `Origin` header sent with Optable API requests. Unrelated to `originSlug`.
 
 ```kotlin
 val config = OptableConfig(
@@ -116,6 +117,7 @@ val config = OptableConfig(
     customUserAgent = "",
     skipAdvertisingIdDetection = false,
     consents = OptableConsents(),
+    origin = "https://www.acmeco.com",
 )
 ```
 
@@ -135,7 +137,7 @@ val config = OptableConfig(
 )
 ```
 
-Finally, an optional sixth boolean parameter `skipAdvertisingIdDetection` can be used to skip any ID info detection from
+An optional boolean parameter `skipAdvertisingIdDetection` can be used to skip any ID info detection from
 `AdvertisingIdClient` which by default runs in a background co-routine. Disabling ad ID detection means that the SDK
 will not be able to automatically obtain the Google Advertising ID. For example, to disable ad ID detection, in Kotlin:
 
@@ -144,6 +146,26 @@ val config = OptableConfig(
   ...
   skipAdvertisingIdDetection = true,
 )
+```
+
+Finally, an optional string parameter `origin` can be used to set the value of the HTTP `Origin` header sent with every
+Optable API request. Mobile HTTP stacks do not send an `Origin` header by
+default, and your DCN uses the request origin for several server-side features: some EID resolvers require it to be
+present, and it also feeds site attribution and origin validation. Set it to the origin you want your mobile traffic
+attributed to, for example:
+
+```kotlin
+val config = OptableConfig(
+  ...
+  origin = "https://www.acmeco.com"
+)
+```
+
+`origin` can also be set after the config has been created, which is the convenient form from Java:
+
+```java
+OptableConfig config = new OptableConfig(this, "prebidtest", "android-sdk");
+config.setOrigin("https://www.acmeco.com");
 ```
 
 ### OptableIdentifiers

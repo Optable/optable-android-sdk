@@ -69,6 +69,7 @@ class MockWebServerTest {
         assertNull(request.headers["Authorization"])
         assertNull(request.headers["X-Optable-Visitor"])
         assertNull(request.headers["User-Agent"])
+        assertNull(request.headers["Origin"])
 
         assertEquals("application/json", request.headers["Accept"])
         assertEquals(
@@ -98,18 +99,57 @@ class MockWebServerTest {
     }
 
     @Test
+    fun `optional header, origin`() {
+        whenever(config.origin).thenReturn("https://www.optable.co")
+
+        val request = makeRequest().request
+
+        assertEquals("https://www.optable.co", request.headers["Origin"])
+    }
+
+    @Test
+    fun `no origin header when origin is blank`() {
+        whenever(config.origin).thenReturn("   ")
+
+        val request = makeRequest().request
+
+        assertNull(request.headers["Origin"])
+    }
+
+    @Test
+    fun `no origin header when origin is empty`() {
+        whenever(config.origin).thenReturn("")
+
+        val request = makeRequest().request
+
+        assertNull(request.headers["Origin"])
+    }
+
+    @Test
+    fun `no origin header when origin is null`() {
+        whenever(config.origin).thenReturn(null)
+
+        val request = makeRequest().request
+
+        assertNull(request.headers["Origin"])
+    }
+
+    @Test
     fun `complete request`() {
         whenever(config.tenant).thenReturn("tenant")
         whenever(config.originSlug).thenReturn("originSlug")
         whenever(config.apiKey).thenReturn("apiKey")
         whenever(storage.getPassport()).thenReturn("passport")
         whenever(userAgentHolder.getUserAgent()).thenReturn("userAgent")
+        whenever(config.origin).thenReturn("https://www.optable.co")
 
         val request = makeRequest().request
 
         assertEquals("application/json", request.headers["Accept"])
         assertEquals("Bearer apiKey", request.headers["Authorization"])
         verify(config, times(1)).apiKey
+        assertEquals("https://www.optable.co", request.headers["Origin"])
+        verify(config, times(1)).origin
         assertEquals("passport", request.headers["X-Optable-Visitor"])
         verify(storage, times(1)).getPassport()
         assertEquals("userAgent", request.headers["User-Agent"])

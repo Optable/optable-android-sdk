@@ -57,6 +57,11 @@ internal class RequestInterceptor(
             modifiedRequest.addHeader("Authorization", "Bearer $apiKey")
         }
 
+        val origin = config.origin
+        if (!origin.isNullOrBlank()) {
+            modifiedRequest.addHeader("Origin", origin)
+        }
+
         val userAgent = userAgentHolder.getUserAgent()
         if (userAgent != null) {
             modifiedRequest.addHeader("User-Agent", userAgent)
