@@ -28,6 +28,8 @@ internal class LocalStorage(
     private val prefs = PreferenceManager.getDefaultSharedPreferences(config.context)
     private val passportKey = generateUniqueKey("PASS", config)
     private val targetingKey = generateUniqueKey("TGT", config)
+    private val targetingTimestampKey = generateUniqueKey("TGT_TS", config)
+    private val targetingCacheTtlMs = config.cacheTtl.coerceAtMost(Long.MAX_VALUE / 1000) * 1000L
     private val id5SignatureKey = generateUniqueKey("ID5SIG", config)
 
     fun getPassport(): String? {
@@ -43,10 +45,15 @@ internal class LocalStorage(
     fun getTargeting(): OptableTargeting? {
         try {
             val targeting = prefs.getString(targetingKey, null) ?: return null
+            if (isTargetingExpired()) {
+                Log.i("OptableSDK", "Cached targeting is expired. Clearing...")
+                clearTargeting()
+                return null
+            }
             return Gson().fromJson(targeting, OptableTargeting::class.java)
         } catch (e: Exception) {
             Log.e("OptableSDK", "Can't parse cached targeting: ${e.message}. Clearing...")
-            prefs.edit(commit = true) { remove(targetingKey) }
+            runCatching { clearTargeting() }
         }
         return null
     }
@@ -55,6 +62,7 @@ internal class LocalStorage(
         try {
             prefs.edit(commit = true) {
                 putString(targetingKey, Gson().toJson(targeting))
+                putLong(targetingTimestampKey, System.currentTimeMillis())
             }
         } catch (e: Exception) {
             Log.e("OptableSDK", "Can't set targeting: ${e.message}")
@@ -64,6 +72,7 @@ internal class LocalStorage(
     fun clearTargeting() {
         prefs.edit(commit = true) {
             remove(targetingKey)
+            remove(targetingTimestampKey)
             remove(id5SignatureKey)
         }
     }
@@ -76,6 +85,16 @@ internal class LocalStorage(
         prefs.edit(commit = true) {
             putString(id5SignatureKey, signature)
         }
+    }
+
+    private fun isTargetingExpired(): Boolean {
+        val cachedAt = prefs.getLong(targetingTimestampKey, 0L)
+        if (cachedAt <= 0L) {
+            return true
+        }
+        val age = System.currentTimeMillis() - cachedAt
+        // A negative age means the device clock moved backwards, so the age is unreliable.
+        return age !in 0..<targetingCacheTtlMs
     }
 
     fun getSubjectToGdpr(): Int? {

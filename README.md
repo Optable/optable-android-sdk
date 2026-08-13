@@ -104,6 +104,8 @@ developers running the DCN locally for testing.
 - `skipAdvertisingIdDetection` Boolean flag to skip the detection of advertising IDs. Default is false.
 - `consents` Optional `OptableConsents` object for providing custom consent information. If not provided, default values will be used.
 - `origin` An optional value for the HTTP `Origin` header sent with Optable API requests. Unrelated to `originSlug`.
+- `cacheTtl` The time to live, in seconds, of the targeting data cached by the `targeting` API. Default
+value is 24 hours. See [Caching Targeting Data](#caching-targeting-data).
 
 ```kotlin
 val config = OptableConfig(
@@ -118,6 +120,7 @@ val config = OptableConfig(
     skipAdvertisingIdDetection = false,
     consents = OptableConsents(),
     origin = "https://www.acmeco.com",
+    cacheTtl = 24 * 60 * 60L,
 )
 ```
 
@@ -461,6 +464,25 @@ optable.targetingClearCache()
 ```
 
 Note that both `targetingFromCache()` and `targetingClearCache()` are synchronous.
+
+##### Cache expiry
+
+The cached targeting data has a time to live of 24 hours by default. Once the cached data is older than the TTL,
+`targetingFromCache()` treats it as absent: it returns `null` and clears the expired data from storage. Call
+`targeting()` again to refresh it.
+
+You can change the TTL with the `cacheTtl` parameter of `OptableConfig`, which is expressed in
+seconds. For example, to expire the cached targeting data after one hour:
+
+```kotlin
+val config = OptableConfig(
+  ...
+  cacheTtl = 60 * 60L,
+)
+```
+
+Setting `cacheTtl` to zero or less effectively disables the cache, since the data is then considered
+expired as soon as it is stored.
 
 ### Witness API
 
