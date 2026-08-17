@@ -49,6 +49,52 @@ class OptableIdentifiersTest {
     }
 
     @Test
+    fun `encode hem`() {
+        val email = "  John.DOE+test@example.COM  "
+        val hem = sha256(normalize(email))
+
+        // Supplying the hash must match hashing the plaintext ourselves.
+        assertEquals(
+            identifiersEncoder.encode(listOf(OptableIdentifier.Email(email))),
+            identifiersEncoder.encode(listOf(OptableIdentifier.Hem(hem)))
+        )
+        assertEquals(
+            listOf("e:$hem"),
+            identifiersEncoder.encode(listOf(OptableIdentifier.Hem("  ${hem.uppercase(Locale.ROOT)}  ")))
+        )
+    }
+
+    @Test
+    fun `encode hashedPhoneNumber`() {
+        val phone = " +1  (555)  123  45 67 "
+        val hash = sha256(normalize(phone))
+
+        assertEquals(
+            identifiersEncoder.encode(listOf(OptableIdentifier.PhoneNumber(phone))),
+            identifiersEncoder.encode(listOf(OptableIdentifier.HashedPhoneNumber(hash)))
+        )
+    }
+
+    @Test
+    fun `encode drops hashed values that are not a SHA-256`() {
+        val hem = sha256("john.doe@example.com")
+
+        listOf(
+            "john.doe@example.com", // plaintext must never reach the wire
+            "",
+            hem.dropLast(1),        // too short
+            hem + "a",              // too long
+            hem.dropLast(1) + "z"   // not hex
+        ).forEach { value ->
+            assertEquals(
+                "expected $value to be dropped",
+                emptyList<String>(),
+                identifiersEncoder.encode(listOf(OptableIdentifier.Hem(value)))
+            )
+        }
+    }
+
+    @Test
     fun `encode postalCode`() {
         val postal = " 12 3 45 "
         val ids = listOf(OptableIdentifier.PostalCode(postal))

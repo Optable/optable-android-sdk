@@ -187,6 +187,9 @@ Sensitive data as email and phone number encrypted using SHA256.
 val ids = listOf(
   OptableIdentifier.Email("john.doe+test@example.com"),
   OptableIdentifier.PhoneNumber("+1(555)1234567"),
+  // Already hashed? Pass it directly, it will not be hashed again:
+  OptableIdentifier.Hem("da146c4d301ce4a9bf01c8384a5b2f8966b3ed853adf1ee08746be5703ebeebf"),
+  OptableIdentifier.HashedPhoneNumber("e421d168fe94a7e385cf38608d8de870a5233cc6b14596dd307819b8491c4d5b"),
   OptableIdentifier.PostalCode("12345"),
   OptableIdentifier.IPv4("192.168.0.1"),
   OptableIdentifier.IPv6("2001:db8::1"),
@@ -211,6 +214,9 @@ val ids = listOf(
 ArrayList<OptableIdentifier> ids = Lists.newArrayList(
   new OptableIdentifier.Email("john.doe+test@example.com"),
   new OptableIdentifier.PhoneNumber("+1(555)1234567"),
+  // Already hashed? Pass it directly, it will not be hashed again:
+  new OptableIdentifier.Hem("da146c4d301ce4a9bf01c8384a5b2f8966b3ed853adf1ee08746be5703ebeebf"),
+  new OptableIdentifier.HashedPhoneNumber("e421d168fe94a7e385cf38608d8de870a5233cc6b14596dd307819b8491c4d5b"),
   new OptableIdentifier.PostalCode("12345"),
   new OptableIdentifier.IPv4("192.168.0.1"),
   new OptableIdentifier.IPv6("2001:db8::1"),

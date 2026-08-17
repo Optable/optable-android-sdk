@@ -19,6 +19,20 @@ sealed class OptableIdentifier {
     data class PhoneNumber(val value: String) : OptableIdentifier()
 
     /**
+     * Already-hashed Email address (HEM).
+     * Encoding: normalized (whitespace removed, lowercased), never hashed again.
+     * Dropped if the value is not a SHA-256 digest, so a plaintext Email is never sent.
+     */
+    data class Hem(val value: String) : OptableIdentifier()
+
+    /**
+     * Already-hashed Phone number.
+     * Encoding: normalized (whitespace removed, lowercased), never hashed again.
+     * Dropped if the value is not a SHA-256 digest.
+     */
+    data class HashedPhoneNumber(val value: String) : OptableIdentifier()
+
+    /**
      * Postal/ZIP code.
      * Encoding: normalized (whitespace removed, lowercased).
      */

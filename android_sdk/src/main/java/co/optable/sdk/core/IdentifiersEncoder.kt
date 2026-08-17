@@ -43,6 +43,8 @@ internal class IdentifiersEncoder(
             when (identifier) {
                 is OptableIdentifier.Email -> result.addIfNotNull(EMAIL, identifier.value, ::encrypt)
                 is OptableIdentifier.PhoneNumber -> result.addIfNotNull(PHONE, identifier.value, ::encrypt)
+                is OptableIdentifier.Hem -> result.addIfValidHash(EMAIL, identifier.value)
+                is OptableIdentifier.HashedPhoneNumber -> result.addIfValidHash(PHONE, identifier.value)
                 is OptableIdentifier.PostalCode -> result.addIfNotNull(POSTAL, identifier.value, ::normalize)
                 is OptableIdentifier.IPv4 -> result.addIfNotNull(IPV4, identifier.value, ::removeWhitespaces)
                 is OptableIdentifier.IPv6 -> result.addIfNotNull(IPV6, identifier.value, ::normalize)
@@ -83,6 +85,19 @@ internal class IdentifiersEncoder(
         val encodedValue = encoder(value)
         val result = "$key:$encodedValue"
         this.add(result)
+    }
+
+    /**
+     * Adds an already-hashed value, skipping it entirely unless it is a SHA-256
+     * digest. This keeps a plaintext Email or Phone number off the wire.
+     */
+    private fun MutableList<String>.addIfValidHash(key: String, value: String?) {
+        if (value == null) return
+
+        val hash = normalize(value)
+        if (hash.length != 64 || !hash.matches("^[a-f0-9]+$".toRegex())) return
+
+        this.add("$key:$hash")
     }
 
     /**
