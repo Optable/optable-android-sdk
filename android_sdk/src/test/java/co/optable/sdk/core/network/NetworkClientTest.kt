@@ -9,6 +9,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import okhttp3.ResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -59,7 +60,7 @@ class NetworkClientTest {
 
     @Test
     fun identify_shouldReturnError_whenApiCallIsUnsuccessful() = runBlocking {
-        val errorBody = ResponseBody.create(null, "Error")
+        val errorBody = ResponseBody.create(null, """{"error":"Tenant not found"}""")
         val expectedResponse: Response<Unit> = Response.error(404, errorBody)
 
         `when`(mockEdgeService.identify(emptyList())).thenReturn(expectedResponse)
@@ -67,6 +68,11 @@ class NetworkClientTest {
         val result = networkClient.identify(emptyList())
 
         assertTrue(result is NetworkResponse.Error)
+        val message = (result as NetworkResponse.Error).message
+        assertTrue(message.contains("404"))
+        assertTrue(message.contains("Tenant not found"))
+        assertFalse(message.contains("url="))
+        assertFalse(message.contains("localhost"))
     }
 
     @Test

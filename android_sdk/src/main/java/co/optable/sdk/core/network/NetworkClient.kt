@@ -85,7 +85,7 @@ internal class NetworkClient(
                 if (response.isSuccessful) {
                     return@withContext NetworkResponse.Success(response.body()!!)
                 } else {
-                    return@withContext NetworkResponse.Error("Request failed with status code $response: ${response.errorBody()}")
+                    return@withContext NetworkResponse.Error("Request failed with status code ${response.code()}: ${response.errorBody()?.string()}")
                 }
             }
         }

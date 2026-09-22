@@ -120,7 +120,7 @@ internal class IdentifiersEncoder(
 
             return "e:$id"
         } catch (e: Exception) {
-            Log.e("OptableSDK", "Can't get eid from $urlString", e)
+            Log.e("OptableSDK", "Can't get eid from deep link", e)
         }
         return null
     }
