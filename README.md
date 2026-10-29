@@ -694,7 +694,12 @@ If not set, SDK will try to fetch data from SharedPreferences (key `IABGPP_2_TCS
 - `gppSid`  A comma-separated list of up to two sections applicable in a given GPP privacy string. This value is required when gpp is present.
 - `req` Optable privacy regulation override, which can be one of: `gdpr`, `can`, `us`, or `null` and will override all other privacy regulations when present.
 
-**NOTE**: The custom values provided to the `OptableConfig` will override all other privacy regulations when present.
+You can also pass the consents when creating the SDK, with the `consents` parameter of `OptableConfig`. A
+later call to `setConsents()` replaces them as a whole: a value not set in the new `OptableConsents` is no longer sent,
+unless it is found in SharedPreferences.
+
+**NOTE**: The custom values provided to `OptableConfig` or `setConsents()` take precedence over the values found in
+SharedPreferences.
 
 ## Demo Applications
 

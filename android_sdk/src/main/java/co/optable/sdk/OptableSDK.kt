@@ -28,7 +28,7 @@ class OptableSDK(
 ) {
 
     private val storage = LocalStorage(config)
-    private val consentsManager = ConsentsManager(storage)
+    private val consentsManager = ConsentsManager(storage, config.consents)
     private val googleAdIdManager = GoogleAdIdManager(config)
     private val userAgentHolder = UserAgentHolder(config)
     private val appInfoHolder = AppInfoHolder(config)
