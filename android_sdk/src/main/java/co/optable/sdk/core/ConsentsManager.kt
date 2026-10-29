@@ -38,7 +38,14 @@ internal class ConsentsManager(
     }
 
     fun gppSid(): String? {
-        return customConsents.gppSid
+        if (customConsents.gppSid != null) {
+            return customConsents.gppSid
+        }
+        // The CMP's section IDs are only used with the CMP's GPP string, never with a custom one.
+        if (customConsents.gpp == null && localStorage.getGppConsent() != null) {
+            return localStorage.getGppSid()
+        }
+        return null
     }
 
     fun customRegulation(): String? {

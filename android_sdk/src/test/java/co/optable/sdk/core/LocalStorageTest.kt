@@ -23,7 +23,9 @@ class LocalStorageTest {
     private companion object {
         private const val KEY_SUBJECT_TO_GDPR = "IABTCF_gdprApplies"
         private const val KEY_GDPR_CONSENT = "IABTCF_TCString"
-        private const val KEY_GPP_CONSENT = "IABGPP_2_TCString"
+        private const val KEY_GPP_STRING = "IABGPP_HDR_GppString"
+        private const val KEY_GPP_SID = "IABGPP_GppSID"
+        private const val KEY_LEGACY_GPP_CONSENT = "IABGPP_2_TCString"
         private const val HOUR_MS = 60 * 60 * 1000L
     }
 
@@ -281,14 +283,36 @@ class LocalStorageTest {
     @Test
     fun `getGppConsent should return value from SharedPreferences`() {
         val consent = "test-gpp-consent"
-        every { mockSharedPreferences.getString(KEY_GPP_CONSENT, null) } returns consent
+        every { mockSharedPreferences.getString(KEY_GPP_STRING, null) } returns consent
+        every { mockSharedPreferences.getString(KEY_LEGACY_GPP_CONSENT, null) } returns "legacy-gpp-consent"
+        assertEquals(consent, localStorage.getGppConsent())
+    }
+
+    @Test
+    fun `getGppConsent should fall back to the legacy key`() {
+        val consent = "legacy-gpp-consent"
+        every { mockSharedPreferences.getString(KEY_GPP_STRING, null) } returns null
+        every { mockSharedPreferences.getString(KEY_LEGACY_GPP_CONSENT, null) } returns consent
         assertEquals(consent, localStorage.getGppConsent())
     }
 
     @Test
     fun `getGppConsent should return null when not set`() {
-        every { mockSharedPreferences.getString(KEY_GPP_CONSENT, null) } returns null
+        every { mockSharedPreferences.getString(KEY_GPP_STRING, null) } returns null
+        every { mockSharedPreferences.getString(KEY_LEGACY_GPP_CONSENT, null) } returns null
         assertNull(localStorage.getGppConsent())
+    }
+
+    @Test
+    fun `getGppSid should convert underscores to commas`() {
+        every { mockSharedPreferences.getString(KEY_GPP_SID, null) } returns "2_7"
+        assertEquals("2,7", localStorage.getGppSid())
+    }
+
+    @Test
+    fun `getGppSid should return null when not set`() {
+        every { mockSharedPreferences.getString(KEY_GPP_SID, null) } returns null
+        assertNull(localStorage.getGppSid())
     }
 
     private fun getPrivateKey(instance: Any, fieldName: String): String {
