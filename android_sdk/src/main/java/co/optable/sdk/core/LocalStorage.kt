@@ -11,6 +11,8 @@ import androidx.preference.PreferenceManager
 import co.optable.sdk.OptableConfig
 import co.optable.sdk.OptableTargeting
 import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
+import org.json.JSONObject
 
 /**
  * Manages SharedPreferences for Optable SDK.
@@ -50,7 +52,7 @@ internal class LocalStorage(
                 clearTargeting()
                 return null
             }
-            return Gson().fromJson(targeting, OptableTargeting::class.java)
+            return Gson().fromJson(targeting, CachedTargeting::class.java).toTargeting()
         } catch (e: Exception) {
             Log.e("OptableSDK", "Can't parse cached targeting: ${e.message}. Clearing...")
             runCatching { clearTargeting() }
@@ -61,7 +63,7 @@ internal class LocalStorage(
     fun setTargeting(targeting: OptableTargeting) {
         try {
             prefs.edit(commit = true) {
-                putString(targetingKey, Gson().toJson(targeting))
+                putString(targetingKey, Gson().toJson(CachedTargeting.from(targeting)))
                 putLong(targetingTimestampKey, System.currentTimeMillis())
             }
         } catch (e: Exception) {
@@ -131,6 +133,26 @@ internal class LocalStorage(
     private fun generateUniqueKey(kind: String, config: OptableConfig): String {
         val sfx = "${config.host}/${config.tenant}/${config.originSlug}"
         return "OPTABLE_" + kind + "_" + Base64.encodeToString(sfx.toByteArray(), 0)
+    }
+
+    /**
+     * The cached form of [OptableTargeting]. Gson can't serialize a JSONObject (it writes the
+     * object's internal fields), so `targetingData` is stored as its JSON string.
+     */
+    private class CachedTargeting(
+        @SerializedName("gamTargetingKeywords") val gamTargetingKeywords: Map<String, List<String>>,
+        @SerializedName("openRtbJson") val openRtbJson: String?,
+        @SerializedName("targetingData") val targetingData: String,
+    ) {
+        fun toTargeting() = OptableTargeting(gamTargetingKeywords, openRtbJson, JSONObject(targetingData))
+
+        companion object {
+            fun from(targeting: OptableTargeting) = CachedTargeting(
+                targeting.gamTargetingKeywords,
+                targeting.openRtbJson,
+                targeting.targetingData.toString(),
+            )
+        }
     }
 
 }
