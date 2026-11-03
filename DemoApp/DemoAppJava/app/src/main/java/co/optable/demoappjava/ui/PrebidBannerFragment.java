@@ -18,7 +18,6 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.admanager.AdManagerAdRequest;
 import com.google.android.gms.ads.admanager.AdManagerAdView;
-import com.google.common.collect.Lists;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.prebid.mobile.BannerAdUnit;
@@ -64,7 +63,7 @@ public class PrebidBannerFragment extends Fragment {
     private void onClickLoadAd() {
         statusTextView.setText("");
 
-        ArrayList<OptableIdentifier.Email> ids = Lists.newArrayList(
+        List<OptableIdentifier> ids = Arrays.asList(
                 new OptableIdentifier.Email("test@test.com")
         );
         optable.targeting(ids, optableResult -> {

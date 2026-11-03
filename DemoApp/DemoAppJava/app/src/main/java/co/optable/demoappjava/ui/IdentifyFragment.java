@@ -2,7 +2,6 @@ package co.optable.demoappjava.ui;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,16 +10,17 @@ import android.widget.EditText;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 import co.optable.demoappjava.R;
 import co.optable.demoappjava.TheApplication;
 import co.optable.sdk.OptableIdentifier;
 import co.optable.sdk.OptableResult;
 import co.optable.sdk.OptableSDK;
-import com.google.common.collect.Lists;
 import kotlin.Unit;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class IdentifyFragment extends Fragment {
 
@@ -47,7 +47,7 @@ public class IdentifyFragment extends Fragment {
     private void onClickIdentify() {
         statusTextView.setText("");
 
-        ArrayList<OptableIdentifier.Email> ids = Lists.newArrayList(
+        List<OptableIdentifier> ids = Arrays.asList(
                 new OptableIdentifier.Email(emailText.getText().toString())
         );
         optable.identify(ids, result -> {
