@@ -61,7 +61,7 @@ public class IdentifyFragment extends Fragment {
     }
 
     private void checkVisitorId() {
-        String sfx = "na.edge.optable.co/prebidtest/js-sdk";
+        String sfx = "na.edge.optable.co/prebidtest/android-sdk";
         String visitorKey = "OPTABLE_PASS_" + Base64.encodeToString(sfx.getBytes(StandardCharsets.UTF_8), 0);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
