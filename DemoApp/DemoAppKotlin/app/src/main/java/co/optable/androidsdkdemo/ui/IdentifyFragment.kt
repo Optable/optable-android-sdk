@@ -61,7 +61,7 @@ class IdentifyFragment : Fragment() {
 
 
     private fun checkVisitorId() {
-        val sfx = "na.edge.optable.co/prebidtest/js-sdk"
+        val sfx = "na.edge.optable.co/prebidtest/android-sdk"
         val visitorKey = "OPTABLE_PASS_" + Base64.encodeToString(sfx.toByteArray(StandardCharsets.UTF_8), 0)
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())

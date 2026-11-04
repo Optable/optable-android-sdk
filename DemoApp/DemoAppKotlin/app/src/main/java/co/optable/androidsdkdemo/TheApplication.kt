@@ -17,7 +17,6 @@ class TheApplication : Application() {
             providedContext = this,
             tenant = "prebidtest",
             originSlug = "android-sdk",
-            host = "ca.edge.optable.co",
             origin = "https://www.optable.co",
         )
         optable = OptableSDK(config)

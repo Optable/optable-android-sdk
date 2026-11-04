@@ -168,6 +168,8 @@ class PrebidBannerFragment : Fragment() {
         val openRtbJson = targeting.openRtbJson
         if (openRtbJson?.isNotBlank() == true) {
             TargetingParams.setGlobalOrtbConfig(openRtbJson)
+        } else {
+            TargetingParams.setGlobalOrtbConfig(null)
         }
     }
 
@@ -205,7 +207,7 @@ class PrebidBannerFragment : Fragment() {
 
     private fun witness() {
         val properties = hashMapOf<String, Any>("exampleKey" to "exampleValue", "anotherExample" to 123, "foo" to false)
-        optable.witness("GAMBannerFragment.loadAdButtonClicked", properties) { result ->
+        optable.witness("PrebidBannerFragment.loadAdButtonClicked", properties) { result ->
             when (result) {
                 is OptableResult.Success -> {
                     appendStatusText("Witness success")
