@@ -1,10 +1,11 @@
-# Optable Android SDK [![](https://jitci.com/gh/Optable/optable-android-sdk/svg)](https://jitci.com/gh/Optable/optable-android-sdk)
+# Optable Android SDK [![JitPack](https://jitpack.io/v/Optable/optable-android-sdk.svg)](https://jitpack.io/#Optable/optable-android-sdk)
 
 Kotlin SDK for integrating with an [Optable Data Connectivity Node (DCN)](https://docs.optable.co) from an Android
 application.
 
 ## Contents
 
+- [Requirements](#requirements)
 - [Installing](#installing)
 - [Using](#using)
     - [Identify API](#identify-api)
@@ -17,31 +18,66 @@ application.
 - [Demo Applications](#demo-applications)
     - [Building](#building)
 
+## Requirements
+
+- Android 6.0 (API level 23) or later: the SDK's `minSdk` is 23.
+- `compileSdk` 34 or later and Android Gradle Plugin 8.1.1 or later, as required by the SDK's AndroidX dependencies.
+- JDK 17 or later to build your app: the SDK is compiled to Java 17 bytecode.
+- Kotlin apps: Kotlin 2.0 or later, since the SDK's dependencies bring in `kotlin-stdlib` 2.1.
+- The `android.permission.INTERNET` permission in your app's `AndroidManifest.xml`. The SDK doesn't declare it, so
+  your app must:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
 ## Installing
 
 This SDK is published using [JitPack](https://jitpack.io/), so you need to add the repository to your application build.
-Add the following in your root `build.gradle` at the end of `repositories`:
+Add it to the `dependencyResolutionManagement` block of your `settings.gradle`:
 
-```kotlin
-allprojects {
+```groovy
+dependencyResolutionManagement {
     repositories {
-        ...
-        maven {
-            url 'https://jitpack.io'
-        }
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 }
 ```
 
-Then add the dependency to the SDK in your app `build.gradle`:
+Or, in `settings.gradle.kts`:
 
 ```kotlin
-dependencies {
-    implementation 'com.github.Optable:optable-android-sdk:VERSION_TAG'
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
 }
 ```
 
-Replace `VERSION_TAG` with the latest or desired [SDK release](https://github.com/Optable/optable-android-sdk/releases).
+Projects that still declare repositories in the root `build.gradle` can add the same `maven` line to
+`allprojects { repositories { ... } }` instead.
+
+Then add the dependency to the SDK in your app `build.gradle`:
+
+```groovy
+dependencies {
+    implementation 'com.github.Optable:optable-android-sdk:v1.2.0'
+}
+```
+
+Or, in `build.gradle.kts`:
+
+```kotlin
+dependencies {
+    implementation("com.github.Optable:optable-android-sdk:v1.2.0")
+}
+```
+
+Replace `v1.2.0` with the latest or desired [SDK release](https://github.com/Optable/optable-android-sdk/releases).
 
 ## Using
 
@@ -112,7 +148,7 @@ val config = OptableConfig(
     providedContext = this,
     tenant = "prebidtest",
     originSlug = "js-sdk",
-    host = "ca.edge.optable.co",
+    host = "na.edge.optable.co",
     path = "v2",
     insecure = false,
     apiKey = API_KEY,
@@ -692,17 +728,19 @@ The Kotlin and Java demo applications show a working example of the APIs, as wel
 an integration with the [Google Ad Manager](https://admanager.google.com/home/) ad server, enabling the targeting of
 ads served by GAM to audiences activated in the [Optable](https://optable.co/) DCN.
 
-By default, the demo applications will connect to the [Optable](https://optable.co/) demo DCN at `sandbox.optable.co`and
-reference application slug `android-sdk-demo`. The demo apps depend on
-the [GAM Mobile Ads SDK for Android](https://developers.google.com/ad-manager/mobile-ads-sdk/android/quick-start) and
-load ads from a GAM account operated by [Optable](https://optable.co/).
+The demo applications connect to an [Optable](https://optable.co/) demo DCN, tenant `prebidtest`, with the source
+slug `android-sdk`. They also show an integration with the
+[Prebid Mobile SDK](https://docs.prebid.org/prebid-mobile/pbm-api/android/code-integration-android.html). The demo apps
+depend on the [GAM Mobile Ads SDK for Android](https://developers.google.com/ad-manager/mobile-ads-sdk/android/quick-start)
+and load ads from a GAM account operated by [Optable](https://optable.co/).
 
 ### Building
 
 To build the Kotlin demo app, from [Android Studio](https://developer.android.com/studio), navigate to `File > Open` and
 open the `DemoApp/DemoAppKotlin` directory. To build the Java demo app, open the `DemoApp/DemoAppJava` directory. In
-both cases, you should be able to build and run the resulting project directly, since it will automatically download the
-`co.optable.android_sdk` library from the [JitPack](https://jitpack.io/) Maven repository.
+both cases, you should be able to build and run the resulting project directly. By default, the demo apps build the SDK
+from the source in this repository (`useReleaseSdk=false` in the demo's `gradle.properties`). Set `useReleaseSdk=true` to
+use a published release from [JitPack](https://jitpack.io/) instead.
 
 ### Development
 
