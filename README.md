@@ -128,9 +128,9 @@ You can then call various SDK APIs on the instance as shown in the examples belo
 multiple instances of `OptableSDK` in order to connect to other (e.g., partner) DCNs and/or reference other configured
 application slug IDs.
 
-By default, the SDK detects the application user agent by sniffing `settings.userAgentString` from a `WebView`. The
-resulting user agent string is sent to your DCN for analytics purposes. To disable this behavior, you can provide an
-optional fifth string parameter `customUserAgent`, which allows you to set whatever user agent string you would like to send
+By default, the SDK uses the device's default WebView user agent, obtained from `WebSettings.getDefaultUserAgent()`. The
+resulting user agent string is sent to your DCN for analytics purposes. To disable this behavior, you can provide the
+optional string parameter `customUserAgent`, which allows you to set whatever user agent string you would like to send
 instead. For example, in Kotlin:
 
 ```kotlin
@@ -171,10 +171,10 @@ OptableConfig config = new OptableConfig(this, "prebidtest", "android-sdk");
 config.setOrigin("https://www.acmeco.com");
 ```
 
-### OptableIdentifiers
+### OptableIdentifier
 
-There are many fields to identify the users. You can provide any user information using `OptableIdentifiers` class. 
-Sensitive data as email and phone number encrypted using SHA256. 
+There are many fields to identify the users. You can provide any user information using the `OptableIdentifier` class. 
+Sensitive data such as email and phone number is hashed using SHA-256. 
 
 **NOTE**: You don't need to provide all fields. Only the fields that you have are required.
 
@@ -211,7 +211,7 @@ val ids = listOf(
 #### Java
 
 ```java
-ArrayList<OptableIdentifier> ids = Lists.newArrayList(
+List<OptableIdentifier> ids = Arrays.asList(
   new OptableIdentifier.Email("john.doe+test@example.com"),
   new OptableIdentifier.PhoneNumber("+1(555)1234567"),
   // Already hashed? Pass it directly, it will not be hashed again:
@@ -259,7 +259,7 @@ optable.identify(ids) { result ->
 #### Java
 
 ```java
-ArrayList<OptableIdentifier> ids = Lists.newArrayList(
+List<OptableIdentifier> ids = Arrays.asList(
     new OptableIdentifier.Email("john.doe+test@example.com"),
     new OptableIdentifier.PhoneNumber("+1(555)1234567")
 );
@@ -314,7 +314,7 @@ traits.put("hasAccount", true);
 optable.profile(traits, result -> {
     if (result instanceof OptableResult.Success) {
         Log.d(TAG, "Profile success");
-    } else if (result instanceof OptableResult.Error<Unit> error) {
+    } else if (result instanceof OptableResult.Error<OptableTargeting> error) {
         Log.d(TAG, "Profile error: " + error.getMessage());
     }
 });
@@ -346,10 +346,8 @@ optable.targeting(ids) { result ->
 
     when (result) {
         is OptableResult.Success<OptableTargeting> -> {
-            val audiences = result.data.audiences
-            if (audiences != null) {
-                // Apply 
-            }
+            val audiences = result.data.gamTargetingKeywords
+            // Apply
         }
 
         is OptableResult.Error<OptableTargeting> -> {
@@ -362,19 +360,17 @@ optable.targeting(ids) { result ->
 #### Java
 
 ```java
-ArrayList<OptableIdentifier> ids = Lists.newArrayList(
+List<OptableIdentifier> ids = Arrays.asList(
         new OptableIdentifier.Email("test@test.com")
-)
+);
 optable.targeting(ids, result -> {
     if (result instanceof OptableResult.Success<OptableTargeting> success) {
-        Map<String, List<String>> audiences = success.getData().getAudiences();
-        if (audiences != null) {
-            // Apply
-        }
+        Map<String, List<String>> audiences = success.getData().getGamTargetingKeywords();
+        // Apply
     } else if (result instanceof OptableResult.Error<OptableTargeting> error) {
         Log.d(TAG, "Targeting error: " + error.getMessage());
     }
-})    
+});
 ```
 
 On success, the resulting key values are typically sent as part of a subsequent ad call. Therefore we recommend that you
@@ -425,7 +421,7 @@ optable.targeting(ids, hids) { result ->
 ##### Java
 
 ```java
-ArrayList<OptableIdentifier> hids = Lists.newArrayList(
+List<OptableIdentifier> hids = Arrays.asList(
         new OptableIdentifier.IPv6("2001:0db8:5b96:0000:0000:426f:8e17:642a"),
         new OptableIdentifier.PhoneNumber("+1(555)1234567"),
         new OptableIdentifier.Email("user@example.com"),
@@ -546,7 +542,7 @@ a [Google Ad Manager](https://admanager.google.com/home/) ad server account:
 private lateinit var optable: OptableSDK
 
 private fun onClickLoadAd() {
-  val ids = OptableIdentifiers(email = "test@test.com")
+  val ids = listOf(OptableIdentifier.Email("test@test.com"))
   optable.targeting(ids) { result ->
     val requestBuilder = AdManagerAdRequest.Builder()
 
@@ -567,11 +563,8 @@ private fun onClickLoadAd() {
 private fun applyOptableToGam(builder: AdManagerAdRequest.Builder, targeting: OptableTargeting?) {
   if (targeting == null) return
 
-  val audiences = targeting.gamTargetingKeywords
-  if (audiences != null) {
-    for (entry in audiences.entries) {
-      builder.addCustomTargeting(entry.key, entry.value)
-    }
+  for (entry in targeting.gamTargetingKeywords.entries) {
+    builder.addCustomTargeting(entry.key, entry.value)
   }
 }
 ```
@@ -582,7 +575,7 @@ private fun applyOptableToGam(builder: AdManagerAdRequest.Builder, targeting: Op
     private AdManagerAdView mAdView;
 
     private void onClickLoadAd() {
-      OptableIdentifiers ids = new OptableIdentifiers.Builder().email("test@test.com").build();
+      List<OptableIdentifier> ids = Arrays.asList(new OptableIdentifier.Email("test@test.com"));
       optable.targeting(ids, result -> {
         AdManagerAdRequest.Builder requestBuilder = new AdManagerAdRequest.Builder();
     
@@ -598,11 +591,8 @@ private fun applyOptableToGam(builder: AdManagerAdRequest.Builder, targeting: Op
     private void applyOptableToGam(AdManagerAdRequest.Builder builder, @Nullable OptableTargeting targeting) {
       if (targeting == null) return;
     
-      Map<String, List<String>> audiences = targeting.getGamTargetingKeywords();
-      if (audiences != null) {
-        for (Map.Entry<String, List<String>> entry : audiences.entrySet()) {
-          builder.addCustomTargeting(entry.getKey(), entry.getValue());
-        }
+      for (Map.Entry<String, List<String>> entry : targeting.getGamTargetingKeywords().entrySet()) {
+        builder.addCustomTargeting(entry.getKey(), entry.getValue());
       }
     }
 ```
@@ -676,7 +666,7 @@ val consents = OptableConsents(
   gdprConsent = "consent-string",   // IAB TCF consent string
   gpp = "gpp-string",               // IAB GPP string
   gppSid = "1,2",                   // GPP section IDs (comma-separated)
-  req = "gdpr",                     // Regulatory framework to apply (e.g., "gdpr")
+  reg = "gdpr",                     // Regulatory framework to apply (e.g., "gdpr")
 )
 
 optable.setConsents(consents)
