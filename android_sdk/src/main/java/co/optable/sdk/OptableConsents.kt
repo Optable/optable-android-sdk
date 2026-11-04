@@ -9,9 +9,11 @@ package co.optable.sdk
  * @param gdprConsent TCF EU v2 consent string. If not set, SDK will try to fetch data from SharedPreferences (key `IABTCF_TCString`), as stated in
  * [standard](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20CMP%20API%20v2.md#in-app-details).
  * @param gpp  GPP privacy string.
- * If not set, SDK will try to fetch data from SharedPreferences (key `IABGPP_2_TCString`), as stated in
- * [standard](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20CMP%20API%20v2.md#in-app-details)
+ * If not set, SDK will try to fetch data from SharedPreferences (key `IABGPP_HDR_GppString`), as stated in
+ * [standard](https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform/blob/main/Core/CMP%20API%20Specification.md)
  * @param gppSid  A comma-separated list of up to two sections applicable in a given GPP privacy string. This value is required when gpp is present.
+ * If not set and `gpp` is read from SharedPreferences, SDK will also read key `IABGPP_GppSID`, as stated in
+ * [standard](https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform/blob/main/Core/CMP%20API%20Specification.md)
  * @param reg Optable privacy regulation override, which can be one of: `gdpr`, `can`, `us`, or `null` and will override all other privacy regulations when present.
  */
 data class OptableConsents(
