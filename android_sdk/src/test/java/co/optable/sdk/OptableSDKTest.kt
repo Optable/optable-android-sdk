@@ -360,6 +360,19 @@ class OptableSDKTest {
     }
 
     @Test
+    fun `consents from config should be used by consents manager`() {
+        val consents = OptableConsents(gdprSubject = true, gdprConsent = "consent", gpp = "gpp", gppSid = "2", reg = "us")
+        every { mockConfig.consents } returns consents
+
+        val sdkWithConsents = OptableSDK(mockConfig)
+
+        val field: Field = sdkWithConsents.javaClass.getDeclaredField("consentsManager")
+        field.isAccessible = true
+        val consentsManager = field.get(sdkWithConsents) as ConsentsManager
+        assertEquals(consents, consentsManager.customConsents)
+    }
+
+    @Test
     fun `setConsents should update consents manager`() {
         val consents = mockk<OptableConsents>()
 
