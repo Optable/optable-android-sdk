@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    compileSdk 34
+    compileSdk 35
     namespace "co.optable.androidsdkdemo"
 
     defaultConfig {
@@ -15,8 +15,6 @@ android {
         versionCode 1
         versionName "1.0.0"
         archivesBaseName = "optable-android-sdk-demo-kotlin"
-
-        multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -41,7 +39,7 @@ android {
 dependencies {
     // Optable SDK
     if (useReleaseSdk == "true") {
-        implementation "com.github.Optable:optable-android-sdk:1.0.0"
+        implementation "com.github.Optable:optable-android-sdk:v1.2.0"
     } else {
         implementation "co.optable:local-sdk"
     }
@@ -54,13 +52,12 @@ dependencies {
 
     // Base Android
     implementation "org.jetbrains.kotlin:kotlin-stdlib:2.0.21"
-    implementation 'com.android.support:multidex:1.0.3'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.1.0'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.1.0'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.8.9'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.8.9'
+    implementation 'androidx.preference:preference-ktx:1.2.1'
 
     // Testing
-    testImplementation 'junit:junit:4.13.1'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
 }

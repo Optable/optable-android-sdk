@@ -16,7 +16,6 @@ import co.optable.sdk.OptableSDK;
 import co.optable.sdk.OptableTargeting;
 import com.google.android.gms.ads.admanager.AdManagerAdRequest;
 import com.google.android.gms.ads.admanager.AdManagerAdView;
-import com.google.common.collect.Lists;
 import kotlin.Unit;
 
 import java.util.*;
@@ -51,7 +50,7 @@ public class GamBannerFragment extends Fragment {
     private void onClickLoadAd() {
         statusTextView.setText("");
 
-        ArrayList<OptableIdentifier.Email> ids = Lists.newArrayList(
+        List<OptableIdentifier> ids = Arrays.asList(
                 new OptableIdentifier.Email("test@test.com")
         );
         optable.targeting(ids, result -> {

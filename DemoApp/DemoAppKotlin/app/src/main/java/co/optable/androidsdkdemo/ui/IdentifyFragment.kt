@@ -1,7 +1,6 @@
 package co.optable.androidsdkdemo.ui
 
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +9,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import co.optable.androidsdkdemo.R
 import co.optable.androidsdkdemo.TheApplication
 import co.optable.sdk.OptableIdentifier
