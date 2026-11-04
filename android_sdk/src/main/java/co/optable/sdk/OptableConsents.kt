@@ -3,7 +3,7 @@ package co.optable.sdk
 /**
  * Represents the consent information for GDPR and GPP.
  *
- * @param gdprSubject A boolean indicating whether GDPR applies, represented as a integer (0 when it does not apply, 1 when it does). This value should be present when gdpr_consent is supplied.
+ * @param gdprSubject A boolean indicating whether GDPR applies. This value should be present when gdpr_consent is supplied.
  * If not set, SDK will try to fetch data from SharedPreferences (key `IABTCF_gdprApplies`), as stated in
  * [standard](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20CMP%20API%20v2.md#in-app-details)
  * @param gdprConsent TCF EU v2 consent string. If not set, SDK will try to fetch data from SharedPreferences (key `IABTCF_TCString`), as stated in
