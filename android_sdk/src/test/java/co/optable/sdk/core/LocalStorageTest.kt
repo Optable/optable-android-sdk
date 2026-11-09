@@ -7,7 +7,6 @@ import android.util.Log
 import androidx.preference.PreferenceManager
 import co.optable.sdk.OptableConfig
 import co.optable.sdk.OptableTargeting
-import com.google.gson.Gson
 import io.mockk.*
 import org.json.JSONObject
 import org.junit.After
@@ -40,6 +39,8 @@ class LocalStorageTest {
         mockContext = mockk(relaxed = true)
 
         mockkStatic(PreferenceManager::class, Base64::class, Log::class)
+        // JSONObject is a stub in local unit tests; getTargeting() rebuilds targetingData with its constructor.
+        mockkConstructor(JSONObject::class)
         every { Log.e(any(), any()) } returns 0
         every { Log.i(any(), any()) } returns 0
 
@@ -107,11 +108,9 @@ class LocalStorageTest {
     @Test
     fun `setTargeting and getTargeting should store and retrieve the value`() {
         val targetingKey = getPrivateKey(localStorage, "targetingKey")
-        val targetingJson = Gson().toJson(targeting)
+        val targetingJson = cachedTargetingJson(localStorage)
         every { mockSharedPreferences.getString(targetingKey, null) } returns targetingJson
         cacheTimestamp(localStorage, System.currentTimeMillis() - HOUR_MS)
-
-        localStorage.setTargeting(targeting)
 
         verify { mockEditor.putString(targetingKey, targetingJson) }
         val retrieved = localStorage.getTargeting()?.gamTargetingKeywords
@@ -144,7 +143,7 @@ class LocalStorageTest {
     fun `getTargeting should return null and clear the cache when the data is older than the TTL`() {
         val targetingKey = getPrivateKey(localStorage, "targetingKey")
         val timestampKey = getPrivateKey(localStorage, "targetingTimestampKey")
-        every { mockSharedPreferences.getString(targetingKey, null) } returns Gson().toJson(targeting)
+        every { mockSharedPreferences.getString(targetingKey, null) } returns cachedTargetingJson(localStorage)
         // The default TTL is 24 hours.
         cacheTimestamp(localStorage, System.currentTimeMillis() - 25 * HOUR_MS)
 
@@ -158,7 +157,7 @@ class LocalStorageTest {
     fun `getTargeting should return null and clear the cache when the timestamp is in the future`() {
         val targetingKey = getPrivateKey(localStorage, "targetingKey")
         val timestampKey = getPrivateKey(localStorage, "targetingTimestampKey")
-        every { mockSharedPreferences.getString(targetingKey, null) } returns Gson().toJson(targeting)
+        every { mockSharedPreferences.getString(targetingKey, null) } returns cachedTargetingJson(localStorage)
         // A device clock that moved backwards leaves the entry stamped in the future, making its age unusable.
         cacheTimestamp(localStorage, System.currentTimeMillis() + HOUR_MS)
 
@@ -171,7 +170,7 @@ class LocalStorageTest {
     @Test
     fun `getTargeting should return null when the cached data has no timestamp`() {
         val targetingKey = getPrivateKey(localStorage, "targetingKey")
-        every { mockSharedPreferences.getString(targetingKey, null) } returns Gson().toJson(targeting)
+        every { mockSharedPreferences.getString(targetingKey, null) } returns cachedTargetingJson(localStorage)
         cacheTimestamp(localStorage, 0L)
 
         assertNull(localStorage.getTargeting())
@@ -186,7 +185,7 @@ class LocalStorageTest {
             OptableConfig(mockContext, "testhost", "testtenant", "testslug", cacheTtl = ttlSeconds)
         )
         val targetingKey = getPrivateKey(storage, "targetingKey")
-        every { mockSharedPreferences.getString(targetingKey, null) } returns Gson().toJson(targeting)
+        every { mockSharedPreferences.getString(targetingKey, null) } returns cachedTargetingJson(storage)
 
         cacheTimestamp(storage, System.currentTimeMillis() - HOUR_MS)
         assertEquals(targeting.gamTargetingKeywords, storage.getTargeting()?.gamTargetingKeywords)
@@ -201,7 +200,7 @@ class LocalStorageTest {
             OptableConfig(mockContext, "testhost", "testtenant", "testslug", cacheTtl = Long.MAX_VALUE)
         )
         val targetingKey = getPrivateKey(storage, "targetingKey")
-        every { mockSharedPreferences.getString(targetingKey, null) } returns Gson().toJson(targeting)
+        every { mockSharedPreferences.getString(targetingKey, null) } returns cachedTargetingJson(storage)
         cacheTimestamp(storage, System.currentTimeMillis() - HOUR_MS)
 
         assertEquals(targeting.gamTargetingKeywords, storage.getTargeting()?.gamTargetingKeywords)
@@ -210,6 +209,27 @@ class LocalStorageTest {
     private fun cacheTimestamp(storage: LocalStorage, timestamp: Long) {
         val timestampKey = getPrivateKey(storage, "targetingTimestampKey")
         every { mockSharedPreferences.getLong(timestampKey, 0L) } returns timestamp
+    }
+
+    /** Caches [targeting] with [storage] and returns the string it wrote to SharedPreferences. */
+    private fun cachedTargetingJson(storage: LocalStorage): String {
+        val written = slot<String>()
+        every { mockEditor.putString(getPrivateKey(storage, "targetingKey"), capture(written)) } returns mockEditor
+        storage.setTargeting(targeting)
+        return written.captured
+    }
+
+    @Test
+    fun `getTargeting should return null and clear the cache when the data is in the pre-1_3 format`() {
+        val targetingKey = getPrivateKey(localStorage, "targetingKey")
+        // Versions up to 1.2 stored the JSONObject's internal fields instead of its JSON string.
+        every { mockSharedPreferences.getString(targetingKey, null) } returns
+            """{"gamTargetingKeywords":{"foo":["bar"]},"openRtbJson":"{}","targetingData":{"nameValuePairs":{"foo":"bar"}}}"""
+        cacheTimestamp(localStorage, System.currentTimeMillis() - HOUR_MS)
+
+        assertNull(localStorage.getTargeting())
+
+        verify { mockEditor.remove(targetingKey) }
     }
 
     @Test
