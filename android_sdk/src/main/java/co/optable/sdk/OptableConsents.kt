@@ -12,7 +12,7 @@ package co.optable.sdk
  * If not set, SDK will try to fetch data from SharedPreferences (key `IABGPP_HDR_GppString`), as stated in
  * [standard](https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform/blob/main/Core/CMP%20API%20Specification.md)
  * @param gppSid  A comma-separated list of up to two sections applicable in a given GPP privacy string. This value is required when gpp is present.
- * If not set and `gpp` is read from SharedPreferences, SDK will also read key `IABGPP_GppSID`, as stated in
+ * If not set and `gpp` is read from SharedPreferences key `IABGPP_HDR_GppString`, SDK will also read key `IABGPP_GppSID`, as stated in
  * [standard](https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform/blob/main/Core/CMP%20API%20Specification.md)
  * @param reg Optable privacy regulation override, which can be one of: `gdpr`, `can`, `us`, or `null` and will override all other privacy regulations when present.
  */

@@ -105,8 +105,7 @@ class ConsentsManagerTest {
     }
 
     @Test
-    fun `gppSid should return value from localStorage when gpp also comes from localStorage`() {
-        `when`(localStorage.getGppConsent()).thenReturn("local_storage_gpp")
+    fun `gppSid should return value from localStorage when gpp is not in customConsents`() {
         `when`(localStorage.getGppSid()).thenReturn("2,7")
         consentsManager = ConsentsManager(localStorage)
         assertEquals("2,7", consentsManager.gppSid())
@@ -114,7 +113,6 @@ class ConsentsManagerTest {
 
     @Test
     fun `gppSid should not use localStorage value when gpp comes from customConsents`() {
-        `when`(localStorage.getGppConsent()).thenReturn("local_storage_gpp")
         `when`(localStorage.getGppSid()).thenReturn("2,7")
         consentsManager = ConsentsManager(localStorage, OptableConsents(gpp = "test_gpp"))
         assertNull(consentsManager.gppSid())
@@ -122,7 +120,6 @@ class ConsentsManagerTest {
 
     @Test
     fun `gppSid from customConsents should win over localStorage value`() {
-        `when`(localStorage.getGppConsent()).thenReturn("local_storage_gpp")
         `when`(localStorage.getGppSid()).thenReturn("2,7")
         consentsManager = ConsentsManager(localStorage, OptableConsents(gppSid = "8"))
         assertEquals("8", consentsManager.gppSid())

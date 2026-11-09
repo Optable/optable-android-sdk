@@ -42,7 +42,7 @@ internal class ConsentsManager(
             return customConsents.gppSid
         }
         // The CMP's section IDs are only used with the CMP's GPP string, never with a custom one.
-        if (customConsents.gpp == null && localStorage.getGppConsent() != null) {
+        if (customConsents.gpp == null) {
             return localStorage.getGppSid()
         }
         return null

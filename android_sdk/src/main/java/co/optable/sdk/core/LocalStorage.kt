@@ -124,7 +124,7 @@ internal class LocalStorage(
 
     fun getGppConsent(): String? {
         try {
-            return prefs.getString(KEY_GPP_STRING, null) ?: prefs.getString(KEY_LEGACY_GPP_CONSENT, null)
+            return getNonBlankString(KEY_GPP_STRING) ?: getNonBlankString(KEY_LEGACY_GPP_CONSENT)
         } catch (e: Exception) {
             Log.e("OptableSDK", "Can't get GPP consent: ${e.message}")
         }
@@ -133,14 +133,22 @@ internal class LocalStorage(
 
     /**
      * The CMP stores section IDs separated by underscores ("2_7"); the Edge API takes them comma-separated ("2,7").
+     * Only returned alongside the CMP's own GPP string, never with the legacy key's.
      */
     fun getGppSid(): String? {
         try {
-            return prefs.getString(KEY_GPP_SID, null)?.replace("_", ",")
+            if (getNonBlankString(KEY_GPP_STRING) == null) {
+                return null
+            }
+            return getNonBlankString(KEY_GPP_SID)?.replace("_", ",")
         } catch (e: Exception) {
             Log.e("OptableSDK", "Can't get GPP SID: ${e.message}")
         }
         return null
+    }
+
+    private fun getNonBlankString(key: String): String? {
+        return prefs.getString(key, null)?.takeIf { it.isNotBlank() }
     }
 
     private fun generateUniqueKey(kind: String, config: OptableConfig): String {
