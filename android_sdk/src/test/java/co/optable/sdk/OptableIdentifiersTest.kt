@@ -281,6 +281,7 @@ class OptableIdentifiersTest {
         val ids = listOf(
             OptableIdentifier.Raw("xyz"),
             OptableIdentifier.Raw(":abc"),
+            OptableIdentifier.Raw("  :abc"),
             OptableIdentifier.Raw("xyz:"),
             OptableIdentifier.Raw("xyz:   "),
             OptableIdentifier.Raw("e:"),
