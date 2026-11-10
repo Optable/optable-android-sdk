@@ -106,8 +106,10 @@ sealed class OptableIdentifier {
     data class Custom(val key: String, val value: String) : OptableIdentifier()
 
     /**
-     * Pre-encoded EID string to include as-is.
-     * No encoding applied. Required format: "type:value" (e.g. "c1:value").
+     * Pre-encoded EID string. Required format: "type:value" (e.g. "c1:value"), split on the first ":".
+     * A known type is encoded exactly like its typed identifier: "e" and "p" must already be SHA-256 hashes, like
+     * Hem and HashedPhoneNumber, or the ID is dropped; other known types get the same normalization. Custom types
+     * are "c" and "c<number>". An unknown type is sent as given. Dropped when the type or value is empty.
      */
     data class Raw(val value: String) : OptableIdentifier()
 
