@@ -36,14 +36,11 @@ class GoogleAdIdManagerTest {
         every { Log.w(any(), any<String>()) } returns 0
 
         mockkStatic(AdvertisingIdClient::class)
-
-        resetCompanionState()
     }
 
     @After
     fun teardown() {
         unmockkAll()
-        resetCompanionState()
     }
 
     @Test
@@ -169,18 +166,42 @@ class GoogleAdIdManagerTest {
         verify(exactly = 1) { AdvertisingIdClient.getAdvertisingIdInfo(context) }
     }
 
-
-    private fun resetCompanionState() {
-        try {
-            val adIdField = GoogleAdIdManager::class.java.getDeclaredField("adId")
-            adIdField.isAccessible = true
-            adIdField.set(null, null)
-
-            val limitField = GoogleAdIdManager::class.java.getDeclaredField("limitAdTracking")
-            limitField.isAccessible = true
-            limitField.set(null, null)
-        } catch (e: Exception) {
-            e.printStackTrace()
+    @Test
+    fun `getId returns null when skip detection is true even after another instance fetched an ad id`() = runTest {
+        val mockInfo = mockk<AdvertisingIdClient.Info> {
+            every { id } returns "12345-abcde"
+            every { isLimitAdTrackingEnabled } returns false
         }
+        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } returns mockInfo
+        manager.fetchAdvertisingId()
+
+        val skipConfig = mockk<OptableConfig> {
+            every { context } returns this@GoogleAdIdManagerTest.context
+            every { skipAdvertisingIdDetection } returns true
+        }
+        val skipManager = GoogleAdIdManager(skipConfig)
+        skipManager.fetchAdvertisingId()
+
+        assertNull(skipManager.getId())
+    }
+
+    @Test
+    fun `limit ad tracking read by one instance does not affect another`() = runTest {
+        val limitedInfo = mockk<AdvertisingIdClient.Info> {
+            every { id } returns "12345-abcde"
+            every { isLimitAdTrackingEnabled } returns true
+        }
+        val unlimitedInfo = mockk<AdvertisingIdClient.Info> {
+            every { id } returns "12345-abcde"
+            every { isLimitAdTrackingEnabled } returns false
+        }
+        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } returnsMany listOf(unlimitedInfo, limitedInfo)
+
+        manager.fetchAdvertisingId()
+        val laterManager = GoogleAdIdManager(config)
+        laterManager.fetchAdvertisingId()
+
+        assertEquals("12345-abcde", manager.getId())
+        assertNull(laterManager.getId())
     }
 }

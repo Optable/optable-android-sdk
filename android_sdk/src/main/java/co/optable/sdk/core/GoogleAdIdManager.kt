@@ -12,10 +12,9 @@ internal class GoogleAdIdManager(
     val config: OptableConfig,
 ) {
 
-    companion object {
-        private var adId: String? = null
-        private var limitAdTracking: Boolean? = null
-    }
+    // Per instance, so an instance created with skipAdvertisingIdDetection never sends an ID another instance read.
+    private var adId: String? = null
+    private var limitAdTracking: Boolean? = null
 
     val deferredTask = CompletableDeferred<String?>()
 
