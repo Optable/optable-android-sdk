@@ -99,11 +99,19 @@ sealed class OptableIdentifier {
     data class Utiq(val value: String) : OptableIdentifier()
 
     /**
-     * Additional custom identifier.
-     * The `key` represents the identifier type.
-     * Encoding: for key "v" whitespace removed; otherwise trimmed.
+     * Optable visitor ID.
+     * Encoding: whitespace removed.
      */
-    data class Custom(val key: String, val value: String) : OptableIdentifier()
+    data class OptableVID(val value: String) : OptableIdentifier()
+
+    /**
+     * Publisher-provided custom identifier, sent with type "c" when `index` is null or 0, or "c1".."cN" otherwise
+     * (the absolute value of `index` is used).
+     * Encoding: trimmed.
+     */
+    data class Custom(val index: Int?, val value: String) : OptableIdentifier() {
+        constructor(value: String) : this(null, value)
+    }
 
     /**
      * Pre-encoded EID string to include as-is.

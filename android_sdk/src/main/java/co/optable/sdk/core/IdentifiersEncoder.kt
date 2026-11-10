@@ -5,6 +5,7 @@ import androidx.core.net.toUri
 import co.optable.sdk.OptableIdentifier
 import java.security.MessageDigest
 import java.util.*
+import kotlin.math.abs
 
 /**
  * Utility object responsible for encoding raw identifiers into Optable EIDs.
@@ -28,6 +29,7 @@ internal class IdentifiersEncoder(
         private const val ID5 = "id5"
         private const val UTIQ = "utiq"
         private const val VID = "v"
+        private const val CUSTOM = "c"
     }
 
 
@@ -55,6 +57,7 @@ internal class IdentifiersEncoder(
                 is OptableIdentifier.NetId -> result.addIfNotNull(NETID, identifier.value, ::removeWhitespaces)
                 is OptableIdentifier.ID5 -> result.addIfNotNull(ID5, identifier.value, ::removeWhitespaces)
                 is OptableIdentifier.Utiq -> result.addIfNotNull(UTIQ, identifier.value, ::normalize)
+                is OptableIdentifier.OptableVID -> result.addIfNotNull(VID, identifier.value, ::removeWhitespaces)
 
                 is OptableIdentifier.GoogleGaid -> {
                     if (normalize(googleAdId ?: "") == normalize(identifier.value)) {
@@ -64,11 +67,9 @@ internal class IdentifiersEncoder(
                 }
 
                 is OptableIdentifier.Custom -> {
-                    if (identifier.key == VID) {
-                        result.addIfNotNull(identifier.key, identifier.value, ::removeWhitespaces)
-                    } else {
-                        result.addIfNotNull(identifier.key, identifier.value, ::trim)
-                    }
+                    val index = identifier.index
+                    val key = if (index == null || index == 0) CUSTOM else "$CUSTOM${abs(index)}"
+                    result.addIfNotNull(key, identifier.value, ::trim)
                 }
 
                 is OptableIdentifier.Raw -> result.add(identifier.value)
