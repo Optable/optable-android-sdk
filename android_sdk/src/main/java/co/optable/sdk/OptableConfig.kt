@@ -19,6 +19,10 @@ import android.content.Context
  *   Settable after construction, which is how Java callers set it without passing every preceding parameter.
  * @param cacheTtl The targeting cache time to live in seconds. Default value is 24 hours.
  * A value of zero or less disables the cache.
+ * @param advertisingIdTimeoutMs How long, in milliseconds, an `identify` or `targeting` call waits for the Google
+ *   Advertising ID before it is sent without it. Default value is 100. Zero or less means don't wait, so the
+ *   Advertising ID is never added automatically; there is no setting that waits forever. Settable after construction,
+ *   like `origin`.
  */
 class OptableConfig @JvmOverloads constructor(
     providedContext: Context,
@@ -33,10 +37,12 @@ class OptableConfig @JvmOverloads constructor(
     var consents: OptableConsents = OptableConsents(),
     var origin: String? = null,
     internal val cacheTtl: Long = DEFAULT_TARGETING_CACHE_TTL_SECONDS,
+    var advertisingIdTimeoutMs: Long = DEFAULT_ADVERTISING_ID_TIMEOUT_MS,
 ) {
 
     companion object {
         const val DEFAULT_TARGETING_CACHE_TTL_SECONDS: Long = 24 * 60 * 60L
+        const val DEFAULT_ADVERTISING_ID_TIMEOUT_MS: Long = 100L
     }
 
     internal val context = providedContext.applicationContext

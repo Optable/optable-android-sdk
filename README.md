@@ -142,6 +142,9 @@ developers running the DCN locally for testing.
 - `origin` An optional value for the HTTP `Origin` header sent with Optable API requests. Unrelated to `originSlug`.
 - `cacheTtl` The time to live, in seconds, of the targeting data cached by the `targeting` API. Default
 value is 24 hours. See [Caching Targeting Data](#caching-targeting-data).
+- `advertisingIdTimeoutMs` How long, in milliseconds, an `identify` or `targeting` call waits for the Google Advertising
+ID before it is sent without it. Default value is 100. Zero or less means don't wait, so the Google Advertising ID is
+never added automatically.
 
 ```kotlin
 val config = OptableConfig(
@@ -157,6 +160,7 @@ val config = OptableConfig(
     consents = OptableConsents(),
     origin = "https://www.acmeco.com",
     cacheTtl = 24 * 60 * 60L,
+    advertisingIdTimeoutMs = 100L,
 )
 ```
 

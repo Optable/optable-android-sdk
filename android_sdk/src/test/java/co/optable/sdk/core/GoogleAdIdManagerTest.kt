@@ -5,17 +5,14 @@ import android.util.Log
 import co.optable.sdk.OptableConfig
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import io.mockk.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class GoogleAdIdManagerTest {
 
     private lateinit var config: OptableConfig
@@ -28,6 +25,7 @@ class GoogleAdIdManagerTest {
         config = mockk {
             every { context } returns this@GoogleAdIdManagerTest.context
             every { skipAdvertisingIdDetection } returns false
+            every { advertisingIdTimeoutMs } returns 1_000
         }
         manager = GoogleAdIdManager(config)
 
@@ -36,151 +34,83 @@ class GoogleAdIdManagerTest {
         every { Log.w(any(), any<String>()) } returns 0
 
         mockkStatic(AdvertisingIdClient::class)
-
-        resetCompanionState()
     }
 
     @After
     fun teardown() {
         unmockkAll()
-        resetCompanionState()
+    }
+
+    private fun adInfo(adId: String, limitAdTracking: Boolean = false) = mockk<AdvertisingIdClient.Info> {
+        every { id } returns adId
+        every { isLimitAdTrackingEnabled } returns limitAdTracking
     }
 
     @Test
-    fun `getId returns null initially when nothing is fetched`() {
+    fun `getId returns the ad id`() = runBlocking {
+        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } returns adInfo("12345-abcde")
+
+        assertEquals("12345-abcde", manager.getId())
+    }
+
+    @Test
+    fun `getId reads the ad id on every call`() = runBlocking {
+        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } returnsMany listOf(
+            adInfo("first-id"),
+            adInfo("reset-id"),
+            adInfo("reset-id", limitAdTracking = true),
+        )
+
+        assertEquals("first-id", manager.getId())
+        assertEquals("reset-id", manager.getId())
+        assertNull(manager.getId())
+        verify(exactly = 3) { AdvertisingIdClient.getAdvertisingIdInfo(context) }
+    }
+
+    @Test
+    fun `getId returns null when limit ad tracking is enabled`() = runBlocking {
+        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } returns adInfo("12345-abcde", limitAdTracking = true)
+
         assertNull(manager.getId())
     }
 
     @Test
-    fun `fetchAdvertisingId completes deferred with null when skip detection is true`() = runTest {
+    fun `getId does not read the ad id when skip detection is true`() = runBlocking {
         every { config.skipAdvertisingIdDetection } returns true
 
-        manager.fetchAdvertisingId()
-
-        assertNull(manager.deferredTask.await())
         assertNull(manager.getId())
-
         verify(exactly = 0) { AdvertisingIdClient.getAdvertisingIdInfo(any()) }
     }
 
     @Test
-    fun `fetchAdvertisingId successfully fetches ad id and updates state`() = runTest {
-        val expectedAdId = "12345-abcde"
-        val mockInfo = mockk<AdvertisingIdClient.Info> {
-            every { id } returns expectedAdId
-            every { isLimitAdTrackingEnabled } returns false
-        }
-        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } returns mockInfo
-
-        manager.fetchAdvertisingId()
-
-        assertEquals(expectedAdId, manager.deferredTask.await())
-        assertEquals(expectedAdId, manager.getId())
-    }
-
-    @Test
-    fun `fetchAdvertisingId sets id but getId returns null when limit ad tracking is enabled`() = runTest {
-        val expectedAdId = "12345-abcde"
-        val mockInfo = mockk<AdvertisingIdClient.Info> {
-            every { id } returns expectedAdId
-            every { isLimitAdTrackingEnabled } returns true
-        }
-        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } returns mockInfo
-
-        manager.fetchAdvertisingId()
-
-        assertEquals(expectedAdId, manager.deferredTask.await())
+    fun `getId does not read the ad id when the timeout is zero`() = runBlocking {
+        every { config.advertisingIdTimeoutMs } returns 0
 
         assertNull(manager.getId())
+        verify(exactly = 0) { AdvertisingIdClient.getAdvertisingIdInfo(any()) }
     }
 
     @Test
-    fun `fetchAdvertisingId completes with null gracefully when exception occurs`() = runTest {
+    fun `getId returns null gracefully when exception occurs`() = runBlocking {
         every { AdvertisingIdClient.getAdvertisingIdInfo(context) } throws IllegalStateException("Google Play Services not available")
 
-        manager.fetchAdvertisingId()
-
-        assertNull(manager.deferredTask.await())
         assertNull(manager.getId())
-
         verify(exactly = 1) { Log.w("OptableGaidManager", any<String>()) }
     }
 
-
     @Test
-    fun `deferredTask await blocks until fetchAdvertisingId completes`() = runTest {
-        val expectedAdId = "async-test-id"
-        val mockInfo = mockk<AdvertisingIdClient.Info> {
-            every { id } returns expectedAdId
-            every { isLimitAdTrackingEnabled } returns false
-        }
-        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } returns mockInfo
-
-        val testManager = GoogleAdIdManager(config)
-
-        var awaitCompleted = false
-        val awaitJob = launch {
-            testManager.deferredTask.await()
-            awaitCompleted = true
+    fun `getId stops waiting after the timeout`() = runBlocking {
+        every { config.advertisingIdTimeoutMs } returns 50
+        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } answers {
+            Thread.sleep(1_000)
+            adInfo("slow-id")
         }
 
-        advanceTimeBy(100)
-        assertEquals("await() should be suspended until fetchAdvertisingId completes", false, awaitCompleted)
+        val start = System.currentTimeMillis()
+        val id = manager.getId()
+        val elapsed = System.currentTimeMillis() - start
 
-        testManager.fetchAdvertisingId()
-
-        awaitJob.join()
-
-        assertEquals("await() should complete after fetchAdvertisingId", true, awaitCompleted)
-        assertEquals(expectedAdId, testManager.getId())
-    }
-
-    @Test
-    fun `multiple calls to deferredTask await return the same result`() = runTest {
-        val expectedAdId = "shared-id-12345"
-        val mockInfo = mockk<AdvertisingIdClient.Info> {
-            every { id } returns expectedAdId
-            every { isLimitAdTrackingEnabled } returns false
-        }
-        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } returns mockInfo
-
-        val testManager = GoogleAdIdManager(config)
-
-        val results = mutableListOf<String?>()
-        val jobs = List(5) {
-            launch {
-                val result = testManager.deferredTask.await()
-                results.add(result)
-            }
-        }
-
-        advanceTimeBy(50)
-        assertEquals("No results should be available yet", 0, results.size)
-
-        testManager.fetchAdvertisingId()
-
-        jobs.forEach { it.join() }
-
-        assertEquals(5, results.size)
-        results.forEach { result ->
-            assertEquals(expectedAdId, result)
-        }
-
-        verify(exactly = 1) { AdvertisingIdClient.getAdvertisingIdInfo(context) }
-    }
-
-
-    private fun resetCompanionState() {
-        try {
-            val adIdField = GoogleAdIdManager::class.java.getDeclaredField("adId")
-            adIdField.isAccessible = true
-            adIdField.set(null, null)
-
-            val limitField = GoogleAdIdManager::class.java.getDeclaredField("limitAdTracking")
-            limitField.isAccessible = true
-            limitField.set(null, null)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        assertNull(id)
+        assertTrue("waited $elapsed ms", elapsed < 900)
     }
 }

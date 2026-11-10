@@ -3,48 +3,43 @@ package co.optable.sdk.core
 import android.util.Log
 import co.optable.sdk.OptableConfig
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
-import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withTimeoutOrNull
 
 internal class GoogleAdIdManager(
     val config: OptableConfig,
 ) {
 
-    companion object {
-        private var adId: String? = null
-        private var limitAdTracking: Boolean? = null
-    }
+    // getAdvertisingIdInfo() blocks and can't be cancelled, so reads run here and a caller stops waiting after
+    // config.advertisingIdTimeoutMs, leaving a slow read to finish on its own.
+    private val readScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    val deferredTask = CompletableDeferred<String?>()
-
-    fun getId(): String? {
-        if (limitAdTracking == true) {
+    /**
+     * Reads the GAID for one API call. Google says not to cache it, since the user can reset it or opt out at any
+     * time, so it's read every time. Returns null when skipAdvertisingIdDetection is set, the user has opted out, or
+     * the read fails or takes longer than config.advertisingIdTimeoutMs. A timeout of zero or less means don't wait,
+     * so the GAID isn't read at all.
+     */
+    suspend fun getId(): String? {
+        if (config.skipAdvertisingIdDetection || config.advertisingIdTimeoutMs <= 0) {
             return null
         }
-        return adId
+
+        val read = readScope.async { read() }
+        return withTimeoutOrNull(config.advertisingIdTimeoutMs) {
+            read.await()
+        }
     }
 
-    suspend fun fetchAdvertisingId() {
-        if (config.skipAdvertisingIdDetection) {
-            deferredTask.complete(null)
-            return
-        }
-
-        val id = withContext(Dispatchers.IO) {
-            withTimeoutOrNull(3_000) {
-                fetch()
-            }
-        }
-        deferredTask.complete(id)
-    }
-
-    private fun fetch(): String? {
+    private fun read(): String? {
         try {
             val adInfo = AdvertisingIdClient.getAdvertisingIdInfo(config.context)
-            adId = adInfo.id
-            limitAdTracking = adInfo.isLimitAdTrackingEnabled
+            if (adInfo.isLimitAdTrackingEnabled) {
+                return null
+            }
             return adInfo.id
         } catch (exception: Exception) {
             Log.w("OptableGaidManager", "Failed to fetch advertising ID: " + exception.message)

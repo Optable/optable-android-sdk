@@ -5,8 +5,6 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -15,12 +13,10 @@ import org.robolectric.annotation.Config
 class IdentifiersEncoderTest {
 
     private lateinit var identifiersEncoder: IdentifiersEncoder
-    private lateinit var mockGoogleAdIdManager: GoogleAdIdManager
 
     @Before
     fun setUp() {
-        mockGoogleAdIdManager = mock<GoogleAdIdManager>()
-        identifiersEncoder = IdentifiersEncoder(mockGoogleAdIdManager)
+        identifiersEncoder = IdentifiersEncoder()
     }
 
     @Test
@@ -45,9 +41,10 @@ class IdentifiersEncoderTest {
 
     @Test
     fun `primary ids include device gaid`() {
-        whenever(mockGoogleAdIdManager.getId()).thenReturn("38400000-8cf0-11bd-b23e-10b96e40000d")
-
-        val ids = identifiersEncoder.encode(listOf(OptableIdentifier.IPv6("2001:db8::1")))
+        val ids = identifiersEncoder.encode(
+            listOf(OptableIdentifier.IPv6("2001:db8::1")),
+            "38400000-8cf0-11bd-b23e-10b96e40000d",
+        )
 
         assertEquals(
             listOf("g:38400000-8cf0-11bd-b23e-10b96e40000d", "i6:2001:db8::1"),
@@ -58,9 +55,7 @@ class IdentifiersEncoderTest {
     @Test
     fun `caller gaid matching device gaid is deduped for primary ids`() {
         val deviceGaid = "38400000-8cf0-11bd-b23e-10b96e40000d"
-        whenever(mockGoogleAdIdManager.getId()).thenReturn(deviceGaid)
-
-        val ids = identifiersEncoder.encode(listOf(OptableIdentifier.GoogleGaid(deviceGaid)))
+        val ids = identifiersEncoder.encode(listOf(OptableIdentifier.GoogleGaid(deviceGaid)), deviceGaid)
 
         assertEquals(listOf("g:$deviceGaid"), ids)
     }
