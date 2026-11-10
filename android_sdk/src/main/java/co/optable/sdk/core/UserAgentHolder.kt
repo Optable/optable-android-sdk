@@ -5,12 +5,12 @@ import android.webkit.WebSettings
 import co.optable.sdk.OptableConfig
 
 internal class UserAgentHolder(
-    config: OptableConfig,
+    private val config: OptableConfig,
 ) {
 
-    private val cachedUserAgent: String? = config.customUserAgent ?: defaultUserAgent(config.context)
+    private val cachedDefaultUserAgent: String? by lazy { defaultUserAgent(config.context) }
 
-    fun getUserAgent() = cachedUserAgent
+    fun getUserAgent() = config.customUserAgent ?: cachedDefaultUserAgent
 
 
     private fun defaultUserAgent(context: Context): String? {
