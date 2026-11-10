@@ -24,7 +24,10 @@ internal class LocalStorage(
     companion object {
         private const val KEY_SUBJECT_TO_GDPR = "IABTCF_gdprApplies"
         private const val KEY_GDPR_CONSENT = "IABTCF_TCString"
-        private const val KEY_GPP_CONSENT = "IABGPP_2_TCString"
+        private const val KEY_GPP_STRING = "IABGPP_HDR_GppString"
+        private const val KEY_GPP_SID = "IABGPP_GppSID"
+        // Not an IAB key, read before IABGPP_HDR_GppString was. Kept as a fallback for apps that write it.
+        private const val KEY_LEGACY_GPP_CONSENT = "IABGPP_2_TCString"
     }
 
     private val prefs = PreferenceManager.getDefaultSharedPreferences(config.context)
@@ -123,11 +126,31 @@ internal class LocalStorage(
 
     fun getGppConsent(): String? {
         try {
-            return prefs.getString(KEY_GPP_CONSENT, null)
+            return getNonBlankString(KEY_GPP_STRING) ?: getNonBlankString(KEY_LEGACY_GPP_CONSENT)
         } catch (e: Exception) {
             Log.e("OptableSDK", "Can't get GPP consent: ${e.message}")
         }
         return null
+    }
+
+    /**
+     * The CMP stores section IDs separated by underscores ("2_7"); the Edge API takes them comma-separated ("2,7").
+     * Only returned alongside the CMP's own GPP string, never with the legacy key's.
+     */
+    fun getGppSid(): String? {
+        try {
+            if (getNonBlankString(KEY_GPP_STRING) == null) {
+                return null
+            }
+            return getNonBlankString(KEY_GPP_SID)?.replace("_", ",")
+        } catch (e: Exception) {
+            Log.e("OptableSDK", "Can't get GPP SID: ${e.message}")
+        }
+        return null
+    }
+
+    private fun getNonBlankString(key: String): String? {
+        return prefs.getString(key, null)?.takeIf { it.isNotBlank() }
     }
 
     private fun generateUniqueKey(kind: String, config: OptableConfig): String {
