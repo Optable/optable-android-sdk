@@ -83,6 +83,17 @@ class GoogleAdIdManagerTest {
     }
 
     @Test
+    fun `changing skip detection applies from the next call`() = runBlocking {
+        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } returns adInfo("12345-abcde")
+
+        assertEquals("12345-abcde", manager.getId())
+        every { config.skipAdvertisingIdDetection } returns true
+        assertNull(manager.getId())
+        every { config.skipAdvertisingIdDetection } returns false
+        assertEquals("12345-abcde", manager.getId())
+    }
+
+    @Test
     fun `getId does not read the ad id when the timeout is zero`() = runBlocking {
         every { config.advertisingIdTimeoutMs } returns 0
 

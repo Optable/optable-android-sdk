@@ -80,6 +80,17 @@ class OptableConfigTest {
     }
 
     @Test
+    fun `advertising ID settings should be settable after construction`() {
+        val config = OptableConfig(mockContext, "test-tenant", "test-slug")
+
+        config.skipAdvertisingIdDetection = true
+        config.advertisingIdTimeoutMs = 250L
+
+        assertTrue(config.skipAdvertisingIdDetection)
+        assertEquals(250L, config.advertisingIdTimeoutMs)
+    }
+
+    @Test
     fun `getBaseUrl should return HTTPS url when insecure is false`() {
         val config = OptableConfig(
             providedContext = mockContext,

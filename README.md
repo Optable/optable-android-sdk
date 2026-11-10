@@ -137,7 +137,8 @@ that production DCNs only listen to TLS traffic. The `insecure: true` option is 
 developers running the DCN locally for testing.
 - `apiKey` An optional API key for authentication. If the API Endpoint is enabled as private, a Service Account API key will be required.
 - `customUserAgent` An optional custom user agent string for network requests.
-- `skipAdvertisingIdDetection` Boolean flag to skip the detection of advertising IDs. Default is false.
+- `skipAdvertisingIdDetection` Boolean flag to skip the detection of advertising IDs. Default is false. Can be
+changed at any time, for example when the user grants or withdraws consent, and applies from the next call.
 - `consents` Optional `OptableConsents` object for providing custom consent information. If not provided, default values will be used.
 - `origin` An optional value for the HTTP `Origin` header sent with Optable API requests. Unrelated to `originSlug`.
 - `cacheTtl` The time to live, in seconds, of the targeting data cached by the `targeting` API. Default
