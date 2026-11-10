@@ -18,7 +18,7 @@ import org.json.JSONObject
  * Manages SharedPreferences for Optable SDK.
  */
 internal class LocalStorage(
-    config: OptableConfig,
+    private val config: OptableConfig,
 ) {
 
     companion object {
@@ -31,7 +31,7 @@ internal class LocalStorage(
     private val passportKey = generateUniqueKey("PASS", config)
     private val targetingKey = generateUniqueKey("TGT", config)
     private val targetingTimestampKey = generateUniqueKey("TGT_TS", config)
-    private val targetingCacheTtlMs = config.cacheTtl.coerceAtMost(Long.MAX_VALUE / 1000) * 1000L
+    private val targetingCacheTtlMs get() = config.cacheTtl.coerceAtMost(Long.MAX_VALUE / 1000) * 1000L
     private val id5SignatureKey = generateUniqueKey("ID5SIG", config)
 
     fun getPassport(): String? {

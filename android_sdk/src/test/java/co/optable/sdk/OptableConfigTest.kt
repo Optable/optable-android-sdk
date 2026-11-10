@@ -77,6 +77,26 @@ class OptableConfigTest {
     }
 
     @Test
+    fun `optional properties should be settable after construction`() {
+        val config = OptableConfig(mockContext, "test-tenant", "test-slug")
+
+        config.host = "custom.host.com"
+        config.path = "v3"
+        config.insecure = true
+        config.apiKey = "test-api-key"
+        config.customUserAgent = "TestAgent/1.0"
+        config.cacheTtl = 60L
+
+        assertEquals("custom.host.com", config.host)
+        assertEquals("v3", config.path)
+        assertTrue(config.insecure)
+        assertEquals("test-api-key", config.apiKey)
+        assertEquals("TestAgent/1.0", config.customUserAgent)
+        assertEquals(60L, config.cacheTtl)
+        assertEquals("http://custom.host.com/v3/", config.getBaseUrl())
+    }
+
+    @Test
     fun `getBaseUrl should return HTTPS url when insecure is false`() {
         val config = OptableConfig(
             providedContext = mockContext,

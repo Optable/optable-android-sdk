@@ -200,12 +200,19 @@ val config = OptableConfig(
 )
 ```
 
-`origin` can also be set after the config has been created, which is the convenient form from Java:
+`origin`, and every other optional parameter, can also be set after the config has been created, which is the
+convenient form from Java:
 
 ```java
 OptableConfig config = new OptableConfig(this, "prebidtest", "android-sdk");
 config.setOrigin("https://www.acmeco.com");
+config.setApiKey(API_KEY);
+config.setCacheTtl(60 * 60L);
+optable = new OptableSDK(config);
 ```
+
+`host`, `path`, `insecure` and `consents` are read when the `OptableSDK` instance is created, so set them before
+creating it (use `setConsents()` to change consents afterwards). The other parameters apply from the next call.
 
 ### OptableIdentifier
 
