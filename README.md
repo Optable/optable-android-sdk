@@ -180,24 +180,27 @@ val config = OptableConfig(
 )
 ```
 
-By default, the SDK reads the Google Advertising ID (GAID) from `AdvertisingIdClient` in a background coroutine as
-soon as the `OptableSDK` instance is created, and adds it as a `g:` identifier to every `identify` and `targeting`
-call. It is not added to `profile` or `witness` calls. An `identify` or `targeting` call made before the SDK has
-finished reading the GAID waits up to 3 seconds for it; if the GAID isn't available by then, the call is sent without
-it. The GAID is not added when the user has opted out of ads personalization ("Limit Ad Tracking", or "Delete
-advertising ID" on Android 12 and later). The GAID and the user's setting are read once per `OptableSDK` instance,
-when it is created, so a change the user makes later applies to instances created after it.
+By default, every `identify` and `targeting` call reads the Google Advertising ID (GAID) from `AdvertisingIdClient`
+in the background and adds it as a `g:` identifier. It is not added to `profile` or `witness` calls. The GAID is
+never cached, as [Google recommends](https://developer.android.com/identity/ad-id), so if the user resets it or opts
+out, the next call uses the new value. A call waits up to `advertisingIdTimeoutMs` (100 milliseconds by default) for
+the GAID; if it isn't available by then, the call is sent without it. Set `advertisingIdTimeoutMs` to zero or less to
+never wait, in which case the GAID is not added. The GAID is not added when the user has opted out of ads
+personalization ("Limit Ad Tracking", or "Delete advertising ID" on Android 12 and later).
 
 The SDK does not check consent before adding the GAID. If your app needs the user's consent before using the
-advertising ID, set the optional boolean parameter `skipAdvertisingIdDetection` to `true` until you have it. That
-instance then never reads or sends the GAID. If the user withdraws consent later, create a new instance with
-`skipAdvertisingIdDetection = true`. For example, in Kotlin:
+advertising ID, set the optional boolean parameter `skipAdvertisingIdDetection` to `true` until you have it. The SDK
+then never reads or sends the GAID. You can change it at any time, for example when the user grants or withdraws
+consent, and the change applies from the next call. For example, in Kotlin:
 
 ```kotlin
 val config = OptableConfig(
   ...
   skipAdvertisingIdDetection = true,
 )
+
+// Later, once the user has consented:
+config.skipAdvertisingIdDetection = false
 ```
 
 A GAID that you pass yourself with `OptableIdentifier.GoogleGaid` is always sent, regardless of
