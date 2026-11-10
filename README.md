@@ -164,6 +164,10 @@ You can then call various SDK APIs on the instance as shown in the examples belo
 multiple instances of `OptableSDK` in order to connect to other (e.g., partner) DCNs and/or reference other configured
 application slug IDs.
 
+The `identify`, `profile`, `targeting` and `witness` APIs run their network requests in the background and call your
+listener on the main thread, so you can update the UI from it directly. The one exception is `tryIdentifyFromUrl()`:
+when the URL has no valid `oeid`, it calls your listener immediately, on the calling thread.
+
 By default, the SDK uses the device's default WebView user agent, obtained from `WebSettings.getDefaultUserAgent()`. The
 resulting user agent string is sent to your DCN for analytics purposes. To disable this behavior, you can provide the
 optional string parameter `customUserAgent`, which allows you to set whatever user agent string you would like to send
@@ -176,15 +180,35 @@ val config = OptableConfig(
 )
 ```
 
-An optional boolean parameter `skipAdvertisingIdDetection` can be used to skip any ID info detection from
-`AdvertisingIdClient` which by default runs in a background co-routine. Disabling ad ID detection means that the SDK
-will not be able to automatically obtain the Google Advertising ID. For example, to disable ad ID detection, in Kotlin:
+By default, the SDK reads the Google Advertising ID (GAID) from `AdvertisingIdClient` in a background coroutine as
+soon as the `OptableSDK` instance is created, and adds it as a `g:` identifier to every `identify` and `targeting`
+call. It is not added to `profile` or `witness` calls. An `identify` or `targeting` call made before the SDK has
+finished reading the GAID waits up to 3 seconds for it; if the GAID isn't available by then, the call is sent without
+it. The GAID is not added when the user has opted out of ads personalization ("Limit Ad Tracking", or "Delete
+advertising ID" on Android 12 and later). The GAID and the user's setting are read once per `OptableSDK` instance,
+when it is created, so a change the user makes later applies to instances created after it.
+
+The SDK does not check consent before adding the GAID. If your app needs the user's consent before using the
+advertising ID, set the optional boolean parameter `skipAdvertisingIdDetection` to `true` until you have it. That
+instance then never reads or sends the GAID. If the user withdraws consent later, create a new instance with
+`skipAdvertisingIdDetection = true`. For example, in Kotlin:
 
 ```kotlin
 val config = OptableConfig(
   ...
   skipAdvertisingIdDetection = true,
 )
+```
+
+A GAID that you pass yourself with `OptableIdentifier.GoogleGaid` is always sent, regardless of
+`skipAdvertisingIdDetection` or the user's ads personalization setting.
+
+The SDK depends on `play-services-ads-identifier`, which merges the `com.google.android.gms.permission.AD_ID`
+permission into your app's manifest. If your app must not declare it, remove it in your `AndroidManifest.xml`
+(which needs `xmlns:tools="http://schemas.android.com/tools"` on its `<manifest>` element):
+
+```xml
+<uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
 ```
 
 Finally, an optional string parameter `origin` can be used to set the value of the HTTP `Origin` header sent with every
@@ -216,6 +240,32 @@ Sensitive data such as email and phone number is hashed using SHA-256.
 
 > :warning: **Client-side email and phone hashing**: The SDK will compute the SHA-256 hash of the sensitive information on the client-side
 > and send the hashed value to the DCN. The email address and phone number is **not** sent by the device in plain text.
+
+Each identifier is sent to the DCN as a type-prefixed value, `prefix:value`, encoded as follows. "Normalized" means
+all whitespace removed and lowercased.
+
+| Identifier | Prefix | Encoding |
+|---|---|---|
+| `Email` | `e` | Normalized, then SHA-256 hashed |
+| `PhoneNumber` | `p` | Normalized, then SHA-256 hashed |
+| `Hem` | `e` | Normalized, not hashed. Dropped unless it is a SHA-256 hash (64 hex characters) |
+| `HashedPhoneNumber` | `p` | Normalized, not hashed. Dropped unless it is a SHA-256 hash (64 hex characters) |
+| `PostalCode` | `z` | Normalized |
+| `IPv4` | `i4` | Whitespace removed |
+| `IPv6` | `i6` | Normalized |
+| `AppleIdfa` | `a` | Normalized |
+| `GoogleGaid` | `g` | Normalized. Skipped if it is the same as the GAID the SDK adds automatically |
+| `RokuRida` | `r` | Normalized |
+| `SamsungTifa` | `s` | Normalized |
+| `AmazonFireAfai` | `f` | Normalized |
+| `NetId` | `n` | Whitespace removed |
+| `ID5` | `id5` | Whitespace removed |
+| `Utiq` | `utiq` | Normalized |
+| `Custom(key, value)` | `key` | Whitespace removed for key `v`, otherwise trimmed |
+| `Raw(value)` | (none) | Sent as-is. `value` must already be `prefix:value` |
+
+`Email` and `PhoneNumber` always hash their value, so passing an email or phone number that is already hashed to them
+hashes it a second time and it won't match. Use `Hem` and `HashedPhoneNumber` for already-hashed values instead.
 
 #### Kotlin
 
@@ -366,6 +416,9 @@ Additionally you can provide `id` and `neighbors` to associate the profile with 
 optable.profile(traits, "c:12", setOf("c:id1", "c:id2")) { ... }
 ```
 
+On success, `result.data` is an `OptableTargeting` parsed from the `profile` response, with the same fields as the
+[Targeting API](#targeting-api) result. Unlike `targeting`, `profile` does not cache it.
+
 ### Targeting API
 
 To get the targeting key values associated by the configured DCN with the device in real-time, you can call the
@@ -409,7 +462,16 @@ optable.targeting(ids, result -> {
 });
 ```
 
-On success, the resulting key values are typically sent as part of a subsequent ad call. Therefore we recommend that you
+On success, `result.data` is an `OptableTargeting` with the following fields:
+
+- `gamTargetingKeywords` A `Map<String, List<String>>` of key values for Google Ad Manager: for each audience in the
+response that has a `keyspace`, the keyspace mapped to the audience IDs. Apply them with
+`AdManagerAdRequest.Builder.addCustomTargeting()`, see [Integrating GAM](#integrating-google-ad-manager).
+- `openRtbJson` The response's `ortb2` object as a JSON string, to merge into an OpenRTB bid request, for example with
+Prebid SDK's `TargetingParams.setGlobalOrtbConfig()`. `null` if the response has none.
+- `targetingData` The complete response as an `org.json.JSONObject`, for reading any other fields.
+
+The resulting key values are typically sent as part of a subsequent ad call. Therefore we recommend that you
 either call `targeting()` before each ad call, or in parallel periodically, caching the resulting key values which you
 then provide in ad calls.
 
