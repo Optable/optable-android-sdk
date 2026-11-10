@@ -282,6 +282,7 @@ class OptableIdentifiersTest {
             OptableIdentifier.Raw("xyz"),
             OptableIdentifier.Raw(":abc"),
             OptableIdentifier.Raw("xyz:"),
+            OptableIdentifier.Raw("xyz:   "),
             OptableIdentifier.Raw("e:"),
             OptableIdentifier.Raw(":"),
             OptableIdentifier.Raw(""),

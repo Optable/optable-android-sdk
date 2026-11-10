@@ -137,11 +137,12 @@ internal class IdentifiersEncoder(
     }
 
     /**
-     * A raw identifier needs a non-empty type and a non-empty value separated by the first ":".
+     * A raw identifier needs a non-empty type and a value that isn't empty or whitespace-only, separated by the
+     * first ":".
      */
     private fun isWellFormedRaw(raw: String): Boolean {
         val separator = raw.indexOf(':')
-        return separator > 0 && separator < raw.length - 1
+        return separator > 0 && raw.substring(separator + 1).isNotBlank()
     }
 
     private fun MutableList<String>.addIfNotNull(key: String, value: String?, encoder: (String) -> String) {
