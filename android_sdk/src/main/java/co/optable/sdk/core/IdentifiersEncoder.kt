@@ -41,8 +41,8 @@ internal class IdentifiersEncoder(
 
         for (identifier in identifiers) {
             when (identifier) {
-                is OptableIdentifier.Email -> result.addIfNotNull(EMAIL, identifier.value, ::encrypt)
-                is OptableIdentifier.PhoneNumber -> result.addIfNotNull(PHONE, identifier.value, ::encrypt)
+                is OptableIdentifier.Email -> result.addHashed(EMAIL, identifier.value)
+                is OptableIdentifier.PhoneNumber -> result.addHashed(PHONE, identifier.value)
                 is OptableIdentifier.Hem -> result.addIfValidHash(EMAIL, identifier.value)
                 is OptableIdentifier.HashedPhoneNumber -> result.addIfValidHash(PHONE, identifier.value)
                 is OptableIdentifier.PostalCode -> result.addIfNotNull(POSTAL, identifier.value, ::normalize)
@@ -79,12 +79,27 @@ internal class IdentifiersEncoder(
         return result
     }
 
+    /**
+     * Adds the encoded value, skipping it when it is empty after encoding, so "key:" is never sent.
+     */
     private fun MutableList<String>.addIfNotNull(key: String, value: String?, encoder: (String) -> String) {
         if (value == null) return
 
         val encodedValue = encoder(value)
+        if (encodedValue.isEmpty()) return
+
         val result = "$key:$encodedValue"
         this.add(result)
+    }
+
+    /**
+     * Adds the SHA-256 hash of the normalized value, skipping it when the normalized value is empty,
+     * so the hash of an empty string is never sent as if it were an ID.
+     */
+    private fun MutableList<String>.addHashed(key: String, value: String?) {
+        if (value == null || normalize(value).isEmpty()) return
+
+        this.add("$key:${encrypt(value)}")
     }
 
     /**

@@ -212,6 +212,32 @@ class OptableIdentifiersTest {
     }
 
     @Test
+    fun `drop identifiers that are empty after normalization`() {
+        val ids = listOf(
+            OptableIdentifier.Email(""),
+            OptableIdentifier.Email("   "),
+            OptableIdentifier.PhoneNumber(" "),
+            OptableIdentifier.PostalCode("   "),
+            OptableIdentifier.IPv4(" "),
+            OptableIdentifier.IPv6(" "),
+            OptableIdentifier.AppleIdfa(" "),
+            OptableIdentifier.GoogleGaid(" "),
+            OptableIdentifier.RokuRida(" "),
+            OptableIdentifier.SamsungTifa(" "),
+            OptableIdentifier.AmazonFireAfai(" "),
+            OptableIdentifier.NetId(" "),
+            OptableIdentifier.ID5(" "),
+            OptableIdentifier.Utiq(" "),
+            OptableIdentifier.Custom("v", " "),
+            OptableIdentifier.Custom("c2", ""),
+            OptableIdentifier.Hem(" "),
+            OptableIdentifier.HashedPhoneNumber(""),
+        )
+        val actual = identifiersEncoder.encode(ids)
+        assertEquals(emptyList<String>(), actual)
+    }
+
+    @Test
     fun `encode raw`() {
         val ids = listOf(
             OptableIdentifier.Raw("raw:alreadyEncoded"),
