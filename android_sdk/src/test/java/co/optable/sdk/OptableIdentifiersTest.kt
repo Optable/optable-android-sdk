@@ -238,6 +238,35 @@ class OptableIdentifiersTest {
     }
 
     @Test
+    fun `drop all-zero device advertising IDs`() {
+        val zeros = "00000000-0000-0000-0000-000000000000"
+        val ids = listOf(
+            OptableIdentifier.AppleIdfa(zeros),
+            OptableIdentifier.GoogleGaid(zeros),
+            OptableIdentifier.RokuRida(zeros),
+            OptableIdentifier.SamsungTifa(" $zeros "),
+            OptableIdentifier.AmazonFireAfai(zeros.replace("-", "")),
+        )
+        val actual = identifiersEncoder.encode(ids)
+        assertEquals(emptyList<String>(), actual)
+    }
+
+    @Test
+    fun `drop an all-zero device GAID`() {
+        every { mockGoogleAdIdManager.getId() } returns "00000000-0000-0000-0000-000000000000"
+
+        val actual = identifiersEncoder.encode(emptyList())
+        assertEquals(emptyList<String>(), actual)
+    }
+
+    @Test
+    fun `keep device advertising IDs that only contain some zeros`() {
+        val id = "00000000-0000-0000-0000-000000000001"
+        val actual = identifiersEncoder.encode(listOf(OptableIdentifier.AppleIdfa(id)))
+        assertEquals(listOf("a:$id"), actual)
+    }
+
+    @Test
     fun `encode raw`() {
         val ids = listOf(
             OptableIdentifier.Raw("raw:alreadyEncoded"),

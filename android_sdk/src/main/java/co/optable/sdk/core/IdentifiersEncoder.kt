@@ -36,7 +36,7 @@ internal class IdentifiersEncoder(
 
         val googleAdId = googleAdIdManager.getId()
         if (googleAdId != null) {
-            result.addIfNotNull(GAID, googleAdId, ::normalize)
+            result.addIfNotNull(GAID, googleAdId, ::normalizeDeviceId)
         }
 
         for (identifier in identifiers) {
@@ -48,10 +48,10 @@ internal class IdentifiersEncoder(
                 is OptableIdentifier.PostalCode -> result.addIfNotNull(POSTAL, identifier.value, ::normalize)
                 is OptableIdentifier.IPv4 -> result.addIfNotNull(IPV4, identifier.value, ::removeWhitespaces)
                 is OptableIdentifier.IPv6 -> result.addIfNotNull(IPV6, identifier.value, ::normalize)
-                is OptableIdentifier.AppleIdfa -> result.addIfNotNull(IDFA, identifier.value, ::normalize)
-                is OptableIdentifier.RokuRida -> result.addIfNotNull(RIDA, identifier.value, ::normalize)
-                is OptableIdentifier.SamsungTifa -> result.addIfNotNull(TIFA, identifier.value, ::normalize)
-                is OptableIdentifier.AmazonFireAfai -> result.addIfNotNull(AFAI, identifier.value, ::normalize)
+                is OptableIdentifier.AppleIdfa -> result.addIfNotNull(IDFA, identifier.value, ::normalizeDeviceId)
+                is OptableIdentifier.RokuRida -> result.addIfNotNull(RIDA, identifier.value, ::normalizeDeviceId)
+                is OptableIdentifier.SamsungTifa -> result.addIfNotNull(TIFA, identifier.value, ::normalizeDeviceId)
+                is OptableIdentifier.AmazonFireAfai -> result.addIfNotNull(AFAI, identifier.value, ::normalizeDeviceId)
                 is OptableIdentifier.NetId -> result.addIfNotNull(NETID, identifier.value, ::removeWhitespaces)
                 is OptableIdentifier.ID5 -> result.addIfNotNull(ID5, identifier.value, ::removeWhitespaces)
                 is OptableIdentifier.Utiq -> result.addIfNotNull(UTIQ, identifier.value, ::normalize)
@@ -60,7 +60,7 @@ internal class IdentifiersEncoder(
                     if (normalize(googleAdId ?: "") == normalize(identifier.value)) {
                         continue
                     }
-                    result.addIfNotNull(GAID, identifier.value, ::normalize)
+                    result.addIfNotNull(GAID, identifier.value, ::normalizeDeviceId)
                 }
 
                 is OptableIdentifier.Custom -> {
@@ -149,6 +149,16 @@ internal class IdentifiersEncoder(
         val encryptedBytes = MessageDigest.getInstance("SHA-256").digest(normalizedBytes)
         val encryptedValue = encryptedBytes.joinToString("") { "%02x".format(it) }
         return encryptedValue
+    }
+
+    /**
+     * Normalizes a device advertising ID like [normalize], returning an empty string (so it is dropped) for an
+     * all-zero ID such as "00000000-0000-0000-0000-000000000000": the placeholder Android and iOS return when the
+     * user has opted out or tracking isn't authorized, shared by every such device.
+     */
+    private fun normalizeDeviceId(value: String): String {
+        val normalized = normalize(value)
+        return if (normalized.all { it == '0' || it == '-' }) "" else normalized
     }
 
     /**
