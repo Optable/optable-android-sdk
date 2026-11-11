@@ -4,6 +4,10 @@ plugins {
     id("org.jetbrains.kotlinx.kover") version "0.9.4"
 }
 
+// JitPack builds releases from their tag and sets VERSION to it.
+def jitpackVersion = System.getenv("JITPACK") == "true" ? System.getenv("VERSION")?.replaceFirst(/^v/, "") : null
+def sdkVersionName = jitpackVersion ==~ /\d+\.\d+\.\d+(-.+)?/ ? jitpackVersion : optableVersionName
+
 android {
     compileSdk 35
 
@@ -13,14 +17,14 @@ android {
         targetSdkVersion 35
 
         versionCode optableVersionCode as Integer
-        versionName optableVersionName
+        versionName sdkVersionName
         archivesBaseName = "optable-android-sdk"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
 
         buildConfigField "String", "VERSION_CODE", "\"${optableVersionCode}\""
-        buildConfigField "String", "VERSION_NAME", "\"${optableVersionName}\""
+        buildConfigField "String", "VERSION_NAME", "\"${sdkVersionName}\""
     }
 
     buildTypes {
