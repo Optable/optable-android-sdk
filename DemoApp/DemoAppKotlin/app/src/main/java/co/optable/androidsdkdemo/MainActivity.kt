@@ -55,6 +55,7 @@ class MainActivity : AppCompatActivity() {
             setOf(
                 R.id.navigation_identify,
                 R.id.navigation_gambanner,
+                R.id.navigation_prebid,
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)

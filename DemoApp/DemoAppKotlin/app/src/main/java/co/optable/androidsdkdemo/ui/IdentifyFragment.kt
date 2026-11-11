@@ -1,7 +1,6 @@
 package co.optable.androidsdkdemo.ui
 
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +9,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import co.optable.androidsdkdemo.R
 import co.optable.androidsdkdemo.TheApplication
 import co.optable.sdk.OptableIdentifier
@@ -61,7 +61,7 @@ class IdentifyFragment : Fragment() {
 
 
     private fun checkVisitorId() {
-        val sfx = "na.edge.optable.co/prebidtest/js-sdk"
+        val sfx = "na.edge.optable.co/prebidtest/android-sdk"
         val visitorKey = "OPTABLE_PASS_" + Base64.encodeToString(sfx.toByteArray(StandardCharsets.UTF_8), 0)
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())

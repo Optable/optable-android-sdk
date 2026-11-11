@@ -22,4 +22,4 @@
 <!-- Tradeoffs, edge cases, migration steps, follow-ups -->
 
 - [ ] Breaking change
-- [ ] Requires release <!-- a vX.Y.Z tag should be published after merge -->
+- [ ] Requires release <!-- a vX.Y.Z tag should be published after merge, with optableVersionName (and optableVersionCode) in gradle.properties already bumped to match -->

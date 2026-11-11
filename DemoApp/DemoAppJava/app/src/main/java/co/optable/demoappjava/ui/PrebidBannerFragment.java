@@ -18,7 +18,6 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.admanager.AdManagerAdRequest;
 import com.google.android.gms.ads.admanager.AdManagerAdView;
-import com.google.common.collect.Lists;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.prebid.mobile.BannerAdUnit;
@@ -64,7 +63,7 @@ public class PrebidBannerFragment extends Fragment {
     private void onClickLoadAd() {
         statusTextView.setText("");
 
-        ArrayList<OptableIdentifier.Email> ids = Lists.newArrayList(
+        List<OptableIdentifier> ids = Arrays.asList(
                 new OptableIdentifier.Email("test@test.com")
         );
         optable.targeting(ids, optableResult -> {
@@ -127,7 +126,7 @@ public class PrebidBannerFragment extends Fragment {
     private void onClickCachedBanner() {
         OptableTargeting targeting = optable.targetingFromCache();
         if (targeting != null) {
-            changeStatusText("Targeting success");
+            changeStatusText("Targeting from cache success");
             appendStatusText("GAM targeting keywords: " + targeting.getGamTargetingKeywords());
             appendStatusText("OpenRTB JSON: " + targeting.getOpenRtbJson());
             appendStatusText("Targeting data: " + targeting.getTargetingData());
@@ -155,8 +154,10 @@ public class PrebidBannerFragment extends Fragment {
         }
 
         String openRtbJson = optableResult.getOpenRtbJson();
-        if (openRtbJson != null) {
+        if (openRtbJson != null && !openRtbJson.trim().isEmpty()) {
             TargetingParams.setGlobalOrtbConfig(openRtbJson);
+        } else {
+            TargetingParams.setGlobalOrtbConfig(null);
         }
     }
 
@@ -193,7 +194,7 @@ public class PrebidBannerFragment extends Fragment {
         eventProperties.put("exampleKey2", 123);
         eventProperties.put("exampleKey3", false);
 
-        optable.witness("GAMBannerFragment.loadAdButtonClicked", eventProperties, result -> {
+        optable.witness("PrebidBannerFragment.loadAdButtonClicked", eventProperties, result -> {
             if (result instanceof OptableResult.Success) {
                 appendStatusText("Witness Success");
             } else if (result instanceof OptableResult.Error<Unit> error) {

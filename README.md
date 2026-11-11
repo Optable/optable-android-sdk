@@ -1,10 +1,11 @@
-# Optable Android SDK [![](https://jitci.com/gh/Optable/optable-android-sdk/svg)](https://jitci.com/gh/Optable/optable-android-sdk)
+# Optable Android SDK [![JitPack](https://jitpack.io/v/Optable/optable-android-sdk.svg)](https://jitpack.io/#Optable/optable-android-sdk)
 
 Kotlin SDK for integrating with an [Optable Data Connectivity Node (DCN)](https://docs.optable.co) from an Android
 application.
 
 ## Contents
 
+- [Requirements](#requirements)
 - [Installing](#installing)
 - [Using](#using)
     - [Identify API](#identify-api)
@@ -17,31 +18,66 @@ application.
 - [Demo Applications](#demo-applications)
     - [Building](#building)
 
+## Requirements
+
+- Android 6.0 (API level 23) or later: the SDK's `minSdk` is 23.
+- `compileSdk` 34 or later and Android Gradle Plugin 8.1.1 or later, as required by the SDK's AndroidX dependencies.
+- JDK 17 or later to build your app: the SDK is compiled to Java 17 bytecode.
+- Kotlin apps: Kotlin 2.0 or later, since the SDK's dependencies bring in `kotlin-stdlib` 2.1.
+- The `android.permission.INTERNET` permission in your app's `AndroidManifest.xml`. The SDK doesn't declare it, so
+  your app must:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
 ## Installing
 
 This SDK is published using [JitPack](https://jitpack.io/), so you need to add the repository to your application build.
-Add the following in your root `build.gradle` at the end of `repositories`:
+Add it to the `dependencyResolutionManagement` block of your `settings.gradle`:
 
-```kotlin
-allprojects {
+```groovy
+dependencyResolutionManagement {
     repositories {
-        ...
-        maven {
-            url 'https://jitpack.io'
-        }
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 }
 ```
 
-Then add the dependency to the SDK in your app `build.gradle`:
+Or, in `settings.gradle.kts`:
 
 ```kotlin
-dependencies {
-    implementation 'com.github.Optable:optable-android-sdk:VERSION_TAG'
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
 }
 ```
 
-Replace `VERSION_TAG` with the latest or desired [SDK release](https://github.com/Optable/optable-android-sdk/releases).
+Projects that still declare repositories in the root `build.gradle` can add the same `maven` line to
+`allprojects { repositories { ... } }` instead.
+
+Then add the dependency to the SDK in your app `build.gradle`:
+
+```groovy
+dependencies {
+    implementation 'com.github.Optable:optable-android-sdk:v1.2.0'
+}
+```
+
+Or, in `build.gradle.kts`:
+
+```kotlin
+dependencies {
+    implementation("com.github.Optable:optable-android-sdk:v1.2.0")
+}
+```
+
+Replace `v1.2.0` with the latest or desired [SDK release](https://github.com/Optable/optable-android-sdk/releases).
 
 ## Using
 
@@ -112,7 +148,7 @@ val config = OptableConfig(
     providedContext = this,
     tenant = "prebidtest",
     originSlug = "js-sdk",
-    host = "ca.edge.optable.co",
+    host = "na.edge.optable.co",
     path = "v2",
     insecure = false,
     apiKey = API_KEY,
@@ -128,9 +164,9 @@ You can then call various SDK APIs on the instance as shown in the examples belo
 multiple instances of `OptableSDK` in order to connect to other (e.g., partner) DCNs and/or reference other configured
 application slug IDs.
 
-By default, the SDK detects the application user agent by sniffing `settings.userAgentString` from a `WebView`. The
-resulting user agent string is sent to your DCN for analytics purposes. To disable this behavior, you can provide an
-optional fifth string parameter `customUserAgent`, which allows you to set whatever user agent string you would like to send
+By default, the SDK uses the device's default WebView user agent, obtained from `WebSettings.getDefaultUserAgent()`. The
+resulting user agent string is sent to your DCN for analytics purposes. To disable this behavior, you can provide the
+optional string parameter `customUserAgent`, which allows you to set whatever user agent string you would like to send
 instead. For example, in Kotlin:
 
 ```kotlin
@@ -171,10 +207,10 @@ OptableConfig config = new OptableConfig(this, "prebidtest", "android-sdk");
 config.setOrigin("https://www.acmeco.com");
 ```
 
-### OptableIdentifiers
+### OptableIdentifier
 
-There are many fields to identify the users. You can provide any user information using `OptableIdentifiers` class. 
-Sensitive data as email and phone number encrypted using SHA256. 
+There are many fields to identify the users. You can provide any user information using the `OptableIdentifier` class. 
+Sensitive data such as email and phone number is hashed using SHA-256. 
 
 **NOTE**: You don't need to provide all fields. Only the fields that you have are required.
 
@@ -211,7 +247,7 @@ val ids = listOf(
 #### Java
 
 ```java
-ArrayList<OptableIdentifier> ids = Lists.newArrayList(
+List<OptableIdentifier> ids = Arrays.asList(
   new OptableIdentifier.Email("john.doe+test@example.com"),
   new OptableIdentifier.PhoneNumber("+1(555)1234567"),
   // Already hashed? Pass it directly, it will not be hashed again:
@@ -259,7 +295,7 @@ optable.identify(ids) { result ->
 #### Java
 
 ```java
-ArrayList<OptableIdentifier> ids = Lists.newArrayList(
+List<OptableIdentifier> ids = Arrays.asList(
     new OptableIdentifier.Email("john.doe+test@example.com"),
     new OptableIdentifier.PhoneNumber("+1(555)1234567")
 );
@@ -314,7 +350,7 @@ traits.put("hasAccount", true);
 optable.profile(traits, result -> {
     if (result instanceof OptableResult.Success) {
         Log.d(TAG, "Profile success");
-    } else if (result instanceof OptableResult.Error<Unit> error) {
+    } else if (result instanceof OptableResult.Error<OptableTargeting> error) {
         Log.d(TAG, "Profile error: " + error.getMessage());
     }
 });
@@ -346,10 +382,8 @@ optable.targeting(ids) { result ->
 
     when (result) {
         is OptableResult.Success<OptableTargeting> -> {
-            val audiences = result.data.audiences
-            if (audiences != null) {
-                // Apply 
-            }
+            val audiences = result.data.gamTargetingKeywords
+            // Apply
         }
 
         is OptableResult.Error<OptableTargeting> -> {
@@ -362,19 +396,17 @@ optable.targeting(ids) { result ->
 #### Java
 
 ```java
-ArrayList<OptableIdentifier> ids = Lists.newArrayList(
+List<OptableIdentifier> ids = Arrays.asList(
         new OptableIdentifier.Email("test@test.com")
-)
+);
 optable.targeting(ids, result -> {
     if (result instanceof OptableResult.Success<OptableTargeting> success) {
-        Map<String, List<String>> audiences = success.getData().getAudiences();
-        if (audiences != null) {
-            // Apply
-        }
+        Map<String, List<String>> audiences = success.getData().getGamTargetingKeywords();
+        // Apply
     } else if (result instanceof OptableResult.Error<OptableTargeting> error) {
         Log.d(TAG, "Targeting error: " + error.getMessage());
     }
-})    
+});
 ```
 
 On success, the resulting key values are typically sent as part of a subsequent ad call. Therefore we recommend that you
@@ -425,7 +457,7 @@ optable.targeting(ids, hids) { result ->
 ##### Java
 
 ```java
-ArrayList<OptableIdentifier> hids = Lists.newArrayList(
+List<OptableIdentifier> hids = Arrays.asList(
         new OptableIdentifier.IPv6("2001:0db8:5b96:0000:0000:426f:8e17:642a"),
         new OptableIdentifier.PhoneNumber("+1(555)1234567"),
         new OptableIdentifier.Email("user@example.com"),
@@ -546,7 +578,7 @@ a [Google Ad Manager](https://admanager.google.com/home/) ad server account:
 private lateinit var optable: OptableSDK
 
 private fun onClickLoadAd() {
-  val ids = OptableIdentifiers(email = "test@test.com")
+  val ids = listOf(OptableIdentifier.Email("test@test.com"))
   optable.targeting(ids) { result ->
     val requestBuilder = AdManagerAdRequest.Builder()
 
@@ -567,11 +599,8 @@ private fun onClickLoadAd() {
 private fun applyOptableToGam(builder: AdManagerAdRequest.Builder, targeting: OptableTargeting?) {
   if (targeting == null) return
 
-  val audiences = targeting.gamTargetingKeywords
-  if (audiences != null) {
-    for (entry in audiences.entries) {
-      builder.addCustomTargeting(entry.key, entry.value)
-    }
+  for (entry in targeting.gamTargetingKeywords.entries) {
+    builder.addCustomTargeting(entry.key, entry.value)
   }
 }
 ```
@@ -582,7 +611,7 @@ private fun applyOptableToGam(builder: AdManagerAdRequest.Builder, targeting: Op
     private AdManagerAdView mAdView;
 
     private void onClickLoadAd() {
-      OptableIdentifiers ids = new OptableIdentifiers.Builder().email("test@test.com").build();
+      List<OptableIdentifier> ids = Arrays.asList(new OptableIdentifier.Email("test@test.com"));
       optable.targeting(ids, result -> {
         AdManagerAdRequest.Builder requestBuilder = new AdManagerAdRequest.Builder();
     
@@ -598,11 +627,8 @@ private fun applyOptableToGam(builder: AdManagerAdRequest.Builder, targeting: Op
     private void applyOptableToGam(AdManagerAdRequest.Builder builder, @Nullable OptableTargeting targeting) {
       if (targeting == null) return;
     
-      Map<String, List<String>> audiences = targeting.getGamTargetingKeywords();
-      if (audiences != null) {
-        for (Map.Entry<String, List<String>> entry : audiences.entrySet()) {
-          builder.addCustomTargeting(entry.getKey(), entry.getValue());
-        }
+      for (Map.Entry<String, List<String>> entry : targeting.getGamTargetingKeywords().entrySet()) {
+        builder.addCustomTargeting(entry.getKey(), entry.getValue());
       }
     }
 ```
@@ -676,7 +702,7 @@ val consents = OptableConsents(
   gdprConsent = "consent-string",   // IAB TCF consent string
   gpp = "gpp-string",               // IAB GPP string
   gppSid = "1,2",                   // GPP section IDs (comma-separated)
-  req = "gdpr",                     // Regulatory framework to apply (e.g., "gdpr")
+  reg = "gdpr",                     // Regulatory framework to apply (e.g., "gdpr")
 )
 
 optable.setConsents(consents)
@@ -689,12 +715,19 @@ If not set, SDK will try to fetch data from SharedPreferences (key `IABTCF_gdprA
 - `gdprConsent` TCF EU v2 consent string. If not set, SDK will try to fetch data from SharedPreferences (key `IABTCF_TCString`), as stated in
 [standard](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20CMP%20API%20v2.md#in-app-details).
 - `gpp`  GPP privacy string.
-If not set, SDK will try to fetch data from SharedPreferences (key `IABGPP_2_TCString`), as stated in
-[standard](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20CMP%20API%20v2.md#in-app-details)
+If not set, SDK will try to fetch data from SharedPreferences (key `IABGPP_HDR_GppString`), as stated in
+[standard](https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform/blob/main/Core/CMP%20API%20Specification.md)
 - `gppSid`  A comma-separated list of up to two sections applicable in a given GPP privacy string. This value is required when gpp is present.
+If not set and `gpp` is read from SharedPreferences key `IABGPP_HDR_GppString`, SDK will also read key `IABGPP_GppSID`, as stated in
+[standard](https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform/blob/main/Core/CMP%20API%20Specification.md)
 - `req` Optable privacy regulation override, which can be one of: `gdpr`, `can`, `us`, or `null` and will override all other privacy regulations when present.
 
-**NOTE**: The custom values provided to the `OptableConfig` will override all other privacy regulations when present.
+You can also pass the consents when creating the SDK, with the `consents` parameter of `OptableConfig`. A
+later call to `setConsents()` replaces them as a whole: a value not set in the new `OptableConsents` is no longer sent,
+unless it is found in SharedPreferences.
+
+**NOTE**: The custom values provided to `OptableConfig` or `setConsents()` take precedence over the values found in
+SharedPreferences.
 
 ## Demo Applications
 
@@ -702,17 +735,19 @@ The Kotlin and Java demo applications show a working example of the APIs, as wel
 an integration with the [Google Ad Manager](https://admanager.google.com/home/) ad server, enabling the targeting of
 ads served by GAM to audiences activated in the [Optable](https://optable.co/) DCN.
 
-By default, the demo applications will connect to the [Optable](https://optable.co/) demo DCN at `sandbox.optable.co`and
-reference application slug `android-sdk-demo`. The demo apps depend on
-the [GAM Mobile Ads SDK for Android](https://developers.google.com/ad-manager/mobile-ads-sdk/android/quick-start) and
-load ads from a GAM account operated by [Optable](https://optable.co/).
+The demo applications connect to an [Optable](https://optable.co/) demo DCN, tenant `prebidtest`, with the source
+slug `android-sdk`. They also show an integration with the
+[Prebid Mobile SDK](https://docs.prebid.org/prebid-mobile/pbm-api/android/code-integration-android.html). The demo apps
+depend on the [GAM Mobile Ads SDK for Android](https://developers.google.com/ad-manager/mobile-ads-sdk/android/quick-start)
+and load ads from a GAM account operated by [Optable](https://optable.co/).
 
 ### Building
 
 To build the Kotlin demo app, from [Android Studio](https://developer.android.com/studio), navigate to `File > Open` and
 open the `DemoApp/DemoAppKotlin` directory. To build the Java demo app, open the `DemoApp/DemoAppJava` directory. In
-both cases, you should be able to build and run the resulting project directly, since it will automatically download the
-`co.optable.android_sdk` library from the [JitPack](https://jitpack.io/) Maven repository.
+both cases, you should be able to build and run the resulting project directly. By default, the demo apps build the SDK
+from the source in this repository (`useReleaseSdk=false` in the demo's `gradle.properties`). Set `useReleaseSdk=true` to
+use a published release from [JitPack](https://jitpack.io/) instead.
 
 ### Development
 

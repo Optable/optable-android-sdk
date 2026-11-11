@@ -15,20 +15,21 @@ import kotlinx.coroutines.*
 
 /**
  *  OptableSDK provides an API that is used by an Android app developer integrating with an
- *  Optable Sandbox.
+ *  Optable Data Connectivity Node (DCN).
  *
- *  An instance of OptableSDK refers to an Optable Sandbox specified by the caller via config provided to the constructor.
- *  The `context` is required in order for the SDK to build a WebView for receiving the user agent and SharedPreferences.
+ *  An instance of OptableSDK refers to an Optable DCN specified by the caller via config provided to the constructor.
+ *  The `context` in the config is used to read the Google Advertising ID, the default user agent, SharedPreferences
+ *  and the app's package information.
  *
  *  It is possible to create multiple instances of OptableSDK, should the developer want to
- *  integrate with multiple Sandboxes.
+ *  integrate with multiple DCNs.
  */
 class OptableSDK(
     private val config: OptableConfig,
 ) {
 
     private val storage = LocalStorage(config)
-    private val consentsManager = ConsentsManager(storage)
+    private val consentsManager = ConsentsManager(storage, config.consents)
     private val googleAdIdManager = GoogleAdIdManager(config)
     private val userAgentHolder = UserAgentHolder(config)
     private val appInfoHolder = AppInfoHolder(config)
@@ -46,7 +47,7 @@ class OptableSDK(
     }
 
     /**
-     * Calls the Optable Sandbox "identify" API, passing it the list of IDs,
+     * Calls the Optable DCN "identify" API, passing it the list of IDs,
      * a list of type-prefixed identifiers.
      */
     fun identify(ids: List<OptableIdentifier>, listener: OptableResultListener<Unit>) {
@@ -71,9 +72,9 @@ class OptableSDK(
     }
 
     /**
-     * tryIdentifyFromURI(uri) is a helper that attempts to find a valid-looking "oeid"
-     * parameter in the specified uri's query string parameters and, if found, calls
-     * this.identify(listOf(oeid)).
+     * tryIdentifyFromUrl(url) is a helper that attempts to find a valid-looking "oeid"
+     * parameter in the specified url's query string parameters and, if found, calls
+     * this.identify() with it.
      *
      * The use for this is when handling incoming app universal/deep links which might
      * contain an "oeid" value with the SHA256(downcase(email)) of an incoming user, such
@@ -91,7 +92,7 @@ class OptableSDK(
     }
 
     /**
-     * Calls the Optable Sandbox "profile" API to associate the
+     * Calls the Optable DCN "profile" API to associate the
      * specified key-value traits, which can be subsequently used for
      * audience assembly.
      *
@@ -128,27 +129,27 @@ class OptableSDK(
     }
 
     /**
-     * Calls the Optable Sandbox "targeting" API, which returns the key-value targeting
+     * Calls the Optable DCN "targeting" API, which returns the key-value targeting
      * data matching the user/device/app and part of the OpenRTB code snippet.
      * @see OptableTargeting
      *
      * This type accepts multiple optional identifier values. When EIDs are generated, each supported
      * identifier is encoded according to its identifier type (for example, some values are normalized,
-     * whitespace-stripped, or encrypted). Additional identifiers may be supplied through the `Raw` or `Custom` type.
+     * whitespace-stripped, or hashed). Additional identifiers may be supplied through the `Raw` or `Custom` type.
      */
     fun targeting(ids: List<OptableIdentifier>, listener: OptableResultListener<OptableTargeting>) {
         targeting(ids, emptyList(), listener)
     }
 
     /**
-     * Calls the Optable Sandbox "targeting" API, which returns the key-value targeting
+     * Calls the Optable DCN "targeting" API, which returns the key-value targeting
      * data matching the user/device/app and part of the OpenRTB code snippet,
      * additionally forwarding [hids] (hint identifiers) for third-party identity resolvers.
      * @see OptableTargeting
      *
      * This type accepts multiple optional identifier values. When EIDs are generated, each supported
      * identifier is encoded according to its identifier type (for example, some values are normalized,
-     * whitespace-stripped, or encrypted). Additional identifiers may be supplied through the `Raw` or `Custom` type.
+     * whitespace-stripped, or hashed). Additional identifiers may be supplied through the `Raw` or `Custom` type.
      */
     fun targeting(
         ids: List<OptableIdentifier>,
@@ -205,7 +206,7 @@ class OptableSDK(
     }
 
     /**
-     * Calls the Optable Sandbox "witness" API to log a
+     * Calls the Optable DCN "witness" API to log a
      * specified 'event' (e.g., "app.screenView", "ui.buttonPressed"), with the specified key-value
      * 'properties', which can be subsequently used for audience assembly.
      */

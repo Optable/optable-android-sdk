@@ -103,7 +103,7 @@ internal class IdentifiersEncoder(
     /**
      * Returns a type-prefixed ID based on the query string
      * oeid=sha256value parameters in the specified uri, if one is found.
-     * Otherwise, it returns an empty string.
+     * Otherwise, it returns null.
      *
      * The use for this is when handling incoming deep links which might contain an "oeid" value
      * with the SHA256(downcase(email)) of a user, such as encoded links in newsletter Emails
