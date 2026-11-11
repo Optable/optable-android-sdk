@@ -183,10 +183,11 @@ val config = OptableConfig(
 By default, every `identify` and `targeting` call reads the Google Advertising ID (GAID) from `AdvertisingIdClient`
 in the background and adds it as a `g:` identifier. It is not added to `profile` or `witness` calls. The GAID is
 never cached, as [Google recommends](https://developer.android.com/identity/ad-id), so if the user resets it or opts
-out, the next call uses the new value. A call waits up to `advertisingIdTimeoutMs` (100 milliseconds by default) for
-the GAID; if it isn't available by then, the call is sent without it. Set `advertisingIdTimeoutMs` to zero or less to
-never wait, in which case the GAID is not added. The GAID is not added when the user has opted out of ads
-personalization ("Limit Ad Tracking", or "Delete advertising ID" on Android 12 and later).
+out, the next call uses the new value. A call waits up to `advertisingIdTimeoutMs` (100 milliseconds by default, 1
+millisecond at least) for the GAID; if it isn't available by then, the call is sent without it. Expect reading the
+GAID to take tens of milliseconds, depending on the device, so a much lower value means most calls are sent without
+it. The GAID is not added when the user has opted out of ads personalization ("Limit Ad Tracking", or "Delete
+advertising ID" on Android 12 and later), or when `skipAdvertisingIdDetection` is set (see below).
 
 The SDK does not check consent before adding the GAID. If your app needs the user's consent before using the
 advertising ID, set the optional boolean parameter `skipAdvertisingIdDetection` to `true` until you have it. The SDK
