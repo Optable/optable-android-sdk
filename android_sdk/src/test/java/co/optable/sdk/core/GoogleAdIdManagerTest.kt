@@ -94,11 +94,13 @@ class GoogleAdIdManagerTest {
     }
 
     @Test
-    fun `getId does not read the ad id when the timeout is zero`() = runBlocking {
+    fun `getId still reads the ad id when the timeout is below the minimum`() = runBlocking {
         every { config.advertisingIdTimeoutMs } returns 0
+        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } returns adInfo("12345-abcde")
 
-        assertNull(manager.getId())
-        verify(exactly = 0) { AdvertisingIdClient.getAdvertisingIdInfo(any()) }
+        manager.getId()
+
+        verify(timeout = 1_000, exactly = 1) { AdvertisingIdClient.getAdvertisingIdInfo(context) }
     }
 
     @Test

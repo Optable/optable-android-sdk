@@ -13,23 +13,27 @@ internal class GoogleAdIdManager(
     val config: OptableConfig,
 ) {
 
+    companion object {
+        const val MIN_TIMEOUT_MS = 1L
+    }
+
     // getAdvertisingIdInfo() blocks and can't be cancelled, so reads run here and a caller stops waiting after
-    // config.advertisingIdTimeoutMs, leaving a slow read to finish on its own.
+    // config.advertisingIdTimeoutMs (at least MIN_TIMEOUT_MS), leaving a slow read to finish on its own.
     private val readScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /**
      * Reads the GAID for one API call. Google says not to cache it, since the user can reset it or opt out at any
      * time, so it's read every time. Returns null when skipAdvertisingIdDetection is set, the user has opted out, or
-     * the read fails or takes longer than config.advertisingIdTimeoutMs. A timeout of zero or less means don't wait,
-     * so the GAID isn't read at all.
+     * the read fails or takes longer than config.advertisingIdTimeoutMs, which is raised to MIN_TIMEOUT_MS when lower:
+     * a read always takes some time, so without a wait no GAID could ever be added.
      */
     suspend fun getId(): String? {
-        if (config.skipAdvertisingIdDetection || config.advertisingIdTimeoutMs <= 0) {
+        if (config.skipAdvertisingIdDetection) {
             return null
         }
 
         val read = readScope.async { read() }
-        return withTimeoutOrNull(config.advertisingIdTimeoutMs) {
+        return withTimeoutOrNull(config.advertisingIdTimeoutMs.coerceAtLeast(MIN_TIMEOUT_MS)) {
             read.await()
         }
     }

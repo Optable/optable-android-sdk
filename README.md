@@ -144,8 +144,9 @@ changed at any time, for example when the user grants or withdraws consent, and 
 - `cacheTtl` The time to live, in seconds, of the targeting data cached by the `targeting` API. Default
 value is 24 hours. See [Caching Targeting Data](#caching-targeting-data).
 - `advertisingIdTimeoutMs` How long, in milliseconds, an `identify` or `targeting` call waits for the Google Advertising
-ID before it is sent without it. Default value is 100. Zero or less means don't wait, so the Google Advertising ID is
-never added automatically.
+ID before it is sent without it. Default value is 100, and the minimum is 1: a smaller value waits 1 millisecond.
+Expect reading the Google Advertising ID to take tens of milliseconds, depending on the device, so a much lower value
+means most calls are sent without it. To never add the Google Advertising ID, use `skipAdvertisingIdDetection`.
 
 ```kotlin
 val config = OptableConfig(
