@@ -223,6 +223,84 @@ class OptableIdentifiersTest {
     }
 
     @Test
+    fun `encode raw with a known type like its typed identifier`() {
+        val ids = listOf(
+            OptableIdentifier.Raw("i4: 8.8.8.8 "),
+            OptableIdentifier.Raw("i6:2001:DB8::1"),
+            OptableIdentifier.Raw("z: AB 12"),
+            OptableIdentifier.Raw("v: vid value "),
+            OptableIdentifier.Raw("id5: ID5 Value "),
+        )
+        val actual = identifiersEncoder.encode(ids)
+        val expected = listOf("i4:8.8.8.8", "i6:2001:db8::1", "z:ab12", "v:vidvalue", "id5:ID5Value")
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `encode raw custom types`() {
+        val ids = listOf(
+            OptableIdentifier.Raw("c: abc "),
+            OptableIdentifier.Raw("c3: abc "),
+            OptableIdentifier.Raw("c0:zero"),
+            OptableIdentifier.Raw("c-2:negative"),
+        )
+        val actual = identifiersEncoder.encode(ids)
+        val expected = listOf("c:abc", "c3:abc", "c:zero", "c2:negative")
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `encode raw email and phone only when they are already hashed`() {
+        val hash = "da146c4d301ce4a9bf01c8384a5b2f8966b3ed853adf1ee08746be5703ebeebf"
+        val ids = listOf(
+            OptableIdentifier.Raw("e:jane@example.com"),
+            OptableIdentifier.Raw("p:+15551234567"),
+            OptableIdentifier.Raw("e: ${hash.uppercase()} "),
+            OptableIdentifier.Raw("p:$hash"),
+        )
+        val actual = identifiersEncoder.encode(ids)
+        val expected = listOf("e:$hash", "p:$hash")
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `encode raw with an unknown type as given`() {
+        val ids = listOf(
+            OptableIdentifier.Raw("xyz:Some Value"),
+            OptableIdentifier.Raw("xyz:a:b"),
+            OptableIdentifier.Raw("cookie:abc"),
+            OptableIdentifier.Raw("E:Upper Case Type"),
+        )
+        val actual = identifiersEncoder.encode(ids)
+        val expected = listOf("xyz:Some Value", "xyz:a:b", "cookie:abc", "E:Upper Case Type")
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `drop malformed raw identifiers`() {
+        val ids = listOf(
+            OptableIdentifier.Raw("xyz"),
+            OptableIdentifier.Raw(":abc"),
+            OptableIdentifier.Raw("  :abc"),
+            OptableIdentifier.Raw("xyz:"),
+            OptableIdentifier.Raw("xyz:   "),
+            OptableIdentifier.Raw("e:"),
+            OptableIdentifier.Raw(":"),
+            OptableIdentifier.Raw(""),
+        )
+        val actual = identifiersEncoder.encode(ids)
+        assertEquals(emptyList<String>(), actual)
+    }
+
+    @Test
+    fun `raw gaid matching the device gaid is deduped`() {
+        every { mockGoogleAdIdManager.getId() } returns "sameId"
+
+        val actual = identifiersEncoder.encode(listOf(OptableIdentifier.Raw("g:SAMEID")))
+        assertEquals(listOf("g:sameid"), actual)
+    }
+
+    @Test
     fun `custom gaid`() {
         every { mockGoogleAdIdManager.getId() } returns null
 
