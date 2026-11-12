@@ -237,8 +237,9 @@ val ids = listOf(
   OptableIdentifier.NetId("netid123"),
   OptableIdentifier.ID5("id5token"),
   OptableIdentifier.Utiq("utiqvalue"),
-  OptableIdentifier.Custom("v", "vidvalue"),
-  OptableIdentifier.Custom("c1", "custom one"),
+  OptableIdentifier.OptableVID("vidvalue"),
+  OptableIdentifier.Custom("custom"),
+  OptableIdentifier.Custom(1, "custom one"),
   OptableIdentifier.Raw("raw:alreadyEncoded"),
   OptableIdentifier.Raw("ultra:someRawValue")
 )
@@ -264,8 +265,9 @@ List<OptableIdentifier> ids = Arrays.asList(
   new OptableIdentifier.NetId("netid123"),
   new OptableIdentifier.ID5("id5token"),
   new OptableIdentifier.Utiq("utiqvalue"),
-  new OptableIdentifier.Custom("v", "vidvalue"),
-  new OptableIdentifier.Custom("c1", "custom one"),
+  new OptableIdentifier.OptableVID("vidvalue"),
+  new OptableIdentifier.Custom("custom"),
+  new OptableIdentifier.Custom(1, "custom one"),
   new OptableIdentifier.Raw("raw:alreadyEncoded"),
   new OptableIdentifier.Raw("ultra:someRawValue")
 );
@@ -439,7 +441,7 @@ val hids = listOf(
     OptableIdentifier.IPv6("2001:0db8:5b96:0000:0000:426f:8e17:642a"),
     OptableIdentifier.PhoneNumber("+1(555)1234567"),
     OptableIdentifier.Email("user@example.com"),
-    OptableIdentifier.Custom("c1", "puid-value"),
+    OptableIdentifier.Custom(1, "puid-value"),
 )
 optable.targeting(ids, hids) { result ->
     when (result) {
@@ -461,7 +463,7 @@ List<OptableIdentifier> hids = Arrays.asList(
         new OptableIdentifier.IPv6("2001:0db8:5b96:0000:0000:426f:8e17:642a"),
         new OptableIdentifier.PhoneNumber("+1(555)1234567"),
         new OptableIdentifier.Email("user@example.com"),
-        new OptableIdentifier.Custom("c1", "puid-value")
+        new OptableIdentifier.Custom(1, "puid-value")
 );
 optable.targeting(ids, hids, result -> {
     if (result instanceof OptableResult.Success<OptableTargeting> success) {
