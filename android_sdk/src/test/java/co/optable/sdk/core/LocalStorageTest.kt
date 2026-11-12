@@ -197,6 +197,20 @@ class LocalStorageTest {
     }
 
     @Test
+    fun `getTargeting should apply a TTL changed after construction`() {
+        val config = OptableConfig(mockContext, "testhost", "testtenant", "testslug")
+        val storage = LocalStorage(config)
+        val targetingKey = getPrivateKey(storage, "targetingKey")
+        every { mockSharedPreferences.getString(targetingKey, null) } returns cachedTargetingJson(storage)
+        cacheTimestamp(storage, System.currentTimeMillis() - 3 * HOUR_MS)
+        assertEquals(targeting.gamTargetingKeywords, storage.getTargeting()?.gamTargetingKeywords)
+
+        config.cacheTtl = 2 * 60 * 60L
+
+        assertNull(storage.getTargeting())
+    }
+
+    @Test
     fun `getTargeting should keep the cache valid when the configured TTL is huge`() {
         val storage = LocalStorage(
             OptableConfig(mockContext, "testhost", "testtenant", "testslug", cacheTtl = Long.MAX_VALUE)
