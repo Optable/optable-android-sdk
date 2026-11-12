@@ -43,6 +43,7 @@ class OptableConfigTest {
         assertEquals(mockApplicationContext, config.context)
         assertEquals(24 * 60 * 60L, config.cacheTtl)
         assertEquals(OptableConfig.DEFAULT_TARGETING_CACHE_TTL_SECONDS, config.cacheTtl)
+        assertEquals(100L, config.advertisingIdTimeoutMs)
     }
 
     @Test
@@ -60,7 +61,8 @@ class OptableConfigTest {
             skipAdvertisingIdDetection = true,
             consents = customConsents,
             cacheTtl = 60L,
-            origin = "https://www.optable.co"
+            origin = "https://www.optable.co",
+            advertisingIdTimeoutMs = 250L,
         )
 
         assertEquals("custom-tenant", config.tenant)
@@ -74,6 +76,18 @@ class OptableConfigTest {
         assertEquals(customConsents, config.consents)
         assertEquals("https://www.optable.co", config.origin)
         assertEquals(60L, config.cacheTtl)
+        assertEquals(250L, config.advertisingIdTimeoutMs)
+    }
+
+    @Test
+    fun `advertising ID settings should be settable after construction`() {
+        val config = OptableConfig(mockContext, "test-tenant", "test-slug")
+
+        config.skipAdvertisingIdDetection = true
+        config.advertisingIdTimeoutMs = 250L
+
+        assertTrue(config.skipAdvertisingIdDetection)
+        assertEquals(250L, config.advertisingIdTimeoutMs)
     }
 
     @Test

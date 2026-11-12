@@ -1,9 +1,6 @@
 package co.optable.sdk
 
-import co.optable.sdk.core.GoogleAdIdManager
 import co.optable.sdk.core.IdentifiersEncoder
-import io.mockk.every
-import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -13,14 +10,10 @@ import java.util.*
 class OptableIdentifiersTest {
 
     private lateinit var identifiersEncoder: IdentifiersEncoder
-    private lateinit var mockGoogleAdIdManager: GoogleAdIdManager
 
     @Before
     fun setUp() {
-        mockGoogleAdIdManager = mockk<GoogleAdIdManager>()
-        every { mockGoogleAdIdManager.getId() } returns null
-
-        identifiersEncoder = IdentifiersEncoder(mockGoogleAdIdManager)
+        identifiersEncoder = IdentifiersEncoder()
     }
 
     @Test
@@ -224,8 +217,6 @@ class OptableIdentifiersTest {
 
     @Test
     fun `custom gaid`() {
-        every { mockGoogleAdIdManager.getId() } returns null
-
         val actual = identifiersEncoder.encode(listOf(OptableIdentifier.GoogleGaid("customId")))
         val expected = listOf("g:customid")
         assertEquals(expected, actual)
@@ -233,36 +224,28 @@ class OptableIdentifiersTest {
 
     @Test
     fun `both gaids, send two`() {
-        every { mockGoogleAdIdManager.getId() } returns "managerId"
-
-        val actual = identifiersEncoder.encode(listOf(OptableIdentifier.GoogleGaid("customId")))
+        val actual = identifiersEncoder.encode(listOf(OptableIdentifier.GoogleGaid("customId")), "managerId")
         val expected = listOf("g:managerid", "g:customid")
         assertEquals(expected, actual)
     }
 
     @Test
     fun `both gaids equals, send only one`() {
-        every { mockGoogleAdIdManager.getId() } returns "sameId"
-
-        val actual = identifiersEncoder.encode(listOf(OptableIdentifier.GoogleGaid("sameid")))
+        val actual = identifiersEncoder.encode(listOf(OptableIdentifier.GoogleGaid("sameid")), "sameId")
         val expected = listOf("g:sameid")
         assertEquals(expected, actual)
     }
 
     @Test
     fun `gaid from manager`() {
-        every { mockGoogleAdIdManager.getId() } returns "managerId"
-
-        val actual = identifiersEncoder.encode(emptyList())
+        val actual = identifiersEncoder.encode(emptyList(), "managerId")
         val expected = listOf("g:managerid")
         assertEquals(expected, actual)
     }
 
     @Test
     fun `gaid from manager null`() {
-        every { mockGoogleAdIdManager.getId() } returns null
-
-        val actual = identifiersEncoder.encode(emptyList())
+        val actual = identifiersEncoder.encode(emptyList(), null)
         assertEquals(emptyList<String>(), actual)
     }
 
