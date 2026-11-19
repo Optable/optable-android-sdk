@@ -194,20 +194,33 @@ class OptableIdentifiersTest {
     }
 
     @Test
-    fun `encode custom vid`() {
+    fun `encode optable vid`() {
         val vid = "  vid value  "
-        val ids = listOf(OptableIdentifier.Custom("v", vid))
+        val ids = listOf(OptableIdentifier.OptableVID(vid))
         val actual = identifiersEncoder.encode(ids)
         val expected = listOf("v:${removeWhitespaces(vid)}")
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `encode custom nonVid`() {
+    fun `encode custom with index`() {
         val c1 = "  custom one  "
-        val ids = listOf(OptableIdentifier.Custom("c1", c1))
+        val ids = listOf(OptableIdentifier.Custom(1, c1))
         val actual = identifiersEncoder.encode(ids)
         val expected = listOf("c1:${c1.trim()}")
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `encode custom without index, with index 0 and with a negative index`() {
+        val ids = listOf(
+            OptableIdentifier.Custom("plain"),
+            OptableIdentifier.Custom(null, "null index"),
+            OptableIdentifier.Custom(0, "zero index"),
+            OptableIdentifier.Custom(-3, "negative index"),
+        )
+        val actual = identifiersEncoder.encode(ids)
+        val expected = listOf("c:plain", "c:null index", "c:zero index", "c3:negative index")
         assertEquals(expected, actual)
     }
 
@@ -301,8 +314,8 @@ class OptableIdentifiersTest {
             OptableIdentifier.NetId(netId),
             OptableIdentifier.ID5(id5),
             OptableIdentifier.Utiq(utiq),
-            OptableIdentifier.Custom("v", vid),
-            OptableIdentifier.Custom("c1", c1),
+            OptableIdentifier.OptableVID(vid),
+            OptableIdentifier.Custom(1, c1),
             OptableIdentifier.Raw(raw1),
             OptableIdentifier.Raw(raw2)
         )
@@ -348,8 +361,8 @@ class OptableIdentifiersTest {
             OptableIdentifier.NetId(" net id  123 "),
             OptableIdentifier.ID5(" id5   token "),
             OptableIdentifier.Utiq(" UTIQ  VALUE "),
-            OptableIdentifier.Custom("v", "  vid value  "),
-            OptableIdentifier.Custom("c1", "  custom one  "),
+            OptableIdentifier.OptableVID("  vid value  "),
+            OptableIdentifier.Custom(1, "  custom one  "),
             OptableIdentifier.Raw("raw:alreadyEncoded"),
             OptableIdentifier.Raw("x:someRawValue")
         )

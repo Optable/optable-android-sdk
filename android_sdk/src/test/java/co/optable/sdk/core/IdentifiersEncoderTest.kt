@@ -94,17 +94,17 @@ class IdentifiersEncoderTest {
         val expected = "c:FooBarBAZ-01234#98765.!!!"
 
 
-        assertEquals(expected, encode(OptableIdentifier.Custom("c", "FooBarBAZ-01234#98765.!!!")))
-        assertEquals(expected, encode(OptableIdentifier.Custom("c", " FooBarBAZ-01234#98765.!!!")))
-        assertEquals(expected, encode(OptableIdentifier.Custom("c", "FooBarBAZ-01234#98765.!!!  ")))
-        assertEquals(expected, encode(OptableIdentifier.Custom("c", "  FooBarBAZ-01234#98765.!!!  ")))
+        assertEquals(expected, encode(OptableIdentifier.Custom("FooBarBAZ-01234#98765.!!!")))
+        assertEquals(expected, encode(OptableIdentifier.Custom(" FooBarBAZ-01234#98765.!!!")))
+        assertEquals(expected, encode(OptableIdentifier.Custom("FooBarBAZ-01234#98765.!!!  ")))
+        assertEquals(expected, encode(OptableIdentifier.Custom("  FooBarBAZ-01234#98765.!!!  ")))
     }
 
     @Test
     fun cid_isCaseSensitive() {
         val unexpected = "c:FooBarBAZ-01234#98765.!!!"
 
-        val actual = encode(OptableIdentifier.Custom("c", "foobarBAZ-01234#98765.!!!"))
+        val actual = encode(OptableIdentifier.Custom("foobarBAZ-01234#98765.!!!"))
         assertNotEquals(unexpected, actual)
     }
 
