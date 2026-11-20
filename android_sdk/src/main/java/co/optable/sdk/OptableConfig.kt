@@ -43,7 +43,7 @@ class OptableConfig @JvmOverloads constructor(
     @Volatile var customUserAgent: String? = null,
     @Volatile var skipAdvertisingIdDetection: Boolean = false,
     var consents: OptableConsents = OptableConsents(),
-    var origin: String? = null,
+    @Volatile var origin: String? = null,
     @Volatile var cacheTtl: Long = DEFAULT_TARGETING_CACHE_TTL_SECONDS,
     @Volatile var advertisingIdTimeoutMs: Long = DEFAULT_ADVERTISING_ID_TIMEOUT_MS,
 ) {
