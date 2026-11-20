@@ -4,6 +4,7 @@ import android.util.Base64
 import android.util.Log
 import co.optable.sdk.core.AppInfoHolder
 import co.optable.sdk.core.ConsentsManager
+import co.optable.sdk.core.GoogleAdIdManager
 import co.optable.sdk.core.LocalStorage
 import co.optable.sdk.core.UseCases
 import co.optable.sdk.core.UserAgentHolder
@@ -148,17 +149,22 @@ class OptableSDKTest {
     }
 
     @Test
-    fun `profile success should call listener with success`() = runTest(testDispatcher) {
+    fun `profile success should parse, store and return targeting data`() = runTest(testDispatcher) {
         val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
         val targetingJson = JsonObject()
         val expectedTargeting = mockk<OptableTargeting>()
         val traits = hashMapOf<String, Any>("age" to 30)
-        coEvery { mockNetworkClient.profile(traits, null, setOf()) } returns NetworkResponse.Success(targetingJson)
+        coEvery {
+            mockNetworkClient.profile(traits, null, emptyList(), emptyList(), any(), any(), any(), any())
+        } returns NetworkResponse.Success(targetingJson)
         every { mockUseCases.parseTargetingResponse(targetingJson) } returns expectedTargeting
+        every { mockUseCases.parseId5Signature(targetingJson) } returns "new-sig"
 
-        sdk.profile(traits, null, setOf(), listener)
+        sdk.profile(traits, listener = listener)
         advanceUntilIdle()
 
+        verify { mockStorage.setTargeting(expectedTargeting) }
+        verify { mockStorage.setId5Signature("new-sig") }
         val slot = slot<OptableResult<OptableTargeting>>()
         verify { listener.onComplete(capture(slot)) }
         assertTrue(slot.captured is OptableResult.Success)
@@ -170,15 +176,89 @@ class OptableSDKTest {
         val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
         val traits = hashMapOf<String, Any>("age" to 30)
         val errorMessage = "Profile Failure"
-        coEvery { mockNetworkClient.profile(traits, null, setOf()) } returns NetworkResponse.Error(errorMessage)
+        coEvery {
+            mockNetworkClient.profile(traits, null, emptyList(), emptyList(), any(), any(), any(), any())
+        } returns NetworkResponse.Error(errorMessage)
 
-        sdk.profile(traits, null, setOf(), listener)
+        sdk.profile(traits, listener = listener)
         advanceUntilIdle()
 
+        verify(exactly = 0) { mockStorage.setTargeting(any()) }
         val slot = slot<OptableResult<OptableTargeting>>()
         verify { listener.onComplete(capture(slot)) }
         assertTrue(slot.captured is OptableResult.Error)
         assertEquals(errorMessage, (slot.captured as OptableResult.Error).message)
+    }
+
+    @Test
+    fun `profile encodes identifiers, adds the ad id to neighbors and forwards the targeting context`() = runTest(testDispatcher) {
+        injectAppInfo(bundle = "co.optable.app", appVersion = "1.2.3", userAgent = "ua-string")
+        injectGoogleAdId("GAID-1")
+        every { mockStorage.getId5Signature() } returns "sig-xyz"
+        val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
+        val targetingJson = JsonObject()
+        val traits = hashMapOf<String, Any>("age" to 30)
+        coEvery {
+            mockNetworkClient.profile(any(), any(), any(), any(), any(), any(), any(), any())
+        } returns NetworkResponse.Success(targetingJson)
+        every { mockUseCases.parseTargetingResponse(targetingJson) } returns mockk()
+
+        sdk.profile(
+            traits,
+            OptableIdentifier.Custom(12, " id12 "),
+            listOf(OptableIdentifier.Email(" Test@Example.com "), OptableIdentifier.Hem("not-a-hash"), OptableIdentifier.Custom(1, "id1")),
+            listOf(OptableIdentifier.IPv6("2001:DB8::1")),
+            listener,
+        )
+        advanceUntilIdle()
+
+        coVerify {
+            mockNetworkClient.profile(
+                traits,
+                "c12:id12",
+                listOf(
+                    "g:gaid-1",
+                    "e:973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b",
+                    "c1:id1",
+                ),
+                listOf("g:gaid-1", "i6:2001:db8::1"),
+                "co.optable.app",
+                "1.2.3",
+                "ua-string",
+                "sig-xyz",
+            )
+        }
+    }
+
+    @Test
+    fun `profile with an id that encodes to nothing fails without calling the DCN`() = runTest(testDispatcher) {
+        val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
+
+        sdk.profile(hashMapOf<String, Any>("age" to 30), OptableIdentifier.Hem("not-a-hash"), listener = listener)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { mockNetworkClient.profile(any(), any(), any(), any(), any(), any(), any(), any()) }
+        val slot = slot<OptableResult<OptableTargeting>>()
+        verify { listener.onComplete(capture(slot)) }
+        assertTrue(slot.captured is OptableResult.Error)
+    }
+
+    @Test
+    fun `profile sends at most the maximum number of neighbors, ad id first`() = runTest(testDispatcher) {
+        injectGoogleAdId("gaid-1")
+        val listener = mockk<OptableResultListener<OptableTargeting>>(relaxed = true)
+        val neighbors = slot<List<String>>()
+        coEvery {
+            mockNetworkClient.profile(any(), any(), capture(neighbors), any(), any(), any(), any(), any())
+        } returns NetworkResponse.Error("ignored")
+
+        val ids = List(OptableSDK.MAX_PROFILE_NEIGHBORS) { OptableIdentifier.Custom(1, "id$it") }
+        sdk.profile(hashMapOf(), neighbors = ids, listener = listener)
+        advanceUntilIdle()
+
+        assertEquals(OptableSDK.MAX_PROFILE_NEIGHBORS, neighbors.captured.size)
+        assertEquals("g:gaid-1", neighbors.captured.first())
+        assertEquals("c1:id${OptableSDK.MAX_PROFILE_NEIGHBORS - 2}", neighbors.captured.last())
     }
 
     @Test
@@ -295,6 +375,13 @@ class OptableSDKTest {
         coVerify {
             mockNetworkClient.targeting(emptyList(), emptyList(), "co.optable.app", "1.2.3", "ua-string", null)
         }
+    }
+
+    private fun injectGoogleAdId(googleAdId: String?) {
+        val mockGoogleAdIdManager = mockk<GoogleAdIdManager> {
+            coEvery { getId() } returns googleAdId
+        }
+        setPrivateField(sdk, "googleAdIdManager", mockGoogleAdIdManager)
     }
 
     private fun injectAppInfo(bundle: String?, appVersion: String?, userAgent: String?) {

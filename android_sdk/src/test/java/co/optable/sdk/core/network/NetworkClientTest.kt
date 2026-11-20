@@ -84,13 +84,13 @@ class NetworkClientTest {
     @Test
     fun profile_shouldReturnSuccess_whenApiCallIsSuccessful() = runBlocking {
         val traits = hashMapOf<String, Any>("key" to "value")
-        val traitsRequest = TraitsRequest.from(traits, null, setOf())
+        val traitsRequest = TraitsRequest.from(traits, null, emptyList())
         val jsonObject = JsonObject().apply { addProperty("status", "success") }
         val expectedResponse: Response<JsonObject> = Response.success(jsonObject)
 
-        `when`(mockEdgeService.profile(traitsRequest)).thenReturn(expectedResponse)
+        `when`(mockEdgeService.profile(traitsRequest, emptyList(), null, null, null, null)).thenReturn(expectedResponse)
 
-        val result = networkClient.profile(traits, null, setOf())
+        val result = networkClient.profile(traits, null, emptyList(), emptyList(), null, null, null, null)
 
         assertTrue(result is NetworkResponse.Success)
         assertEquals(jsonObject, (result as NetworkResponse.Success).result)
@@ -99,13 +99,13 @@ class NetworkClientTest {
     @Test
     fun profile_shouldReturnError_whenApiCallIsUnsuccessful() = runBlocking {
         val traits = hashMapOf<String, Any>("key" to "value")
-        val traitsRequest = TraitsRequest.from(traits, null, setOf())
+        val traitsRequest = TraitsRequest.from(traits, null, emptyList())
         val errorBody = ResponseBody.create(null, "Error")
         val expectedResponse: Response<JsonObject> = Response.error(400, errorBody)
 
-        `when`(mockEdgeService.profile(traitsRequest)).thenReturn(expectedResponse)
+        `when`(mockEdgeService.profile(traitsRequest, emptyList(), null, null, null, null)).thenReturn(expectedResponse)
 
-        val result = networkClient.profile(traits, null, setOf())
+        val result = networkClient.profile(traits, null, emptyList(), emptyList(), null, null, null, null)
 
         assertTrue(result is NetworkResponse.Error)
     }
@@ -113,15 +113,32 @@ class NetworkClientTest {
     @Test
     fun profile_shouldReturnError_whenApiCallThrowsException() = runBlocking {
         val traits = hashMapOf<String, Any>("key" to "value")
-        val traitsRequest = TraitsRequest.from(traits, null, setOf())
+        val traitsRequest = TraitsRequest.from(traits, null, emptyList())
         val exception = RuntimeException("Network error")
 
-        `when`(mockEdgeService.profile(traitsRequest)).thenThrow(exception)
+        `when`(mockEdgeService.profile(traitsRequest, emptyList(), null, null, null, null)).thenThrow(exception)
 
-        val result = networkClient.profile(traits, null, setOf())
+        val result = networkClient.profile(traits, null, emptyList(), emptyList(), null, null, null, null)
 
         assertTrue(result is NetworkResponse.Error)
         assertEquals(exception.message, (result as NetworkResponse.Error).message)
+    }
+
+    @Test
+    fun profile_shouldForwardAllParamsToEdgeService() = runBlocking {
+        val traits = hashMapOf<String, Any>("key" to "value")
+        val traitsRequest = TraitsRequest.from(traits, "c:12", listOf("e:abc"))
+        val jsonObject = JsonObject()
+        val expectedResponse: Response<JsonObject> = Response.success(jsonObject)
+        val hids = listOf("i6:2001:db8::1")
+
+        `when`(mockEdgeService.profile(traitsRequest, hids, "co.optable.app", "1.2.3", "ua-string", "sig"))
+            .thenReturn(expectedResponse)
+
+        val result = networkClient.profile(traits, "c:12", listOf("e:abc"), hids, "co.optable.app", "1.2.3", "ua-string", "sig")
+
+        assertTrue(result is NetworkResponse.Success)
+        assertEquals(jsonObject, (result as NetworkResponse.Success).result)
     }
 
     @Test

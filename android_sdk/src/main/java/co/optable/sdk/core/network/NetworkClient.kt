@@ -45,11 +45,16 @@ internal class NetworkClient(
     suspend fun profile(
         traits: Map<String, Any>,
         id: String?,
-        neighbors: Set<String>,
+        neighbors: List<String>,
+        hids: List<String>,
+        bundle: String?,
+        version: String?,
+        userAgent: String?,
+        id5Signature: String?,
     ): NetworkResponse<JsonObject> {
         return runSafe {
             val request = TraitsRequest.Companion.from(traits, id, neighbors)
-            edgeService.profile(request)
+            edgeService.profile(request, hids, bundle, version, userAgent, id5Signature)
         }
     }
 

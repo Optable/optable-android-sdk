@@ -10,6 +10,7 @@ import co.optable.sdk.core.network.NetworkClient
 import co.optable.sdk.core.network.NetworkResponse
 import co.optable.sdk.core.network.RequestInterceptor
 import co.optable.sdk.core.network.ResponseInterceptor
+import com.google.gson.JsonObject
 import kotlinx.coroutines.*
 
 
@@ -27,6 +28,11 @@ import kotlinx.coroutines.*
 class OptableSDK(
     private val config: OptableConfig,
 ) {
+
+    companion object {
+        /** The most neighbors the DCN accepts in one profile call; a call with more fails. */
+        const val MAX_PROFILE_NEIGHBORS = 64
+    }
 
     private val storage = LocalStorage(config)
     private val consentsManager = ConsentsManager(storage, config.consents)
@@ -88,35 +94,61 @@ class OptableSDK(
     /**
      * Calls the Optable DCN "profile" API to associate the
      * specified key-value traits, which can be subsequently used for
-     * audience assembly.
+     * audience assembly, and returns the targeting data for the profile.
+     *
+     * On the DCN, profile works like an identify call followed by a targeting call: [neighbors] are linked to the
+     * profile, then targeting is resolved for it. The identifiers are encoded like `identify`, the Google Advertising
+     * ID is added to [neighbors] like it is to `identify`, and the request carries the same context as `targeting`.
+     * The result is cached like `targeting`, so `targetingFromCache()` returns it.
      *
      * @param traits Contains an object composed of key / values to be associated with the profile.
      * Values must be of simple types (String, Int, Boolean, Double) or they will be stringified with `toString`.
-     * @param id The identifier that traits and neighbors will be linked to. This value takes precedence over the passport if provided.
-     * @param neighbors An array of identifiers to link to the id or passport
-     *
+     * Keys can be at most 64 characters.
+     * @param id The identifier that traits and neighbors will be linked to. This value takes precedence over the
+     * passport if provided. If it is dropped when encoded (for example an Hem that isn't a SHA-256 hash), the call fails
+     * without being sent, rather than linking the traits to the passport instead.
+     * @param neighbors Identifiers to link to the id or passport. At most [MAX_PROFILE_NEIGHBORS] are sent (the
+     * Google Advertising ID first, when added); the rest are dropped.
+     * @param hids Hint identifiers for third-party identity resolvers, as in `targeting`.
      */
     @JvmOverloads
     fun profile(
         traits: Map<String, Any>,
-        id: String? = null,
-        neighbors: Set<String> = emptySet(),
-        listener: OptableResultListener<OptableTargeting>
+        id: OptableIdentifier? = null,
+        neighbors: List<OptableIdentifier> = emptyList(),
+        hids: List<OptableIdentifier> = emptyList(),
+        listener: OptableResultListener<OptableTargeting>,
     ) {
         scope.launch {
-            val response = networkClient.profile(traits, id, neighbors)
+            val encodedId = id?.let { identifiersEncoder.encode(listOf(it)).firstOrNull() }
+            if (id != null && encodedId == null) {
+                MainScope().launch {
+                    listener.onComplete(OptableResult.Error("Profile id is not a valid ${id::class.simpleName} identifier"))
+                }
+                return@launch
+            }
+
+            val googleAdId = googleAdIdManager.getId()
+            var encodedNeighbors = identifiersEncoder.encode(neighbors, googleAdId)
+            if (encodedNeighbors.size > MAX_PROFILE_NEIGHBORS) {
+                val dropped = encodedNeighbors.size - MAX_PROFILE_NEIGHBORS
+                Log.w("OptableSDK", "Profile accepts at most $MAX_PROFILE_NEIGHBORS neighbors, dropping $dropped")
+                encodedNeighbors = encodedNeighbors.take(MAX_PROFILE_NEIGHBORS)
+            }
+            val response = networkClient.profile(
+                traits = traits,
+                id = encodedId,
+                neighbors = encodedNeighbors,
+                hids = identifiersEncoder.encode(hids, googleAdId),
+                bundle = appInfoHolder.bundle,
+                version = appInfoHolder.appVersion,
+                userAgent = userAgentHolder.getUserAgent(),
+                id5Signature = storage.getId5Signature(),
+            )
+
+            val optableResult = toTargetingResult(response)
 
             MainScope().launch {
-                val optableResult = when (response) {
-                    is NetworkResponse.Success -> {
-                        val targeting = useCases.parseTargetingResponse(response.result)
-                        OptableResult.Success(targeting)
-                    }
-
-                    is NetworkResponse.Error -> {
-                        OptableResult.Error(response.message)
-                    }
-                }
                 listener.onComplete(optableResult)
             }
         }
@@ -163,21 +195,29 @@ class OptableSDK(
                 id5Signature = storage.getId5Signature(),
             )
 
-            val optableResult = when (response) {
-                is NetworkResponse.Success -> {
-                    val targeting = useCases.parseTargetingResponse(response.result)
-                    storage.setTargeting(targeting)
-                    useCases.parseId5Signature(response.result)?.let { storage.setId5Signature(it) }
-                    OptableResult.Success(targeting)
-                }
-
-                is NetworkResponse.Error -> {
-                    OptableResult.Error(response.message)
-                }
-            }
+            val optableResult = toTargetingResult(response)
 
             MainScope().launch {
                 listener.onComplete(optableResult)
+            }
+        }
+    }
+
+    /**
+     * Parses a targeting or profile response, which have the same shape, caching the targeting data and the ID5
+     * signature on success.
+     */
+    private fun toTargetingResult(response: NetworkResponse<JsonObject>): OptableResult<OptableTargeting> {
+        return when (response) {
+            is NetworkResponse.Success -> {
+                val targeting = useCases.parseTargetingResponse(response.result)
+                storage.setTargeting(targeting)
+                useCases.parseId5Signature(response.result)?.let { storage.setId5Signature(it) }
+                OptableResult.Success(targeting)
+            }
+
+            is NetworkResponse.Error -> {
+                OptableResult.Error(response.message)
             }
         }
     }
