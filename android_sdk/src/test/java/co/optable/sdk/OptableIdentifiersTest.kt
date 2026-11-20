@@ -259,9 +259,7 @@ class OptableIdentifiersTest {
 
     @Test
     fun `drop an all-zero device GAID`() {
-        every { mockGoogleAdIdManager.getId() } returns "00000000-0000-0000-0000-000000000000"
-
-        val actual = identifiersEncoder.encode(emptyList())
+        val actual = identifiersEncoder.encode(emptyList(), "00000000-0000-0000-0000-000000000000")
         assertEquals(emptyList<String>(), actual)
     }
 
