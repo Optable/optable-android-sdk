@@ -35,16 +35,10 @@ class OptableSDK(
     private val appInfoHolder = AppInfoHolder(config)
     private val networkClient = createNetworkClient()
     private val useCases = UseCases()
-    private val identifiersEncoder = IdentifiersEncoder(googleAdIdManager)
+    private val identifiersEncoder = IdentifiersEncoder()
 
     private val ceh = CoroutineExceptionHandler { _, e -> Log.e("OptableSDK", "Internal exception: $e") }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + ceh)
-
-    init {
-        scope.launch {
-            googleAdIdManager.fetchAdvertisingId()
-        }
-    }
 
     /**
      * Calls the Optable DCN "identify" API, passing it the list of IDs,
@@ -52,8 +46,8 @@ class OptableSDK(
      */
     fun identify(ids: List<OptableIdentifier>, listener: OptableResultListener<Unit>) {
         scope.launch {
-            googleAdIdManager.deferredTask.await()
-            val encodedIds = identifiersEncoder.encode(ids)
+            val googleAdId = googleAdIdManager.getId()
+            val encodedIds = identifiersEncoder.encode(ids, googleAdId)
             val response = networkClient.identify(encodedIds)
 
             MainScope().launch {
@@ -157,9 +151,9 @@ class OptableSDK(
         listener: OptableResultListener<OptableTargeting>,
     ) {
         scope.launch {
-            googleAdIdManager.deferredTask.await()
-            val encodedIds = identifiersEncoder.encode(ids)
-            val encodedHids = identifiersEncoder.encode(hids)
+            val googleAdId = googleAdIdManager.getId()
+            val encodedIds = identifiersEncoder.encode(ids, googleAdId)
+            val encodedHids = identifiersEncoder.encode(hids, googleAdId)
             val response = networkClient.targeting(
                 ids = encodedIds,
                 hids = encodedHids,

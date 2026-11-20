@@ -137,11 +137,16 @@ that production DCNs only listen to TLS traffic. The `insecure: true` option is 
 developers running the DCN locally for testing.
 - `apiKey` An optional API key for authentication. If the API Endpoint is enabled as private, a Service Account API key will be required.
 - `customUserAgent` An optional custom user agent string for network requests.
-- `skipAdvertisingIdDetection` Boolean flag to skip the detection of advertising IDs. Default is false.
+- `skipAdvertisingIdDetection` Boolean flag to skip the detection of advertising IDs. Default is false. Can be
+changed at any time, for example when the user grants or withdraws consent, and applies from the next call.
 - `consents` Optional `OptableConsents` object for providing custom consent information. If not provided, default values will be used.
 - `origin` An optional value for the HTTP `Origin` header sent with Optable API requests. Unrelated to `originSlug`.
 - `cacheTtl` The time to live, in seconds, of the targeting data cached by the `targeting` API. Default
 value is 24 hours. See [Caching Targeting Data](#caching-targeting-data).
+- `advertisingIdTimeoutMs` How long, in milliseconds, an `identify` or `targeting` call waits for the Google Advertising
+ID before it is sent without it. Default value is 100, and the minimum is 1: a smaller value waits 1 millisecond.
+Expect reading the Google Advertising ID to take tens of milliseconds, depending on the device, so a much lower value
+means most calls are sent without it. To never add the Google Advertising ID, use `skipAdvertisingIdDetection`.
 
 ```kotlin
 val config = OptableConfig(
@@ -157,6 +162,7 @@ val config = OptableConfig(
     consents = OptableConsents(),
     origin = "https://www.acmeco.com",
     cacheTtl = 24 * 60 * 60L,
+    advertisingIdTimeoutMs = 100L,
 )
 ```
 

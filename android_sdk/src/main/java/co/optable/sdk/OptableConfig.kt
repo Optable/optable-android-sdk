@@ -14,11 +14,17 @@ import android.content.Context
  * @param apiKey An optional API key for authentication. If the API Endpoint is enabled as private, a Service Account API key will be required.
  * @param customUserAgent An optional custom user agent string for network requests.
  * @param skipAdvertisingIdDetection Boolean flag to skip the detection of advertising IDs. Default is false.
+ *   Settable at any time, for example when the user grants or withdraws consent; applies from the next call.
  * @param consents Optional `OptableConsents` object for providing custom consent information. If not provided, default values will be used.
  * @param origin An optional value for the HTTP `Origin` header sent with Optable API requests. Unrelated to `originSlug`.
  *   Settable after construction, which is how Java callers set it without passing every preceding parameter.
  * @param cacheTtl The targeting cache time to live in seconds. Default value is 24 hours.
  * A value of zero or less disables the cache.
+ * @param advertisingIdTimeoutMs How long, in milliseconds, an `identify` or `targeting` call waits for the Google
+ *   Advertising ID before it is sent without it. Default value is 100. The minimum is 1: a smaller value waits 1 ms.
+ *   Expect reading the Advertising ID to take tens of milliseconds, depending on the device, so a much lower value
+ *   means most calls are sent without it. There is no setting that waits forever; to never add the Advertising ID,
+ *   use `skipAdvertisingIdDetection`. Settable after construction, like `origin`.
  */
 class OptableConfig @JvmOverloads constructor(
     providedContext: Context,
@@ -29,14 +35,16 @@ class OptableConfig @JvmOverloads constructor(
     internal val insecure: Boolean = false,
     internal val apiKey: String? = null,
     internal val customUserAgent: String? = null,
-    internal val skipAdvertisingIdDetection: Boolean = false,
+    @Volatile var skipAdvertisingIdDetection: Boolean = false,
     var consents: OptableConsents = OptableConsents(),
     var origin: String? = null,
     internal val cacheTtl: Long = DEFAULT_TARGETING_CACHE_TTL_SECONDS,
+    @Volatile var advertisingIdTimeoutMs: Long = DEFAULT_ADVERTISING_ID_TIMEOUT_MS,
 ) {
 
     companion object {
         const val DEFAULT_TARGETING_CACHE_TTL_SECONDS: Long = 24 * 60 * 60L
+        const val DEFAULT_ADVERTISING_ID_TIMEOUT_MS: Long = 100L
     }
 
     internal val context = providedContext.applicationContext

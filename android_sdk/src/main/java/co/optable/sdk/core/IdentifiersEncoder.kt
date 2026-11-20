@@ -10,9 +10,7 @@ import kotlin.math.abs
 /**
  * Utility object responsible for encoding raw identifiers into Optable EIDs.
  */
-internal class IdentifiersEncoder(
-    private val googleAdIdManager: GoogleAdIdManager,
-) {
+internal class IdentifiersEncoder {
 
     companion object {
         private const val EMAIL = "e"
@@ -33,10 +31,12 @@ internal class IdentifiersEncoder(
     }
 
 
-    fun encode(identifiers: List<OptableIdentifier>): List<String> {
+    /**
+     * @param googleAdId The device's GAID, added first when not null.
+     */
+    fun encode(identifiers: List<OptableIdentifier>, googleAdId: String? = null): List<String> {
         val result = mutableListOf<String>()
 
-        val googleAdId = googleAdIdManager.getId()
         if (googleAdId != null) {
             result.addIfNotNull(GAID, googleAdId, ::normalize)
         }
