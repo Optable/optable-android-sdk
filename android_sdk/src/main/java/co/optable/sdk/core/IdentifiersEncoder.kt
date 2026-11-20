@@ -42,42 +42,105 @@ internal class IdentifiersEncoder {
         }
 
         for (identifier in identifiers) {
-            when (identifier) {
-                is OptableIdentifier.Email -> result.addIfNotNull(EMAIL, identifier.value, ::encrypt)
-                is OptableIdentifier.PhoneNumber -> result.addIfNotNull(PHONE, identifier.value, ::encrypt)
-                is OptableIdentifier.Hem -> result.addIfValidHash(EMAIL, identifier.value)
-                is OptableIdentifier.HashedPhoneNumber -> result.addIfValidHash(PHONE, identifier.value)
-                is OptableIdentifier.PostalCode -> result.addIfNotNull(POSTAL, identifier.value, ::normalize)
-                is OptableIdentifier.IPv4 -> result.addIfNotNull(IPV4, identifier.value, ::removeWhitespaces)
-                is OptableIdentifier.IPv6 -> result.addIfNotNull(IPV6, identifier.value, ::normalize)
-                is OptableIdentifier.AppleIdfa -> result.addIfNotNull(IDFA, identifier.value, ::normalize)
-                is OptableIdentifier.RokuRida -> result.addIfNotNull(RIDA, identifier.value, ::normalize)
-                is OptableIdentifier.SamsungTifa -> result.addIfNotNull(TIFA, identifier.value, ::normalize)
-                is OptableIdentifier.AmazonFireAfai -> result.addIfNotNull(AFAI, identifier.value, ::normalize)
-                is OptableIdentifier.NetId -> result.addIfNotNull(NETID, identifier.value, ::removeWhitespaces)
-                is OptableIdentifier.ID5 -> result.addIfNotNull(ID5, identifier.value, ::removeWhitespaces)
-                is OptableIdentifier.Utiq -> result.addIfNotNull(UTIQ, identifier.value, ::normalize)
-                is OptableIdentifier.OptableVID -> result.addIfNotNull(VID, identifier.value, ::removeWhitespaces)
-
-                is OptableIdentifier.GoogleGaid -> {
-                    if (normalize(googleAdId ?: "") == normalize(identifier.value)) {
-                        continue
-                    }
-                    result.addIfNotNull(GAID, identifier.value, ::normalize)
-                }
-
-                is OptableIdentifier.Custom -> {
-                    val index = identifier.index
-                    val key = if (index == null || index == 0) CUSTOM else "$CUSTOM${abs(index)}"
-                    result.addIfNotNull(key, identifier.value, ::trim)
-                }
-
-                is OptableIdentifier.Raw -> result.add(identifier.value)
-            }
+            result.addEncoded(identifier, googleAdId)
         }
 
 
         return result
+    }
+
+    private fun MutableList<String>.addEncoded(identifier: OptableIdentifier, googleAdId: String?) {
+        when (identifier) {
+            is OptableIdentifier.Email -> addIfNotNull(EMAIL, identifier.value, ::encrypt)
+            is OptableIdentifier.PhoneNumber -> addIfNotNull(PHONE, identifier.value, ::encrypt)
+            is OptableIdentifier.Hem -> addIfValidHash(EMAIL, identifier.value)
+            is OptableIdentifier.HashedPhoneNumber -> addIfValidHash(PHONE, identifier.value)
+            is OptableIdentifier.PostalCode -> addIfNotNull(POSTAL, identifier.value, ::normalize)
+            is OptableIdentifier.IPv4 -> addIfNotNull(IPV4, identifier.value, ::removeWhitespaces)
+            is OptableIdentifier.IPv6 -> addIfNotNull(IPV6, identifier.value, ::normalize)
+            is OptableIdentifier.AppleIdfa -> addIfNotNull(IDFA, identifier.value, ::normalize)
+            is OptableIdentifier.RokuRida -> addIfNotNull(RIDA, identifier.value, ::normalize)
+            is OptableIdentifier.SamsungTifa -> addIfNotNull(TIFA, identifier.value, ::normalize)
+            is OptableIdentifier.AmazonFireAfai -> addIfNotNull(AFAI, identifier.value, ::normalize)
+            is OptableIdentifier.NetId -> addIfNotNull(NETID, identifier.value, ::removeWhitespaces)
+            is OptableIdentifier.ID5 -> addIfNotNull(ID5, identifier.value, ::removeWhitespaces)
+            is OptableIdentifier.Utiq -> addIfNotNull(UTIQ, identifier.value, ::normalize)
+            is OptableIdentifier.OptableVID -> addIfNotNull(VID, identifier.value, ::removeWhitespaces)
+
+            is OptableIdentifier.GoogleGaid -> {
+                if (normalize(googleAdId ?: "") == normalize(identifier.value)) {
+                    return
+                }
+                addIfNotNull(GAID, identifier.value, ::normalize)
+            }
+
+            is OptableIdentifier.Custom -> {
+                val index = identifier.index
+                val key = if (index == null || index == 0) CUSTOM else "$CUSTOM${abs(index)}"
+                addIfNotNull(key, identifier.value, ::trim)
+            }
+
+            is OptableIdentifier.Raw -> {
+                val known = knownIdentifierFromRaw(identifier.value)
+                if (known != null) {
+                    addEncoded(known, googleAdId)
+                } else if (isWellFormedRaw(identifier.value)) {
+                    add(identifier.value)
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns the typed identifier for a "type:value" string with a known type, so that it is encoded exactly like
+     * that type. "e" and "p" map to Hem and HashedPhoneNumber, so a plaintext Email or Phone number is dropped rather
+     * than sent. Custom types are "c" and "c<number>". Returns null for an unknown type, or when the type or value is
+     * empty. Matches the iOS SDK's OptableIdentifier(extendedIdentifier:).
+     */
+    private fun knownIdentifierFromRaw(raw: String): OptableIdentifier? {
+        if (!isWellFormedRaw(raw)) return null
+
+        val type = raw.substringBefore(':')
+        val value = raw.substringAfter(':')
+        return when (type) {
+            EMAIL -> OptableIdentifier.Hem(value)
+            PHONE -> OptableIdentifier.HashedPhoneNumber(value)
+            POSTAL -> OptableIdentifier.PostalCode(value)
+            IPV4 -> OptableIdentifier.IPv4(value)
+            IPV6 -> OptableIdentifier.IPv6(value)
+            IDFA -> OptableIdentifier.AppleIdfa(value)
+            GAID -> OptableIdentifier.GoogleGaid(value)
+            RIDA -> OptableIdentifier.RokuRida(value)
+            TIFA -> OptableIdentifier.SamsungTifa(value)
+            AFAI -> OptableIdentifier.AmazonFireAfai(value)
+            NETID -> OptableIdentifier.NetId(value)
+            ID5 -> OptableIdentifier.ID5(value)
+            UTIQ -> OptableIdentifier.Utiq(value)
+            VID -> OptableIdentifier.OptableVID(value)
+            else -> customIndex(type)?.let { OptableIdentifier.Custom(it, value) }
+        }
+    }
+
+    /**
+     * Returns the Custom index for "c" (null) or "c<number>", or null for any other type. Custom encodes the index,
+     * so "c0" is sent as "c" and a negative number uses its absolute value.
+     */
+    private fun customIndex(type: String): Int? {
+        if (!type.startsWith(CUSTOM)) return null
+
+        val suffix = type.removePrefix(CUSTOM)
+        if (suffix.isEmpty()) return 0
+
+        return suffix.toIntOrNull()
+    }
+
+    /**
+     * A raw identifier needs a type and a value, separated by the first ":", that are neither empty nor
+     * whitespace-only.
+     */
+    private fun isWellFormedRaw(raw: String): Boolean {
+        val separator = raw.indexOf(':')
+        return separator > 0 && raw.substring(0, separator).isNotBlank() && raw.substring(separator + 1).isNotBlank()
     }
 
     private fun MutableList<String>.addIfNotNull(key: String, value: String?, encoder: (String) -> String) {
