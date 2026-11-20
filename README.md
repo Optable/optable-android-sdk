@@ -281,6 +281,12 @@ all whitespace removed and lowercased.
 | `Custom(key, value)` | `key` | Whitespace removed for key `v`, otherwise trimmed |
 | `Raw(value)` | (none) | Sent as-is. `value` must already be `prefix:value` |
 
+An identifier whose value is empty once encoded (for example `Email("  ")`) is dropped, not sent with an empty value or
+as the hash of an empty string. So is an all-zero device ID (`AppleIdfa`, `GoogleGaid`, `RokuRida`, `SamsungTifa`,
+`AmazonFireAfai`, or the GAID the SDK adds), such as `00000000-0000-0000-0000-000000000000`: it is the placeholder a
+device reports when the user has opted out of ad tracking, so every opted-out device shares it. An ID with only some
+zeros is sent as usual.
+
 `Email` and `PhoneNumber` always hash their value, so passing an email or phone number that is already hashed to them
 hashes it a second time and it won't match. Use `Hem` and `HashedPhoneNumber` for already-hashed values instead.
 
