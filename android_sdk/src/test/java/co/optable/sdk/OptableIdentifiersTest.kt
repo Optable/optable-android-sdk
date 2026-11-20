@@ -300,9 +300,7 @@ class OptableIdentifiersTest {
 
     @Test
     fun `raw gaid matching the device gaid is deduped`() {
-        every { mockGoogleAdIdManager.getId() } returns "sameId"
-
-        val actual = identifiersEncoder.encode(listOf(OptableIdentifier.Raw("g:SAMEID")))
+        val actual = identifiersEncoder.encode(listOf(OptableIdentifier.Raw("g:SAMEID")), "sameId")
         assertEquals(listOf("g:sameid"), actual)
     }
 
