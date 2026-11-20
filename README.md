@@ -279,10 +279,17 @@ all whitespace removed and lowercased.
 | `ID5` | `id5` | Whitespace removed |
 | `Utiq` | `utiq` | Normalized |
 | `Custom(key, value)` | `key` | Whitespace removed for key `v`, otherwise trimmed |
-| `Raw(value)` | (none) | Sent as-is. `value` must already be `prefix:value` |
+| `Raw(value)` | from `value` | `value` is `type:value`, split on the first `:`. See below |
 
 `Email` and `PhoneNumber` always hash their value, so passing an email or phone number that is already hashed to them
 hashes it a second time and it won't match. Use `Hem` and `HashedPhoneNumber` for already-hashed values instead.
+
+`Raw` is for values that are already in `type:value` form. A known type is encoded exactly like its typed identifier
+above: `e:` and `p:` must already be SHA-256 hashes, like `Hem` and `HashedPhoneNumber`, so a plaintext email or phone
+number is dropped rather than sent; `v:` is an `OptableVID`, and `c:` or `c1:`..`cN:` a `Custom`. A type the SDK
+doesn't know is sent as given. A `Raw` with no `:`, or an empty or whitespace-only type or value, is dropped. The DCN
+rejects a whole `identify` or `profile` call when one of its identifiers has a type it doesn't recognize, so only use
+types your DCN supports.
 
 #### Kotlin
 
@@ -307,8 +314,8 @@ val ids = listOf(
   OptableIdentifier.OptableVID("vidvalue"),
   OptableIdentifier.Custom("custom"),
   OptableIdentifier.Custom(1, "custom one"),
-  OptableIdentifier.Raw("raw:alreadyEncoded"),
-  OptableIdentifier.Raw("ultra:someRawValue")
+  OptableIdentifier.Raw("c2:alreadyEncoded"),
+  OptableIdentifier.Raw("n:someNetId")
 )
 ```
 
@@ -335,8 +342,8 @@ List<OptableIdentifier> ids = Arrays.asList(
   new OptableIdentifier.OptableVID("vidvalue"),
   new OptableIdentifier.Custom("custom"),
   new OptableIdentifier.Custom(1, "custom one"),
-  new OptableIdentifier.Raw("raw:alreadyEncoded"),
-  new OptableIdentifier.Raw("ultra:someRawValue")
+  new OptableIdentifier.Raw("c2:alreadyEncoded"),
+  new OptableIdentifier.Raw("n:someNetId")
 );
 ```
 
