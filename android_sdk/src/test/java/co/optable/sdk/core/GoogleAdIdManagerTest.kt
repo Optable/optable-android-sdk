@@ -5,6 +5,8 @@ import android.util.Log
 import co.optable.sdk.OptableConfig
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import io.mockk.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -125,5 +127,31 @@ class GoogleAdIdManagerTest {
 
         assertNull(id)
         assertTrue("waited $elapsed ms", elapsed < 900)
+    }
+
+    @Test
+    fun `calls made while a read is running share it`() = runBlocking {
+        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } answers {
+            Thread.sleep(200)
+            adInfo("12345-abcde")
+        }
+
+        val ids = List(5) { async { manager.getId() } }.awaitAll()
+
+        assertEquals(List(5) { "12345-abcde" }, ids)
+        verify(exactly = 1) { AdvertisingIdClient.getAdvertisingIdInfo(context) }
+    }
+
+    @Test
+    fun `a stuck read is not started again by later calls`() = runBlocking {
+        every { config.advertisingIdTimeoutMs } returns 20
+        every { AdvertisingIdClient.getAdvertisingIdInfo(context) } answers {
+            Thread.sleep(1_000)
+            adInfo("slow-id")
+        }
+
+        repeat(3) { assertNull(manager.getId()) }
+
+        verify(exactly = 1) { AdvertisingIdClient.getAdvertisingIdInfo(context) }
     }
 }

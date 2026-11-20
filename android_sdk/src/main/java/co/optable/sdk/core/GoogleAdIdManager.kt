@@ -4,6 +4,7 @@ import android.util.Log
 import co.optable.sdk.OptableConfig
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -21,18 +22,25 @@ internal class GoogleAdIdManager(
     // config.advertisingIdTimeoutMs (at least MIN_TIMEOUT_MS), leaving a slow read to finish on its own.
     private val readScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    // The read still running, if any. Calls made while it runs wait on it instead of starting another, so a slow or
+    // stuck Google Play Services ties up one thread rather than one per call.
+    private var runningRead: Deferred<String?>? = null
+
     /**
      * Reads the GAID for one API call. Google says not to cache it, since the user can reset it or opt out at any
      * time, so it's read every time. Returns null when skipAdvertisingIdDetection is set, the user has opted out, or
      * the read fails or takes longer than config.advertisingIdTimeoutMs, which is raised to MIN_TIMEOUT_MS when lower:
-     * a read always takes some time, so without a wait no GAID could ever be added.
+     * a read always takes some time, so without a wait no GAID could ever be added. A call made while an earlier read
+     * is still running gets that read's result.
      */
     suspend fun getId(): String? {
         if (config.skipAdvertisingIdDetection) {
             return null
         }
 
-        val read = readScope.async { read() }
+        val read = synchronized(this) {
+            runningRead?.takeIf { it.isActive } ?: readScope.async { read() }.also { runningRead = it }
+        }
         return withTimeoutOrNull(config.advertisingIdTimeoutMs.coerceAtLeast(MIN_TIMEOUT_MS)) {
             read.await()
         }
