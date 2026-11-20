@@ -141,10 +141,10 @@ developers running the DCN locally for testing.
 changed at any time, for example when the user grants or withdraws consent, and applies from the next call.
 - `consents` Optional `OptableConsents` object for providing custom consent information. If not provided, default values will be used.
 - `origin` An optional value for the HTTP `Origin` header sent with Optable API requests. Unrelated to `originSlug`.
-- `cacheTtl` The time to live, in seconds, of the targeting data cached by the `targeting` API. Default
+- `cacheTtl` The time to live, in seconds, of the targeting data cached by the `targeting` and `profile` APIs. Default
 value is 24 hours. See [Caching Targeting Data](#caching-targeting-data).
-- `advertisingIdTimeoutMs` How long, in milliseconds, an `identify` or `targeting` call waits for the Google Advertising
-ID before it is sent without it. Default value is 100, and the minimum is 1: a smaller value waits 1 millisecond.
+- `advertisingIdTimeoutMs` How long, in milliseconds, an `identify`, `targeting` or `profile` call waits for the Google
+Advertising ID before it is sent without it. Default value is 100, and the minimum is 1: a smaller value waits 1 millisecond.
 Expect reading the Google Advertising ID to take tens of milliseconds, depending on the device, so a much lower value
 means most calls are sent without it. To never add the Google Advertising ID, use `skipAdvertisingIdDetection`.
 
@@ -186,10 +186,10 @@ val config = OptableConfig(
 )
 ```
 
-By default, every `identify` and `targeting` call reads the Google Advertising ID (GAID) from `AdvertisingIdClient`
-in the background and adds it as a `g:` identifier. It is not added to `profile` or `witness` calls. The GAID is
-never cached, as [Google recommends](https://developer.android.com/identity/ad-id), so if the user resets it or opts
-out, the next call uses the new value. A call waits up to `advertisingIdTimeoutMs` (100 milliseconds by default, 1
+By default, every `identify`, `targeting` and `profile` call reads the Google Advertising ID (GAID) from
+`AdvertisingIdClient` in the background and adds it as a `g:` identifier (to `neighbors`, for `profile`). It is not
+added to `witness` calls. The GAID is never cached, as [Google recommends](https://developer.android.com/identity/ad-id),
+so if the user resets it or opts out, the next call uses the new value. A call waits up to `advertisingIdTimeoutMs` (100 milliseconds by default, 1
 millisecond at least) for the GAID; if it isn't available by then, the call is sent without it. Expect reading the
 GAID to take tens of milliseconds, depending on the device, so a much lower value means most calls are sent without
 it. The GAID is not added when the user has opted out of ads personalization ("Limit Ad Tracking", or "Delete
@@ -422,14 +422,41 @@ The specified traits are associated with the user's device and can be used for m
 traits are of type `HashMap<String, Any>`, and should consist only of key-value pairs where the key is a string and the value is either a string, number, or
 boolean.
 
-Additionally you can provide `id` and `neighbors` to associate the profile with other identifiers. The `id` parameter takes precedence over the passport if provided.
+Additionally you can provide `id` and `neighbors` to associate the profile with other identifiers, and `hids` (hint
+identifiers) as in the [Targeting API](#targeting-api). They are `OptableIdentifier`s, encoded exactly as in
+`identify` (see [Identify API](#identify-api)). The `id` parameter takes precedence over the passport if provided; if
+it is dropped when encoded (for example an `Hem` that isn't a SHA-256 hash), the call fails without being sent rather
+than attaching the traits to the passport.
+
+#### Kotlin
 
 ```kotlin
-optable.profile(traits, "c:12", setOf("c:id1", "c:id2")) { ... }
+optable.profile(
+  traits,
+  OptableIdentifier.Custom("12"),
+  listOf(OptableIdentifier.Email("some.email@address.com"), OptableIdentifier.Custom(1, "id1")),
+) { ... }
 ```
 
+#### Java
+
+```java
+optable.profile(
+    traits,
+    new OptableIdentifier.Custom("12"),
+    Arrays.asList(new OptableIdentifier.Email("some.email@address.com"), new OptableIdentifier.Custom(1, "id1")),
+    result -> { ... });
+```
+
+On the DCN, `profile` works like an `identify` call followed by a `targeting` call: the `neighbors` (and the GAID) are
+linked to the profile, then targeting is resolved for the `id`, or the passport when no `id` is given. The request
+carries the same app information, user agent and ID5 signature as `targeting`. The DCN rejects the whole call when it
+has more than 64 neighbors, so at most `OptableSDK.MAX_PROFILE_NEIGHBORS` (64) are sent, the GAID first, and trait keys
+must be at most 64 characters.
+
 On success, `result.data` is an `OptableTargeting` parsed from the `profile` response, with the same fields as the
-[Targeting API](#targeting-api) result. Unlike `targeting`, `profile` does not cache it.
+[Targeting API](#targeting-api) result. Like `targeting`, `profile` caches it, so `targetingFromCache()` returns the
+result of whichever of the two calls completed last.
 
 ### Targeting API
 
@@ -502,8 +529,8 @@ hint is encoded exactly like the primary identifiers — with its Optable type p
 device's Google Advertising ID is added automatically when available. Any identifier type may be passed as a hint -
 the SDK forwards hints as-is, and which of them a resolver consumes is determined server-side.
 
-The ID5 signature is managed by the SDK: when a `targeting` response returns one, it is cached on the device and resent
-automatically on subsequent `targeting` calls to increase ID5 resolve rates and accuracy. No application code is required.
+The ID5 signature is managed by the SDK: when a `targeting` or `profile` response returns one, it is cached on the device and
+resent automatically on subsequent `targeting` and `profile` calls to increase ID5 resolve rates and accuracy. No application code is required.
 
 ##### Kotlin
 
@@ -548,7 +575,7 @@ optable.targeting(ids, hids, result -> {
 
 #### Caching Targeting Data
 
-The `targeting` API will automatically cache resulting key value data in client storage on success. You can subsequently
+The `targeting` and `profile` APIs automatically cache the resulting key value data in client storage on success. You can subsequently
 retrieve the cached key value data as follows:
 
 ##### Kotlin

@@ -12,7 +12,7 @@ data class TraitsRequest(
 ) {
 
     companion object {
-        fun from(traits: Map<String, Any>, id: String?, neighbors: Set<String>): TraitsRequest {
+        fun from(traits: Map<String, Any>, id: String?, neighbors: List<String>): TraitsRequest {
             val onlyPrimitivesMap = HashMap<String, Any>(traits.size)
             for (trait in traits) {
                 val isPrimitive =
@@ -26,7 +26,7 @@ data class TraitsRequest(
 
             return TraitsRequest(
                 id = id,
-                neighbors = if (neighbors.isEmpty()) null else neighbors.toList(),
+                neighbors = neighbors.ifEmpty { null },
                 traits = onlyPrimitivesMap
             )
         }

@@ -129,7 +129,11 @@ class GamBannerFragment : Fragment() {
             "sampleFloat" to 0.75,
         )
 
-        optable.profile(traits, "c:12", setOf("c:id1", "c:id2")) { result ->
+        optable.profile(
+            traits,
+            OptableIdentifier.Custom("12"),
+            listOf(OptableIdentifier.Custom("id1"), OptableIdentifier.Custom("id2")),
+        ) { result ->
             when (result) {
                 is OptableResult.Success<*> -> {
                     appendStatusText("Profile success")
