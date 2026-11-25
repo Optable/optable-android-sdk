@@ -98,9 +98,12 @@ internal class IdentifiersEncoder {
      * so the hash of an empty string is never sent as if it were an ID.
      */
     private fun MutableList<String>.addHashed(key: String, value: String?) {
-        if (value == null || normalize(value).isEmpty()) return
+        if (value == null) return
 
-        this.add("$key:${encrypt(value)}")
+        val normalized = normalize(value)
+        if (normalized.isEmpty()) return
+
+        this.add("$key:${encrypt(normalized)}")
     }
 
     /**
@@ -146,8 +149,7 @@ internal class IdentifiersEncoder {
      * Computes SHA-256 hash of the input string.
      */
     private fun encrypt(value: String): String {
-        val normalizedBytes = normalize(value).toByteArray(Charsets.UTF_8)
-        val encryptedBytes = MessageDigest.getInstance("SHA-256").digest(normalizedBytes)
+        val encryptedBytes = MessageDigest.getInstance("SHA-256").digest(value.toByteArray(Charsets.UTF_8))
         val encryptedValue = encryptedBytes.joinToString("") { "%02x".format(it) }
         return encryptedValue
     }
