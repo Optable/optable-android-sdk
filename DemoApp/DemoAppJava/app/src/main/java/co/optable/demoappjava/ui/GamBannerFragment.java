@@ -123,7 +123,8 @@ public class GamBannerFragment extends Fragment {
         traits.put("hasAccount", true);
         traits.put("sampleFloat", 0.75);
 
-        optable.profile(traits, "c:12", Set.of("c:id1", "c:id2"), result -> {
+        optable.profile(traits, new OptableIdentifier.Custom("12"),
+                List.of(new OptableIdentifier.Custom("id1"), new OptableIdentifier.Custom("id2")), result -> {
             if (result instanceof OptableResult.Success) {
                 appendStatusText("Profile success");
             } else if (result instanceof OptableResult.Error<OptableTargeting> error) {

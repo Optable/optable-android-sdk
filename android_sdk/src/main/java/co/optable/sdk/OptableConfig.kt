@@ -26,8 +26,8 @@ import android.content.Context
  * @param origin An optional value for the HTTP `Origin` header sent with Optable API requests. Unrelated to `originSlug`.
  * @param cacheTtl The targeting cache time to live in seconds. Default value is 24 hours.
  * A value of zero or less disables the cache.
- * @param advertisingIdTimeoutMs How long, in milliseconds, an `identify` or `targeting` call waits for the Google
- *   Advertising ID before it is sent without it. Default value is 100. The minimum is 1: a smaller value waits 1 ms.
+ * @param advertisingIdTimeoutMs How long, in milliseconds, an `identify`, `targeting` or `profile` call waits for
+ *   the Google Advertising ID before it is sent without it. Default value is 100. The minimum is 1: a smaller value waits 1 ms.
  *   Expect reading the Advertising ID to take tens of milliseconds, depending on the device, so a much lower value
  *   means most calls are sent without it. There is no setting that waits forever; to never add the Advertising ID,
  *   use `skipAdvertisingIdDetection`. Settable after construction, like `origin`.
