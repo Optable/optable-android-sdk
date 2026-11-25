@@ -278,7 +278,8 @@ all whitespace removed and lowercased.
 | `NetId` | `n` | Whitespace removed |
 | `ID5` | `id5` | Whitespace removed |
 | `Utiq` | `utiq` | Normalized |
-| `Custom(key, value)` | `key` | Whitespace removed for key `v`, otherwise trimmed |
+| `OptableVID` | `v` | Whitespace removed |
+| `Custom(index, value)` | `c`, or `c1`..`cN` | Trimmed. `c` when `index` is null or 0 (`Custom(value)` leaves it null), otherwise `c` plus the absolute value of `index` |
 | `Raw(value)` | (none) | Sent as-is. `value` must already be `prefix:value` |
 
 An identifier whose value is empty once encoded (for example `Email("  ")`) is dropped, not sent with an empty value or
@@ -807,7 +808,7 @@ If not set, SDK will try to fetch data from SharedPreferences (key `IABGPP_HDR_G
 - `gppSid`  A comma-separated list of up to two sections applicable in a given GPP privacy string. This value is required when gpp is present.
 If not set and `gpp` is read from SharedPreferences key `IABGPP_HDR_GppString`, SDK will also read key `IABGPP_GppSID`, as stated in
 [standard](https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform/blob/main/Core/CMP%20API%20Specification.md)
-- `req` Optable privacy regulation override, which can be one of: `gdpr`, `can`, `us`, or `null` and will override all other privacy regulations when present.
+- `reg` Optable privacy regulation override, which can be one of: `gdpr`, `can`, `us`, or `null` and will override all other privacy regulations when present.
 
 You can also pass the consents when creating the SDK, with the `consents` parameter of `OptableConfig`. A
 later call to `setConsents()` replaces them as a whole: a value not set in the new `OptableConsents` is no longer sent,
