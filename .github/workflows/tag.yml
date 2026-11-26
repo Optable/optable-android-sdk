@@ -20,7 +20,7 @@ jobs:
     name: Tag master
     runs-on: ubuntu-24.04
     permissions:
-      contents: write
+      contents: read
     outputs:
       version: ${{ steps.next.outputs.version }}
     steps:
@@ -30,10 +30,19 @@ jobs:
           echo "::error::Release must run on master, got ${{ github.ref }}. Re-run and pick master."
           exit 1
 
+      # The restrict-release-tags ruleset only lets bypass actors create v* tags, and GITHUB_TOKEN isn't one.
+      - name: Generate GitHub App Token
+        id: generate-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.GH_ACTION_REPO_WRITE_APP_ID }}
+          private-key: ${{ secrets.GH_ACTION_REPO_WRITE_APP_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          token: ${{ steps.generate-token.outputs.token }}
 
       - name: Compute next version
         id: next
@@ -61,6 +70,8 @@ jobs:
       - name: Create and push tag
         env:
           VERSION: ${{ steps.next.outputs.version }}
+          APP_ID: ${{ vars.GH_ACTION_REPO_WRITE_APP_ID }}
+          APP_SLUG: ${{ steps.generate-token.outputs.app-slug }}
         run: |
           set -euo pipefail
           for tag in "${VERSION}" "${VERSION#v}"; do
@@ -69,13 +80,13 @@ jobs:
               exit 1
             fi
           done
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${APP_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
           git tag -a "${VERSION}" -m "Release ${VERSION}"
           git push origin "${VERSION}"
 
   ci:
-    # Tags pushed with GITHUB_TOKEN don't trigger other workflows, so CI is called directly.
+    # Called directly so the release waits on CI; the tag push also starts its own CI run.
     name: CI
     needs: tag
     uses: ./.github/workflows/android-sdk-ci.yml
